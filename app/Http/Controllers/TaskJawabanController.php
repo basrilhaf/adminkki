@@ -6,6 +6,7 @@ use App\Services\DataService;
 use Crypt;
 use App\Models\Role;
 use App\Models\Task;
+use App\Models\TaskJawaban;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,9 +78,9 @@ class TaskJawabanController extends Controller
                     $id_hash = Crypt::encrypt($row->id_task);
 
                     $infoUrl = route('taskjawaban.infoTaskJawaban', $id_hash);
-                    $editUrl = route('task.editTask', $id_hash);
-                    $deleteUrl = route('task.deleteTask', $id_hash);
-                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-success btn-sm"><span class="fa fa-info"></span></a> ';
+                    $editUrl = route('taskjawaban.editTaskJawaban', $id_hash);
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-success btn-sm"><span class="fa fa-info"></span></a> 
+                            <a href=' . $editUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                     return $btn;
                 })
 
@@ -114,7 +115,7 @@ class TaskJawabanController extends Controller
 
             $id_task = Crypt::decrypt($id_task);
             $query = DB::table('t_task_pertanyaan AS A')->Join('t_pertanyaan AS B', 'A.pertanyaan_id', '=', 'B.id_pertanyaan')->Join('t_task_jawaban AS C', 'A.id_task_pertanyaan', '=', 'C.task_pertanyaan_id')
-                ->select('B.*', 'A.id_task_pertanyaan', 'C.jawaban')->where('A.task_id', $id_task)->orderBy('id_task_pertanyaan', 'asc');
+                ->select('B.*', 'A.id_task_pertanyaan', 'C.jawaban', 'C.id_task_jawaban')->where('A.task_id', $id_task)->orderBy('id_task_pertanyaan', 'asc');
 
             $filteredData = $query->latest()->get();
 
@@ -133,26 +134,6 @@ class TaskJawabanController extends Controller
                         $pilihanList = '<textarea class="form-control" disabled>' . $row->jawaban . '</textarea>';
                     }
 
-                    // $querypilihan = DB::table('t_task_jawaban AS A')->select('A.*')->where('A.task_pertanyaan_id', $row->id_task_pertanyaan)->get();
-
-                    // if ($row->jenis_pertanyaan != '') {
-                    //     if ($row->jenis_pertanyaan == 'F') {
-                    //         $pilihanList = '<input type="text" class="form-control" disabled value="Jawaban merupakan free text"></input>';
-                    //     } else {
-                    //         $querypilihan = DB::table('t_pertanyaan_pilihan AS A')->select('A.*')->where('A.pertanyaan_id', $row->id_pertanyaan)->get();
-                    //         $pilihanList = '';
-                    //         foreach ($querypilihan as $pilihan) {
-                    //             if ($row->jenis_pertanyaan == 'S') {
-                    //                 $pilihanList .= '<input type="radio" name="radio_pilihan" value="' . $pilihan->id_pertanyaan_pilihan . '">
-                    //                                     <label for="radio_' . $pilihan->id_pertanyaan_pilihan . '">' . $pilihan->pilihan . '</label><br>';
-                    //             } else if ($row->jenis_pertanyaan == 'M') {
-                    //                 $pilihanList .= '<input type="checkbox" id="checkbox_' . $pilihan->id_pertanyaan_pilihan . '" name="checkbox_pilihan[]" value="' . $pilihan->id_pertanyaan_pilihan . '">
-                    //                 <label for="checkbox_' . $pilihan->id_pertanyaan_pilihan . '">' . $pilihan->pilihan . '</label><br>';
-                    //             } else {
-                    //             }
-                    //         }
-                    //     }
-                    // }
 
 
                     return $pilihanList;
@@ -161,7 +142,10 @@ class TaskJawabanController extends Controller
                     return '<button title="EDIT" class="btn btn-light-warning btn-sm btn-view-detail" data-id="' . $row->id_task_pertanyaan . '"><i class="fa fa-pencil"></i></button> 
                             <button title="HAPUS" class="btn btn-danger btn-delete btn-sm" data-id="' . $row->id_task_pertanyaan . '"><i class="fa fa-trash"></i></button>';
                 })
-                ->rawColumns(['list_pilihan_field', 'view_detail'])
+                ->addColumn('view_button', function ($row) {
+                    return '<button title="EDIT" class="btn btn-light-warning btn-sm btn-view-detail-jawaban" data-id="' . $row->id_task_jawaban . '"><i class="fa fa-pencil"></i></button>';
+                })
+                ->rawColumns(['list_pilihan_field', 'view_detail', 'view_button'])
                 ->make(true);
         }
     }
@@ -188,6 +172,48 @@ class TaskJawabanController extends Controller
         return response()->json($data);
     }
 
+    public function showDetailTaskPertanyaanJawaban($id_task_jawaban)
+    {
+
+        $data = DB::table('t_task_pertanyaan AS A')
+            ->Join('t_pertanyaan AS B', 'A.pertanyaan_id', '=', 'B.id_pertanyaan')
+            ->leftJoin('t_task_jawaban AS C', 'A.id_task_pertanyaan', '=', 'C.task_pertanyaan_id')
+            ->select(
+                'A.*',
+                'B.pertanyaan',
+                'B.id_pertanyaan',
+                'B.jenis_pertanyaan',
+                'C.jawaban',
+                'C.id_task_jawaban'
+            )
+            ->where('C.id_task_jawaban', $id_task_jawaban)
+            ->first();
+
+        if (!$data) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+        return response()->json($data);
+    }
+
+    public function getPilihanPertanyaan($id_pertanyaan)
+    {
+
+        $data = DB::table('t_pertanyaan_pilihan AS A')
+            ->select(
+                'A.*'
+            )
+            ->where('A.pertanyaan_id', $id_pertanyaan)
+            ->get();
+
+        if (!$data) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+        return response()->json($data);
+    }
+
+
     public function infoTaskJawaban($id_task, Request $request)
     {
         $menu_aktif = '/task||/taskJawaban';
@@ -207,5 +233,69 @@ class TaskJawabanController extends Controller
         ];
 
         return view('task_jawaban.info-taskjawaban', $data);
+    }
+
+    public function editTaskJawaban($id_task, Request $request)
+    {
+        $menu_aktif = '/task||/taskJawaban';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+
+        $data = [
+            'menu' => 'Edit Jawaban Survey',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
+                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
+                                <li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li><li class="breadcrumb-item text-gray-700 fw-bold lh-1">Survey</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
+                                <li class="breadcrumb-item text-gray-700">Jawaban Survey</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
+                                <li class="breadcrumb-item text-gray-700">Edit Jawaban Survey</li>
+                            </ul>',
+            'id_task' => $id_task
+        ];
+
+        return view('task_jawaban.edit-taskjawaban', $data);
+    }
+
+
+    public function updateJawabanTaskAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id_task_jawaban' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        if ($request->jenis_pertanyaan == 'M') {
+            $jawaban = '';
+            $jum = count($request->pilihanValue);
+            $jumIdx = 1;
+            foreach ($request->pilihanValue as $pilihan) {
+                $jawaban .= $pilihan;
+                if ($jumIdx < $jum) {
+                    $jawaban .= '|||';
+                }
+                $jumIdx++;
+            }
+        } else {
+            $jawaban = $request->pilihanValue;
+        }
+        // $id_task_jawaban = Crypt::decrypt($request->id_task_jawaban);
+
+        $taskJawaban = DB::table('t_task_jawaban')
+            ->where('id_task_jawaban', $request->id_task_jawaban)
+            ->update([
+                'jawaban' => $jawaban
+            ]);
+
+
+        if ($taskJawaban) {
+            return response()->json(['success' => true, 'message' => 'Berhasil update jawaban']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal update jawaban']);
+        }
     }
 }

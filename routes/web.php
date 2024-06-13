@@ -143,6 +143,12 @@ Route::resource('/taskJawaban', \App\Http\Controllers\TaskJawabanController::cla
 Route::get('getTaskJawaban', [TaskJawabanController::class, 'getTaskJawaban'])->name('taskjawaban.getTaskJawaban');
 Route::get('/infoTaskJawaban/{id_task}', [TaskJawabanController::class, 'infoTaskJawaban'])->name('taskjawaban.infoTaskJawaban');
 Route::get('/detailTaskJawaban/{id_task}', [TaskJawabanController::class, 'detailTaskJawaban'])->name('taskjawaban.detailTaskJawaban');
+Route::get('/editTaskJawaban/{id_task}', [TaskJawabanController::class, 'editTaskJawaban'])->name('taskjawaban.editTaskJawaban');
+Route::get('/showDetailTaskPertanyaanJawaban/{id_task_jawaban}', [TaskJawabanController::class, 'showDetailTaskPertanyaanJawaban'])->name('taskjawaban.showDetailTaskPertanyaanJawaban');
+Route::get('/getPilihanPertanyaan/{id_pertanyaan}', [TaskJawabanController::class, 'getPilihanPertanyaan'])->name('getPilihanPertanyaan');
+Route::post('/updateJawabanTaskAction', [TaskJawabanController::class, 'updateJawabanTaskAction'])->name('updateJawabanTaskAction');
+
+
 
 // route wilayah provinsi 
 Route::resource('/wilayah', \App\Http\Controllers\WilayahController::class);
