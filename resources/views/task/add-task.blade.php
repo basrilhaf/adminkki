@@ -110,6 +110,14 @@
                                                     <div class="card px-4 mb-4">
                                                         <div class="card-body" id="divPilihan">
                                                             <h2>Pertanyaan</h2>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-4 fv-row">
+                                                                    <label class="required form-label">Kode Pertanyaan</label>
+                                                                    <select id="add-task-kode_pertanyaan" class="form-control mb-2">
+                                                                        <option value="">--Pilih Kode Pertanyaan---</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
                                                             <div class="d-flex justify-content-end">
                                                                 <button id="addPertanyaan" class="btn btn-flex btn-warning h-40px fs-7 fw-bold mb-4"><i class="fa fa-plus"></i>Pertanyaan</button><br>
                                                             </div>
@@ -188,8 +196,11 @@
                 var selectCounter = 0;
                 $('#addPertanyaan').click(function () {
                     $('#addPertanyaan').hide();
+                    var id_pertanyaan_group = $('#add-task-kode_pertanyaan').val();
+                    var url = "{{ route('getPertanyaanTask', ':id_pertanyaan_group') }}";
+                    url = url.replace(':id_pertanyaan_group', id_pertanyaan_group);
                     $.ajax({
-                        url: "{{ route('getPertanyaanTask') }}",  
+                        url: url,  
                         method: 'GET',
                         dataType: 'json',
                         success: function(data) {
@@ -434,6 +445,19 @@
                         var select = $('#add-task-jenis');
                         data.forEach(function(data) {
                             select.append('<option value="' + data.isi_kolom + '">' + data.keterangan + '</option>');
+                        });
+                    }
+                });
+
+                $('#add-task-kode_pertanyaan').select2({ placeholder: "--Pilih Kode Pertanyaan---",allowClear: true });
+                $.ajax({
+                    url: "{{ route('getGroupPertanyaanOption') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var select = $('#add-task-kode_pertanyaan');
+                        data.forEach(function(data) {
+                            select.append('<option value="' + data.id_pertanyaan_group + '">' + data.kode_group + '</option>');
                         });
                     }
                 });

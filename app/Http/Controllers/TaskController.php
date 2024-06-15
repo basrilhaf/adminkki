@@ -199,10 +199,12 @@ class TaskController extends Controller
 
         $data = DB::table('t_task_pertanyaan AS A')
             ->leftJoin('t_pertanyaan AS B', 'A.pertanyaan_id', '=', 'B.id_pertanyaan')
+            ->leftJoin('t_pertanyaan_group AS C', 'B.pertanyaan_group_id', '=', 'C.id_pertanyaan_group')
             ->select(
                 'A.*',
                 'B.pertanyaan',
-                'B.jenis_pertanyaan'
+                'B.jenis_pertanyaan',
+                'C.kode_group'
             )
             ->where('A.id_task_pertanyaan', $id_task_pertanyaan)
             ->first();
@@ -395,7 +397,7 @@ class TaskController extends Controller
                     return $pilihanList;
                 })
                 ->addColumn('view_detail', function ($row) {
-                    return '<button title="EDIT" class="btn btn-light-warning btn-sm btn-view-detail" data-id="' . $row->id_task_pertanyaan . '"><i class="fa fa-pencil"></i></button> 
+                    return '<button title="EDIT" class="btn btn-light-warning btn-sm btn-view-detail" data-id="' . $row->id_task_pertanyaan . '|||' . $row->pertanyaan_group_id . '"><i class="fa fa-pencil"></i></button> 
                             <button title="HAPUS" class="btn btn-danger btn-delete btn-sm" data-id="' . $row->id_task_pertanyaan . '"><i class="fa fa-trash"></i></button>';
                 })
                 ->rawColumns(['list_pilihan_field', 'view_detail'])
@@ -420,9 +422,9 @@ class TaskController extends Controller
         return response()->json($data);
     }
 
-    public function getPertanyaanTask()
+    public function getPertanyaanTask($id_pertanyaan_group, Request $request)
     {
-        $pertanyaan = DB::select('SELECT *, CONCAT(id_pertanyaan, "||", jenis_pertanyaan) AS concat_id FROM t_pertanyaan  ORDER BY id_pertanyaan ASC');
+        $pertanyaan = DB::select('SELECT *, CONCAT(id_pertanyaan, "||", jenis_pertanyaan) AS concat_id FROM t_pertanyaan WHERE pertanyaan_group_id = "' . $id_pertanyaan_group . '" ORDER BY id_pertanyaan ASC');
         return response()->json($pertanyaan);
     }
 
@@ -432,6 +434,14 @@ class TaskController extends Controller
         $data = DB::select('SELECT * FROM t_pertanyaan_pilihan WHERE pertanyaan_id = "' . $pertanyaan_id . '" ORDER BY id_pertanyaan_pilihan ASC');
         return response()->json($data);
     }
+
+    public function getPertanyaanTaskNoParam()
+    {
+        $data = DB::select('SELECT * FROM t_pertanyaan_pilihan ORDER BY id_pertanyaan_pilihan ASC');
+        return response()->json($data);
+    }
+
+
 
     public function addTaskAction(Request $request)
     {

@@ -20,7 +20,9 @@
 												{!!$breadcrumb!!}
 											</div>
 											<div class="d-flex align-items-center gap-2 gap-lg-3">
+                                                <a href="{{route('pertanyaan.addGroupPertanyaan')}}" class="btn btn-flex btn-success h-40px fs-7 fw-bold"><span class="fa fa-plus px-2"> </span>Group</a>
 												<a href="{{route('pertanyaan.addPertanyaan')}}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><span class="fa fa-plus px-2"> </span>Pertanyaan</a>
+                                                
 											</div>
 										</div>
 									</div>
@@ -28,10 +30,16 @@
                                     <div class="card mb-2">
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-8">
+                                                <div class="col-md-4">
                                                     <label class="form-label fs-6 fw-bold">Pertanyaan:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-pertanyaan-pertanyaan" placeholder="Nama menu" />
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-pertanyaan-pertanyaan" placeholder="Pertanyaan" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label fs-6 fw-bold">Group:</label>
+                                                    <div class="d-flex align-items-center position-relative my-1">
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-pertanyaan-group" placeholder="Group" />
                                                     </div>
                                                 </div>
                                                 
@@ -52,6 +60,7 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
 														<th class="min-w-125px">Pertanyaan</th>
+                                                        <th class="min-w-125px">Group</th>
 														<th class="min-w-100px">Actions</th>
 													</tr>
 												</thead>
@@ -86,11 +95,13 @@
                         url: "{{ route('pertanyaan.getPertanyaan') }}",
                         data: function (d) {
                             d.pertanyaan = $('#search-pertanyaan-pertanyaan').val();
+                            d.group = $('#search-pertanyaan-group').val();
                         }
                     },
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                         {data: 'pertanyaan', name: 'pertanyaan'},
+                        {data: 'kode_group', name: 'kode_group'},
                         {data: 'action', name: 'action', orderable: false, searchable: false},
                     ]
                 });
@@ -99,6 +110,7 @@
                 });
                 $('#resetSearchPertanyaan').click(function () {
                     $('#search-pertanyaan-pertanyaan').val('');
+                    $('#search-pertanyaan-group').val('');
                     $('#pertanyaanTable').DataTable().ajax.reload();
                 });
             });

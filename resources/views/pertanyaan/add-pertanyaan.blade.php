@@ -35,6 +35,12 @@
                                                     </select>
                                                 </div>
                                                 <div class="mb-4 fv-row">
+                                                    <label class="required form-label">Group Pertanyaan</label>
+                                                    <select id="add-group-pertanyaan" class="form-control mb-2">
+                                                        <option value="">--Pilih Group Pertanyaan---</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-4 fv-row">
                                                     <label class="required form-label">Pertanyaan</label>
                                                     <textarea name="" id="pertanyaan" cols="10" rows="2" class="form-control mb-2"></textarea>
                                                 </div>
@@ -92,6 +98,20 @@
                     }
                 });
 
+                Swal.fire({ title: 'Loading...', text: 'Sedang memuat data', didOpen: () => {Swal.showLoading() }, allowOutsideClick: false });
+                $.ajax({
+                    url: "{{ route('getGroupPertanyaanOption') }}",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var select = $('#add-group-pertanyaan');
+                        data.forEach(function(data) {
+                            select.append('<option value="' + data.id_pertanyaan_group + '">' + data.kode_group + '</option>');
+                        });
+                    }
+                });
+                Swal.close();
+
                 // Add new form input
                 $('#addPilihan').click(function () {
                     var newForm = `<input type="text" class="form-control mb-2" name="pilihanJawaban[]" id="pilihanJawaban">`;
@@ -103,6 +123,8 @@
                     e.preventDefault();
                     var jenisJawaban = $('#add-jenis-pertanyaan').val();
                     var pertanyaan = $('#pertanyaan').val();
+                    var group = $('#add-group-pertanyaan').val();
+                    // alert(group);
                     var pilihanJawaban = [];
                     $('input[name="pilihanJawaban[]"]').each(function() {
                         pilihanJawaban.push($(this).val());
@@ -114,6 +136,7 @@
                             _token: "{{ csrf_token() }}",  // CSRF token for security
                             jenis_jawaban: jenisJawaban,
                             pertanyaan: pertanyaan,
+                            pertanyaan_group_id: group,
                             pilihan_jawaban: pilihanJawaban
                         },
                         success: function(response) {

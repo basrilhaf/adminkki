@@ -117,6 +117,7 @@
                                                                 </select>
                                                             </div>
                                                         </div>
+                                                        
                                                         <div class="col-md-12 mb-4 d-flex align-items-center gap-2 gap-lg-3">
                                                             <button id="updateTaskAction" class="btn btn-flex btn-warning h-40px fs-7 fw-bold"> <i class="fa fa-save"></i> Update Task</button>
                                                         </div>
@@ -144,6 +145,14 @@
                                                     <div class="card px-4 mb-4">
                                                         <div class="card-body" id="divPilihan">
                                                             <h2>Tambah Pertanyaan</h2>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-4 fv-row">
+                                                                    <label class="required form-label">Group Pertanyaan</label>
+                                                                    <select id="detail-task-kode_pertanyaan" class="form-control mb-2">
+                                                                        <option value="">--Pilih Group Pertanyaan---</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
                                                             <div class="d-flex justify-content-end">
                                                                 <button id="addPertanyaan" class="btn btn-flex btn-primary h-40px fs-7 fw-bold mb-4"><i class="fa fa-plus"></i>Baris Pertanyaan</button><br>
                                                             </div>
@@ -174,14 +183,27 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" id="detail-id_task_pertanyaan">
-                        <input type="text" id="detail-pertanyaan_id">
+                        <input type="hidden" id="detail-pertanyaan_id">
+                        <input type="hidden" id="detail-group_id">
+                        
                         <div class="mb-4 fv-row">
                             <label class="required form-label">Pertanyaan saat ini:</label>
                             <input type="text" class="form-control" id="detail-task_pertanyaan">
+                        </div>
+                        <div class="mb-4 fv-row">
+                            <label class="required form-label">Group pertanyaan saat ini:</label>
+                            <input type="text" class="form-control" id="detail-kode_group">
                         </div> <hr>
+                        <div class="mb-4 fv-row">
+                            <label class="required form-label">Group Pertanyaan</label>
+                            <select id="detail-task-kode_pertanyaan-modal" class="form-control mb-2">
+                                {{-- <option value="">--Pilih Group Pertanyaan---</option> --}}
+                            </select>
+                        </div>
                         <div class="mb-4 fv-row">
                             <label class="required form-label">Pertanyaan baru:</label>
                             <select id="list-pertanyaan-baru" class="form-control">
+                                <option value="">--Pilih Pertanyaan---</option>
                             </select>
                         </div>
                         <div class="mb-4 fv-row">
@@ -199,6 +221,7 @@
             $(document).on('click', '.close', function() {
                 $('#detailModal').modal('hide');
             });
+
 
             $('#addTaskPertanyaanAction').click(function(e) {
                 e.preventDefault();
@@ -234,8 +257,11 @@
             var selectCounter = 0;
             $('#addPertanyaan').click(function () {
                 $('#addPertanyaan').hide();
+                var id_pertanyaan_group = $('#detail-task-kode_pertanyaan').val();
+                var url = "{{ route('getPertanyaanTask', ':id_pertanyaan_group') }}";
+                url = url.replace(':id_pertanyaan_group', id_pertanyaan_group);
                 $.ajax({
-                    url: "{{ route('getPertanyaanTask') }}",  
+                    url: url,  
                     method: 'GET',
                     dataType: 'json',
                     success: function(data) {
@@ -277,7 +303,7 @@
                     var id = splitValue[0];
                     var jenis = splitValue[1];
                     $.ajax({
-                        url: '{{ route('getPilihanPertanyaanTask') }}',  // Update with your server-side script URL
+                        url: '{{ route('getPilihanPertanyaanTask') }}',  
                         method: 'GET',
                         data: { id: id },
                         dataType: 'json',
@@ -310,11 +336,32 @@
                 }
 
             $(document).ready(function() {
+                $('#detail-task-kode_pertanyaan-modal').on('change', function() {
+                    var id_pertanyaan_group = $('#detail-task-kode_pertanyaan-modal').val();
+                    var url = "{{ route('getPertanyaanTask', ':id_pertanyaan_group') }}";
+                    url = url.replace(':id_pertanyaan_group', id_pertanyaan_group);
+                    $.ajax({
+                        url: url,
+                        method: 'GET',
+                        success: function(data) {
+                            $('#list-pertanyaan-baru').empty();
+                            $.each(data, function(index, item) {
+                                $('#list-pertanyaan-baru').append('<option value="' + item.id_pertanyaan + '">' + item.pertanyaan + '</option>');
+                            });
+                            // fetchKodePertanyaanModal(id_pertanyaan_group);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+                
                 $(document).on('click', '.btn-view-detail', function() {
                     var id_task_pertanyaan = $(this).data('id');
+                    var split_id = id_task_pertanyaan.split("|||");
+                    var group_id = split_id[1];
                     var url = "{{ route('task.showDetailTaskPertanyaan', ':id_task_pertanyaan') }}";
                     url = url.replace(':id_task_pertanyaan', id_task_pertanyaan);
-                    // Kirim permintaan Ajax untuk mengambil data detail
                     $.ajax({
                         url: url,
                         method: 'GET',
@@ -323,35 +370,42 @@
                             $('#detail-task_pertanyaan').val(response.pertanyaan).prop('disabled', true);
                             $('#detail-id_task_pertanyaan').val(response.id_task_pertanyaan);
                             $('#detail-pertanyaan_id').val(response.pertanyaan_id);
+                            $('#detail-kode_group').val(response.kode_group).prop('disabled', true);
+                            $('#detail-group_id').val(group_id);
 
-                            $.ajax({
-                                url: '{{ route('getPertanyaanTask') }}', // Sesuaikan dengan rute dan parameter yang dibutuhkan
-                                method: 'GET',
-                                success: function(data) {
-                                    $('#list-pertanyaan-baru').empty();
-                                    // Loop melalui setiap objek dalam array respons
-                                    $.each(data, function(index, item) {
-                                        // Tambahkan opsi baru ke dalam select2
-                                        $('#list-pertanyaan-baru').append('<option value="' + item.id_pertanyaan + '">' + item.pertanyaan + '</option>');
-                                    });
-                                    
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error(xhr.responseText);
-                                    // Tampilkan pesan kesalahan jika terjadi kesalahan dalam permintaan Ajax
-                                }
-                            });
-
+                            
+                            fetchKodePertanyaanModal(response);
                             $('#detailModal').modal('show');
+
                         },
                         error: function(xhr, status, error) {
                             console.error(xhr.responseText);
-                            // Tampilkan pesan kesalahan jika terjadi kesalahan dalam permintaan Ajax
                         }
                     });
 
 
                 });
+
+                function fetchKodePertanyaanModal(id_pertanyaan_group) {
+                    var kodeUrl = "{{ route('getGroupPertanyaanOption') }}";
+                    $.ajax({
+                        url: kodeUrl,
+                        type: 'GET',
+                        success: function(data) {
+                            var $select = $('#detail-task-kode_pertanyaan-modal');
+                            $select.empty();
+                            $select.append('<option value="">--Pilih group pertanyaan---</option>');
+                            data.forEach(function(data) {
+                                var selected = '';
+                                
+                                $select.append('<option value="' + data.id_pertanyaan_group + '" ' + selected + '>' + data.kode_group + '</option>'); 
+                            });
+                        },
+                        error: function(xhr) {
+                            console.error('An error occurred while fetching kegiatan data');
+                        }
+                    });
+                }
 
 
                 $('#updateTaskAction').click(function(e) {
@@ -478,8 +532,9 @@
                         var wakaf_id = response.wakaf_id;
                         $('#detail-task-objek').val(wakaf_id); // Set value first
                         fetchObject(response.kecamatan_kode, wakaf_id);
-                        // $('#detail-task-object').val(response.wakaf_id);
-                        // fetchObject(response.kecamatan_kode,response.wakaf_id);
+                        
+                        fetchKodePertanyaan(response);
+                        
 
                     },
                     error: function(xhr) {
@@ -540,6 +595,28 @@
                         }
                     });
                 }
+
+                function fetchKodePertanyaan(response) {
+                    var kodeUrl = "{{ route('getGroupPertanyaanOption') }}";
+                    $.ajax({
+                        url: kodeUrl,
+                        type: 'GET',
+                        success: function(data) {
+                            var $select = $('#detail-task-kode_pertanyaan');
+                            $select.empty();
+                            $select.append('<option value="">--Pilih group pertanyaan---</option>');
+                            data.forEach(function(data) {
+                                var selected = '';
+                                
+                                $select.append('<option value="' + data.id_pertanyaan_group + '" ' + selected + '>' + data.kode_group + '</option>'); 
+                            });
+                        },
+                        error: function(xhr) {
+                            console.error('An error occurred while fetching kegiatan data');
+                        }
+                    });
+                }
+
 
                 function fetchKota(selectedProvinsi,kabkota_kode) {
                     var kotaUrl = "{{ route('getKotaByProvinsi') }}";
@@ -694,6 +771,8 @@
                         }
                     });
                 }
+
+                
 
             });
 

@@ -54,11 +54,16 @@ class PertanyaanController extends Controller
     public function getPertanyaan(Request $request)
     {
         if ($request->ajax()) {
-            $query = DB::table('t_pertanyaan')
-                ->select('t_pertanyaan.*');
+            $query = DB::table('t_pertanyaan AS A')
+                ->Join('t_pertanyaan_group AS B', 'A.pertanyaan_group_id', '=', 'B.id_pertanyaan_group')
+                ->select('A.*', 'B.kode_group');
 
             if ($request->filled('pertanyaan')) {
-                $query->where('t_pertanyaan.pertanyaan', 'like', '%' . $request->input('pertanyaan') . '%');
+                $query->where('A.pertanyaan', 'like', '%' . $request->input('pertanyaan') . '%');
+            }
+
+            if ($request->filled('group')) {
+                $query->where('B.kode_group', 'like', '%' . $request->input('group') . '%');
             }
             $filteredData = $query->latest()->get();
 
@@ -124,7 +129,8 @@ class PertanyaanController extends Controller
     {
         $id_pertanyaan = Crypt::decrypt($id_pertanyaan);
         $data = DB::table('t_pertanyaan AS A')
-            ->select('A.*')
+            ->select('A.*', 'B.id_pertanyaan_group', 'B.kode_group')
+            ->Join('t_pertanyaan_group AS B', 'A.pertanyaan_group_id', '=', 'B.id_pertanyaan_group')
             ->where('A.id_pertanyaan', $id_pertanyaan)
             ->first();
 
@@ -150,6 +156,7 @@ class PertanyaanController extends Controller
         $validator = Validator::make($request->all(), [
             'jenis_jawaban' => 'required|string|max:5',
             'pertanyaan' => 'required',
+            'pertanyaan_group_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -159,6 +166,7 @@ class PertanyaanController extends Controller
         $id_pertanyaan = DB::table('t_pertanyaan')->insertGetId([
             'pertanyaan'        => $request->pertanyaan,
             'jenis_pertanyaan'  => $request->jenis_jawaban,
+            'pertanyaan_group_id'  => $request->pertanyaan_group_id,
             'created_pertanyaan' => '1',
             'created_at' => date("Y-m-d H:i:s")
         ]);
@@ -224,10 +232,8 @@ class PertanyaanController extends Controller
 
     public function deletePertanyaanAction(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'id_pertanyaan' => 'required',
-
         ]);
 
         if ($validator->fails()) {
@@ -277,6 +283,7 @@ class PertanyaanController extends Controller
             'id_pertanyaan' => 'required',
             'jenisJawaban' => 'required',
             'pertanyaan' => 'required',
+            'pertanyaan_group_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -288,6 +295,7 @@ class PertanyaanController extends Controller
             ->where('id_pertanyaan', $id_pertanyaan)
             ->update([
                 'pertanyaan'     => $request->pertanyaan,
+                'pertanyaan_group_id' => $request->pertanyaan_group_id,
                 'jenis_pertanyaan'     => $request->jenisJawaban,
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
@@ -317,5 +325,166 @@ class PertanyaanController extends Controller
         ];
 
         return view('pertanyaan.info-pertanyaan', $data);
+    }
+
+    public function addGroupPertanyaan(Request $request)
+    {
+        $menu_aktif = '/pertanyaan||/task';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+
+        $data = [
+            'menu' => 'Tambah Group Pertanyaan Survey',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
+                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
+                                <li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li><li class="breadcrumb-item text-gray-700 fw-bold lh-1">Survey</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
+                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1">Pertanyaan</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
+                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1">Tambah Group Pertanyaan</li>
+                            </ul>'
+        ];
+
+        return view('pertanyaan.add-group-pertanyaan', $data);
+    }
+
+    public function getGroupPertanyaan(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = DB::table('t_pertanyaan_group AS A')
+                ->select('A.*');
+
+
+            if ($request->filled('group')) {
+                $query->where('A.kode_group', 'like', '%' . $request->input('group') . '%');
+            }
+            $filteredData = $query->latest()->get();
+
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $id_hash = Crypt::encrypt($row->id_pertanyaan_group);
+
+                    $editUrl = route('pertanyaan.editPertanyaan', $id_hash);
+                    $btn = '<button title="EDIT" class="btn btn-light-warning btn-sm btn-edit-group" data-id="' . $row->id_pertanyaan_group . '"><i class="fa fa-pencil"></i></button>  ';
+                    $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-group btn-sm" data-id="' . $row->id_pertanyaan_group . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+
+                ->addColumn('status', function ($row) {
+                    if ($row->status_group == "Y") {
+                        $status = '<span class="badge badge-light-success">Aktif</span>';
+                    } else {
+                        $status = '<span class="badge badge-light-danger">Tidak Aktif</span>';
+                    }
+
+
+                    // Accessing value from $data
+                    return $status;
+                })
+
+                ->rawColumns(['action', 'status'])
+                ->make(true);
+        }
+    }
+
+    public function addGroupPertanyaanAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'kode_group' => 'required',
+            'keterangan' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $id_pertanyaan = DB::table('t_pertanyaan_group')->insert([
+            'kode_group'        => $request->kode_group,
+            'keterangan'  => $request->keterangan,
+            'status_group' => $request->status,
+            'created_at' => date("Y-m-d H:i:s")
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Group saved successfully']);
+    }
+
+    public function getReffStatusPertanyaangroup()
+    {
+        $status = DB::select('SELECT * FROM reff_kolom_table 
+                                        WHERE reff_kolom_table.table = "t_pertanyaan_group" 
+                                        AND reff_kolom_table.kolom ="status_group" 
+                                        ORDER BY id_reff ASC');
+        return response()->json($status);
+    }
+
+    public function showDetailgroupPertanyaan($id_group_pertanyaan)
+    {
+        $data = DB::table('t_pertanyaan_group AS A')
+            ->select('A.*')
+            ->where('A.id_pertanyaan_group', $id_group_pertanyaan)
+            ->first();
+
+        if (!$data) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+        return response()->json($data);
+    }
+
+    public function updateGroupPertanyaanAction(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id_pertanyaan_group' => 'required',
+            'kode_group' => 'required',
+            'status_group' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $id_pertanyaan_group = $request->id_pertanyaan_group;
+        $user = DB::table('t_pertanyaan_group')
+            ->where('id_pertanyaan_group', $id_pertanyaan_group)
+            ->update([
+                'kode_group'     => $request->kode_group,
+                'keterangan'     => $request->keterangan,
+                'status_group'     => $request->status_group,
+                'updated_at' => date("Y-m-d H:i:s")
+            ]);
+
+        if ($user) {
+            return response()->json(['success' => true, 'message' => 'Berhasil update password']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal update password']);
+        }
+    }
+
+    public function deleteGroupPertanyaanAction(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id_pertanyaan_group' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $id_pertanyaan_group = $request->id_pertanyaan_group;
+        $deleted = DB::table('t_pertanyaan_group')->where('id_pertanyaan_group', $id_pertanyaan_group)->delete();
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus group pertanyaan']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus group pertanyaan']);
+        }
+    }
+
+    public function getGroupPertanyaanOption()
+    {
+        $group = DB::select('SELECT * FROM t_pertanyaan_group 
+            WHERE t_pertanyaan_group.status_group = "Y" 
+            ORDER BY id_pertanyaan_group ASC');
+        return response()->json($group);
     }
 }

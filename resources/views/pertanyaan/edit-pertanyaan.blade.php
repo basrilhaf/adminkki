@@ -37,6 +37,12 @@
                                                     </select>
                                                 </div>
                                                 <div class="mb-4 fv-row">
+                                                    <label class="required form-label">Group Pertanyaan</label>
+                                                    <select id="edit-group-pertanyaan" class="form-control mb-2">
+                                                        <option value="">--Pilih Group Pertanyaan---</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-4 fv-row">
                                                     <label class="required form-label">Pertanyaan</label>
                                                     <textarea name="" id="edit-pertanyaan-pertanyaan" cols="10" rows="2" class="form-control mb-2"></textarea>
                                                 </div>
@@ -132,6 +138,7 @@
                     e.preventDefault();
                     var id_pertanyaan = $('#edit-id_pertanyaan-pertanyaan').val();
                     var jenisJawaban = $('#edit-jenis-pertanyaan').val();
+                    var group = $('#edit-group-pertanyaan').val();
                     var pertanyaan = $('#edit-pertanyaan-pertanyaan').val();
                    
                     $.ajax({
@@ -141,6 +148,7 @@
                             _token: "{{ csrf_token() }}",  // CSRF token for security
                             id_pertanyaan: id_pertanyaan,
                             jenisJawaban: jenisJawaban,
+                            pertanyaan_group_id: group,
                             pertanyaan: pertanyaan
                         },
                         success: function(response) {
@@ -231,10 +239,14 @@
                     success: function(response) {
                         $('#edit-jenis-pertanyaan').val(response.jenis_pertanyaan);
                         $('#edit-pertanyaan-pertanyaan').val(response.pertanyaan);
-
+                        $('#edit-group-pertanyaan').val(response.pertanyaan_group_id);
+                        
                         // fetch 
                         $('#edit-jenis-pertanyaan').val(response.jenis_pertanyaan);
                         fetchJenisPertanyaan(response.jenis_pertanyaan);
+                        $('#edit-group-pertanyaan').val(response.pertanyaan_group_id);
+                        fetchGroupPertanyaan(response.pertanyaan_group_id);
+
                         if (response.jenis_pertanyaan == 'F' || response.jenis_pertanyaan == '') {
                             $('#divPilihan').hide();
                         } else {
@@ -265,6 +277,30 @@
                                     selected = 'selected';
                                 }
                                 $select.append('<option value="' + data.isi_kolom + '" ' + selected + '>' + data.keterangan + '</option>'); // Adjust based on your object properties
+                            });
+                            $select.select2();
+                        },
+                        error: function(xhr) {
+                            console.error('An error occurred while fetching Master Jenis Kelamin data');
+                        }
+                    });
+                }
+
+                function fetchGroupPertanyaan(pertanyaan_group_id) {
+                    var jpUrl = "{{ route('getGroupPertanyaanOption') }}";
+                    $.ajax({
+                        url: jpUrl,
+                        type: 'GET',
+                        success: function(data) {
+                            var $select = $('#edit-group-pertanyaan');
+                            $select.empty();
+                            $select.append('<option value="">--Pilih Group Pertanyaan---</option>');
+                            data.forEach(function(data) {
+                                var selected = '';
+                                if (data.id_pertanyaan_group === pertanyaan_group_id) {
+                                    selected = 'selected';
+                                }
+                                $select.append('<option value="' + data.id_pertanyaan_group + '" ' + selected + '>' + data.kode_group + '</option>'); // Adjust based on your object properties
                             });
                             $select.select2();
                         },

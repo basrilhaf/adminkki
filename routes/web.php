@@ -106,7 +106,13 @@ Route::post('delete-pertanyaan', [PertanyaanController::class, 'deletePertanyaan
 Route::get('/addPertanyaan', [PertanyaanController::class, 'addPertanyaan'])->name('pertanyaan.addPertanyaan');
 Route::get('/getReffJenisPertanyaan', [PertanyaanController::class, 'getReffJenisPertanyaan'])->name('getReffJenisPertanyaan');
 Route::post('/addPertanyaanAction', [PertanyaanController::class, 'addPertanyaanAction'])->name('addPertanyaanAction');
-
+Route::get('/addGroupPertanyaan', [PertanyaanController::class, 'addGroupPertanyaan'])->name('pertanyaan.addGroupPertanyaan');
+Route::get('get-groupPertanyaan', [PertanyaanController::class, 'getGroupPertanyaan'])->name('pertanyaan.getGroupPertanyaan');
+Route::post('/addGroupPertanyaanAction', [PertanyaanController::class, 'addGroupPertanyaanAction'])->name('addGroupPertanyaanAction');
+Route::get('/getReffStatusPertanyaangroup', [PertanyaanController::class, 'getReffStatusPertanyaangroup'])->name('getReffStatusPertanyaangroup');
+Route::get('/showDetailgroupPertanyaan/{id_group_pertanyaan}', [PertanyaanController::class, 'showDetailgroupPertanyaan'])->name('pertanyaan.showDetailgroupPertanyaan');
+Route::post('/updateGroupPertanyaanAction', [PertanyaanController::class, 'updateGroupPertanyaanAction'])->name('updateGroupPertanyaanAction');
+Route::post('/deleteGroupPertanyaanAction', [PertanyaanController::class, 'deleteGroupPertanyaanAction'])->name('deleteGroupPertanyaanAction');
 Route::get('/editPertanyaan/{id_pertanyaan}', [PertanyaanController::class, 'editPertanyaan'])->name('pertanyaan.editPertanyaan');
 Route::get('/showDetailPertanyaan/{id_pertanyaan}', [PertanyaanController::class, 'showDetailPertanyaan'])->name('pertanyaan.showDetailPertanyaan');
 Route::get('/showPilihanPertanyaan/{id_pertanyaan}', [PertanyaanController::class, 'showPilihanPertanyaan'])->name('pertanyaan.showPilihanPertanyaan');
@@ -115,6 +121,8 @@ Route::post('/addPilihanPertanyaanAction', [PertanyaanController::class, 'addPil
 Route::post('/editPertanyaanAction', [PertanyaanController::class, 'editPertanyaanAction'])->name('editPertanyaanAction');
 Route::post('/deletePertanyaanAction', [PertanyaanController::class, 'deletePertanyaanAction'])->name('deletePertanyaanAction');
 Route::get('/infoPertanyaan/{id_pertanyaan}', [PertanyaanController::class, 'infoPertanyaan'])->name('pertanyaan.infoPertanyaan');
+Route::get('/getGroupPertanyaanOption', [PertanyaanController::class, 'getGroupPertanyaanOption'])->name('getGroupPertanyaanOption');
+
 
 // route task 
 Route::resource('/tasklist', \App\Http\Controllers\TaskController::class);
@@ -122,7 +130,9 @@ Route::get('getTask', [TaskController::class, 'getTask'])->name('task.getTask');
 Route::get('/addTask', [TaskController::class, 'addTask'])->name('task.addTask');
 Route::get('/getReffKegiatanTask', [TaskController::class, 'getReffKegiatanTask'])->name('getReffKegiatanTask');
 Route::get('/getObjekTask', [TaskController::class, 'getObjekTask'])->name('getObjekTask');
-Route::get('/getPertanyaanTask', [TaskController::class, 'getPertanyaanTask'])->name('getPertanyaanTask');
+
+Route::get('/getPertanyaanTask/{id_pertanyaan_group}', [TaskController::class, 'getPertanyaanTask'])->name('getPertanyaanTask');
+
 Route::get('/getPilihanPertanyaanTask', [TaskController::class, 'getPilihanPertanyaanTask'])->name('getPilihanPertanyaanTask');
 Route::post('/addTaskAction', [TaskController::class, 'addTaskAction'])->name('addTaskAction');
 Route::post('/publishTaskAction', [TaskController::class, 'publishTaskAction'])->name('publishTaskAction');
