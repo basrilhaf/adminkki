@@ -2,14 +2,14 @@
 
 <html lang="en">
 	<head>
-		<title>Management Survey - KEMENAG</title>
+		<title>Admin KKI</title>
 		<meta charset="utf-8" />
 		<meta name="csrf-token" content="{{ csrf_token() }}">
-		<meta name="description" content="aplikasi management survey kemenag" />
-		<meta name="keywords" content="aplikasi management survey kemenag" />
+		<meta name="description" content="aplikasi admin KKI" />
+		<meta name="keywords" content="aplikasi admin KKI" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta property="og:site_name" content="Metronic by Keenthemes" />
-		<link rel="shortcut icon" href="{{ asset('assets/media/avatars/logomini.png') }}" />
+		<link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
         <link href="{{ asset('assets/plugins/custom/datatables/datatables.bundle.css') }}" rel="stylesheet" type="text/css" />
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -25,7 +25,11 @@
                 font-weight: 600; 
                 color:white;
             }
-        </style>
+        
+			.text-kuning{
+				color:#fcba03;
+			}
+		</style>
 	</head>
 	<!--end::Head-->
 	<!--begin::Body-->
@@ -54,9 +58,9 @@
 						<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0 me-lg-15">
 							<a href="/home">
 								<div class="bg-white px-4 py-4 rounded d-none d-lg-inline">
-									<img alt="Logo" src="{{ asset('assets/media/avatars/logo.png') }}" class="h-25px d-none d-lg-inline" />
+									<img alt="Logo" src="{{ asset('assets/media/logos/favicon.ico') }}" class="h-25px d-none d-lg-inline" />
 								</div>
-								<img alt="Logo" src="{{ asset('assets/media/avatars/logomini.png') }}" class="h-25px d-inline d-lg-none" />
+								<img alt="Logo" src="{{ asset('assets/media/logos/favicon.ico') }}" class="h-25px d-inline d-lg-none" />
 							</a>
 							
 							

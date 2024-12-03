@@ -3,7 +3,7 @@
 <html lang="en">
 	<head>
 <base href="../../../" />
-		<title>Login || ADMINKKI</title>
+		<title>Beranda || SIPETA</title>
 		<meta charset="utf-8" />
 		<meta name="csrf-token" content="{{ csrf_token() }}">
 		<meta name="description" content="The most advanced Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo, Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions. Grab your copy now and get life-time updates for free." />
@@ -54,6 +54,8 @@
 					</div>
 					<img alt="Logo" src="{{ asset('assets/media/logos/favicon.ico') }}" class="h-25px d-inline d-lg-none" />
 				</a>
+				
+				
 			</div>
 			<!--end::Logo-->
 			<!--begin::Header wrapper-->
@@ -62,7 +64,8 @@
 				<div class="app-header-menu app-header-mobile-drawer align-items-stretch" data-kt-drawer="true" data-kt-drawer-name="app-header-menu" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="250px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_header_menu_toggle" data-kt-swapper="true" data-kt-swapper-mode="{default: 'append', lg: 'prepend'}" data-kt-swapper-parent="{default: '#kt_app_body', lg: '#kt_app_header_wrapper'}">
 					<!--begin::Menu-->
 					<div class="menu menu-rounded menu-active-bg menu-state-primary menu-column menu-lg-row menu-title-gray-700 menu-icon-gray-500 menu-arrow-gray-500 menu-bullet-gray-500 my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0" id="kt_app_header_menu" data-kt-menu="true">									
-						
+						<a href="/beranda" class="text-white mt-6" style="font-size: 20px;">BERANDA </a> <span style="color: transparent;"> ________</span>
+						<a href="/login" class="text-white mt-6" style="font-size: 20px;">LOGIN</a>
 						{{-- {!! $navbar !!} --}}
 					</div>
 					<!--end::Menu-->
@@ -95,6 +98,7 @@
 								<div class="col-md-12 d-flex justify-content-end">
 									<button id="logoutButton" class="px-5 btn btn-danger text-white">Logout</button>
 								</div>
+								
 							</div>
 							<!--end::Menu item-->
 						</div>
@@ -138,41 +142,30 @@
 										<!--begin::Card body-->
 										<div class="card-body py-4">
                                             <!--begin::Hero content-->
-											<div class="d-flex align-items-center h-lg-300px p-5 p-lg-15">
+											<div class="d-flex h-lg-300px">
                                                 <!--begin::Wrapper-->
-												<div class="flex-equal d-flex justify-content-center align-items-end ms-5">
+												<div class="flex-equal d-flex justify-content-left ms-5">
 													<!--begin::Illustration-->
-													<img src="assets/media/illustrations/sketchy-1/20.png" alt="" class="mw-100 mh-125px mh-lg-275px mb-lg-n12" />
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <h1>SiPeTa</h1>
+                                                            <p>Halo Mahasiswa,</p>
+                                                            <p>Selamat datang di SiPeTa, platform resmi untuk penjadwalan dan pengelolaan tugas akhir anda,</p>
+                                                            <p>Kami hadir untuk memudahkan proses penjadwalan, pengajuan, dan monitoring tugas akhir agar lebih efisien dan terstruktur.</p>
+                                                            <p>Tugas akhir merupakan syarat kelulusan, dan disini anda dapat menulusuri semua informasi terkait tugas akhir. Mari berjuang bersama menuju kesuksesan!</p>
+                                                        </div>
+                                                        
+                                                    </div>
+													
+                                                    
+                                                    <br>
 													<!--end::Illustration-->
 												</div>
 												<!--end::Wrapper-->
 												<!--begin::Wrapper-->
 												<div class="d-flex flex-column align-items-start justift-content-center flex-equal me-5 mt-5">
 													<!--begin::Title-->
-                                                    <div class="center-container">
-                                                        <h1 class="fw-bolder fs-1 my-4 text-primary">LOGIN ADMINKKI</h1>
-                                                    </div>
-													
-													<!--end::Title-->
-													<!--begin::Input group-->
-													<div class="position-relative w-100 mb-4 mt-4">
-                                                        <label for="" class="form-label fs-5 fw-semibold mb-2">NIP / Email :</label>
-														<input type="text" class="form-control fs-4 py-4 mb-4 ps-14 text-gray-700 placeholder-gray-500 mw-500px" name="search" id="login-username" placeholder="Masukkan nip/email..." />
-													</div>
-                                                    <div class="position-relative w-100  mb-2">
-                                                        <label for="" class="form-label fs-5 fw-semibold mb-2">Password :</label>
-														<input type="password" class="form-control fs-4 py-4 ps-14 text-gray-700 placeholder-gray-500 mw-500px" name="search" id="login-password" placeholder="Masukkan password..." />
-													</div>
-
-                                                    <div class="position-relative w-100  mb-4">
-                                                        <div class="col-md-12 mt-9 d-flex justify-content-end">
-                                                            <button id="loginAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold mb-8"><i class="fa-solid fa-right-to-bracket"></i>SIGN IN</button>
-                                                        </div>
-														<div class="col-md-12 d-flex justify-content-center">
-															{{-- <a href="/registrasi">Belum punya akun? <b>Daftar Akun</b></a> --}}
-														</div>
-													</div>
-													<!--end::Input group-->
+                                                    
 												</div>
 												<!--end::Wrapper-->
 												
@@ -205,7 +198,7 @@
     
                     var username = $('#login-username').val();
                     var password = $('#login-password').val();
-					
+    
                     $.ajax({
                         url: '{{ route("loginAction") }}',
                         type: 'POST',
@@ -217,7 +210,7 @@
                         success: function(response) {
                             if (response.success) {
                                 Swal.fire({ icon: 'success', title: 'Success', text: 'Berhasil Login!',timer: 5000, });
-                                window.location.href = response.message; // Redirect to home page or any other page
+                                window.location.href = '/home'; // Redirect to home page or any other page
                             } else {
                                 Swal.fire({ icon: 'error', title: 'Error', text: response.message, });
                                 // alert(response.message); // Display error message

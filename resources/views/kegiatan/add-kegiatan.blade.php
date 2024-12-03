@@ -20,7 +20,7 @@
 												{!!$breadcrumb!!}
 											</div>
 											<div class="d-flex align-items-center gap-2 gap-lg-3">
-												<a href="{{route('role.index');}}" class="btn btn-flex btn-danger h-40px fs-7 fw-bold"><i class="fa fa-rotate"></i>Kembali</a>
+												<a href="{{route('kegiatan.index');}}" class="btn btn-flex btn-danger h-40px fs-7 fw-bold"><i class="fa fa-rotate"></i>Kembali</a>
 											</div>
 										</div>
 									</div>
@@ -30,25 +30,26 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Nama Role</label>
-                                                        <input type="text" id="add-nama-role" class="form-control mb-2">
+                                                        <label class="required form-label">Nama Kegiatan</label>
+                                                        <input type="text" id="add-kegiatan-nama" class="form-control mb-2">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Kode Role</label>
-                                                        <input type="text" id="add-kode-role" class="form-control mb-2">
+                                                        <label class="required form-label">Kode Kegiatan</label>
+                                                        <input type="text" id="add-kegiatan-kode" class="form-control mb-2">
                                                     </div>
                                                 </div>
-                                                {{-- <div class="col-md-12">
-                                                    <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Keterangan Role</label>
-                                                        <textarea id="add-keterangan-role" class="form-control mb-2" rows="3"></textarea>
-                                                    </div>
-                                                </div> --}}
+                                                <div class="mb-4 fv-row">
+                                                    <label class="required form-label">Jenis Menu</label>
+                                                    <select id="add-kegiatan-status" class="form-control mb-2">
+                                                        <option value="Y">Aktif</option>
+                                                        <option value="N">Tidak Aktif</option>
+                                                    </select>
+                                                </div>
                                                 
                                                 <div class="col-md-12 mt-9 d-flex justify-content-end">
-                                                    <button id="addRoleAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
+                                                    <button id="addKegiatanAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
                                                 </div>
                                             </div>                                            
                                         </div>
@@ -71,20 +72,20 @@
         <script type="text/javascript">
         
             $(document).ready(function() {
-                $('#addRoleAction').click(function(e) {
+                $('#addKegiatanAction').click(function(e) {
                     e.preventDefault();
-                    var nama_role = $('#add-nama-role').val();
-                    var kode_role = $('#add-kode-role').val();
-                    var keterangan_role = $('#add-keterangan-role').val();
+                    var nama = $('#add-kegiatan-nama').val();
+                    var status = $('#add-kegiatan-status').val();
+                    var kode = $('#add-kegiatan-kode').val();
                     
                     $.ajax({
-                        url: "{{ route('addRoleAction') }}",  // Update with your actual route
+                        url: "{{ route('addKegiatanAction') }}", 
                         type: 'POST',
                         data: {
-                            _token: "{{ csrf_token() }}",  // CSRF token for security
-                            nama_role: nama_role,
-                            kode_role: kode_role,
-                            keterangan_role: keterangan_role
+                            _token: "{{ csrf_token() }}",  
+                            nama: nama,
+                            status: status,
+                            kode: kode
                         },
                         success: function(response) {
                             Swal.fire({
@@ -92,7 +93,7 @@
                                 text: 'Data Berhasil Disimpan',
                                 icon: 'success'
                             }).then(function() {
-                                location.reload();  // Reload the page after the alert is closed
+                                location.reload(); 
                             });
                         },
                         error: function(xhr, status, error) {

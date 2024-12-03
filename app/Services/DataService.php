@@ -39,7 +39,7 @@ class DataService
                             <div class="menu-sub menu-sub-lg-down-accordion menu-sub-lg-dropdown px-lg-2 py-lg-4 w-lg-250px">';
                 }
 
-                $submenu = DB::select("SELECT B.* FROM apps_akses_menu A inner join apps_menu B on A.menu_id = B.id_menu WHERE B.status_menu ='Y' and B.is_master in('N') and B.master_menu = '" . $menu->id_menu . "' and A.role_id =" . $id_role . "");
+                $submenu = DB::select("SELECT B.* FROM apps_akses_menu A inner join apps_menu B on A.menu_id = B.id_menu WHERE B.status_menu ='Y' and B.is_master in('N') and B.master_menu = '" . $menu->id_menu . "' and A.role_id =" . $id_role . " order by B.urutan ASC");
                 foreach ($submenu as $child) {
                     if ($pecah_menu_aktif[0] == $child->url) {
                         $html .= '<div class="menu-item">
@@ -90,5 +90,14 @@ class DataService
         }
 
         return $html;
+    }
+
+    public function createAuditTrail($keterangan){
+        $userId = session('user_id');
+        DB::table('audit_trail')->insert([
+            'user' => session('nama_user'),
+            'keterangan' => $keterangan,
+            'tanggal' => now(), 
+        ]);
     }
 }

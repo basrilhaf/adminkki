@@ -13,6 +13,8 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+
 
 class UserController extends Controller
 {
@@ -34,17 +36,13 @@ class UserController extends Controller
 
     public function index(): View
     {
-        $menu_aktif = '/user||/refference';
+        $menu_aktif = '/user||/settings';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
             'menu' => 'User Aplikasi',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
-            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
-                                <li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li><li class="breadcrumb-item text-gray-700 fw-bold lh-1">Refferance</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
-                                <li class="breadcrumb-item text-gray-700">User Aplikasi</li>
-                            </ul>'
+            'breadcrumb' => ''
         ];
         //get posts
 
@@ -55,38 +53,38 @@ class UserController extends Controller
     public function getUser(Request $request)
     {
         if ($request->ajax()) {
-            $query = DB::table('apps_user')->join('apps_role', 'apps_user.role_id', '=', 'apps_role.id_role')
-                ->select('apps_user.*', 'apps_role.nama_role');
+            $query = DB::table('user')->join('apps_role', 'user.jenis', '=', 'apps_role.id_role2')
+                ->select('user.*', 'apps_role.nama_role');
 
             if ($request->filled('nama_user')) {
-                $query->where('apps_user.nama', 'like', '%' . $request->input('nama_user') . '%');
+                $query->where('user.nama', 'like', '%' . $request->input('nama_user') . '%');
             }
             if ($request->filled('role_user')) {
                 $query->where('apps_role.nama_role', 'like', '%' . $request->input('role_user') . '%');
             }
             if ($request->filled('email_user')) {
-                $query->where('apps_user.email', 'like', '%' . $request->input('email_user') . '%');
+                $query->where('user.email', 'like', '%' . $request->input('email_user') . '%');
             }
 
-            $filteredData = $query->latest()->get();
+            $filteredData = $query->orderBy('user.id', 'desc')->get();
             // dd($filteredData);
             return DataTables::of($filteredData)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $id_hash = Crypt::encrypt($row->id_user);
+                    $id_hash = Crypt::encrypt($row->id);
 
                     $infoUrl = route('user.infoUser', $id_hash);
                     $editUrl = route('user.editUser', $id_hash);
-                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-success btn-sm"><span class="fa fa-info"></span></a> ';
-                    $btn .= '<a href=' . $editUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    
+                    $btn = '<a href=' . $editUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
                     $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-user btn-sm" data-id="' . $id_hash . '"><span class="fa fa-trash"></span></button>';
                     return $btn;
                 })
                 ->addColumn('status', function ($row) {
-                    if ($row->status == "Y") {
+                    if ($row->jenis == "0") {
                         $status = '<span class="badge badge-light-success">Aktif</span>';
                     } else {
-                        $status = '<span class="badge badge-light-danger">Tidak Aktif</span>';
+                        $status = '<span class="badge badge-light-success">Aktif</span>';
                     }
 
 
@@ -101,7 +99,7 @@ class UserController extends Controller
 
     public function addUser(Request $request)
     {
-        $menu_aktif = '/user||/refference';
+        $menu_aktif = '/user||/settings';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
             'menu' => 'Tambah User Aplikasi',
@@ -188,39 +186,28 @@ class UserController extends Controller
         }
         $hashedPassword = Hash::make($request->password);
 
-        $save = DB::table('apps_user')->insert([
+        $save = DB::table('user')->insert([
             'nama'        => $request->nama,
-            'username'  => $request->username,
+            'email'  => $request->email,
             'password' => $hashedPassword,
-            'email'        => $request->email,
-            'role_id'  => $request->role,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'no_telepon'        => $request->telepon,
-            'alamat'  => $request->alamat,
-            'kelurahan_id' => $request->kelurahan,
-            'status'        => $request->status,
-            'created_at' => date("Y-m-d H:i:s")
+            'jenis'        => $request->jenis,
+            'cabang'  => $request->cabang
         ]);
 
 
 
-        return response()->json(['success' => true, 'message' => 'Pertanyaan saved successfully']);
+        return response()->json(['success' => true, 'message' => 'User saved successfully']);
     }
 
     public function editUser($id_user, Request $request)
     {
-        $menu_aktif = '/user||/refference';
+        $menu_aktif = '/user||/settings';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
             'menu' => 'Edit User Aplikasi',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
-            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
-                                <li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li><li class="breadcrumb-item text-gray-700 fw-bold lh-1">Refferance</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
-                                <li class="breadcrumb-item text-gray-700">User Aplikasi</li><li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
-                                <li class="breadcrumb-item text-gray-700">Edit User Aplikasi</li>
-                            </ul>',
+            'breadcrumb' => '',
             'id_user' => $id_user
         ];
 
@@ -232,13 +219,13 @@ class UserController extends Controller
         $menu_aktif = '/ ||/ ';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Profil Saya',
+            'menu' => 'Profil',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
                                 <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
                                 <li class="breadcrumb-item"><i class="ki-duotone ki-right fs-7 text-gray-700 mx-n1"></i></li>
-                                <li class="breadcrumb-item text-gray-700">Profil Saya</li>
+                                <li class="breadcrumb-item text-gray-700">Profil</li>
                             </ul>',
             'id_user' => $id_user
         ];
@@ -251,40 +238,15 @@ class UserController extends Controller
     public function showDetailUser($id_user)
     {
         $id_user = Crypt::decrypt($id_user);
-        $data = DB::table('apps_user AS A')
-            ->leftJoin('apps_role AS B', 'A.role_id', '=', 'B.id_role')
-            ->leftJoin('reff_kolom_table AS C', function ($join) {
-                $join->on('A.jenis_kelamin', '=', 'C.isi_kolom')
-                    ->where('C.table', '=', 'apps_user')->where('C.kolom', '=', 'jenis_kelamin');
-            })
-            ->leftJoin('reff_kolom_table AS D', function ($join) {
-                $join->on('A.status', '=', 'D.isi_kolom')
-                    ->where('D.table', '=', 'apps_user')->where('D.kolom', '=', 'status');
-            })
-            ->leftJoin('m_kelurahan AS E', 'A.kelurahan_id', '=', 'E.kelurahan_kode')
-            ->leftJoin('m_kecamatan AS F', 'E.kecamatan_kode', '=', 'F.kecamatan_kode')
-            ->leftJoin('m_kabkota AS G', 'G.kabkota_kode', '=', 'F.kabkota_kode')
-            ->leftJoin('m_provinsi AS H', 'H.provinsi_kode', '=', 'G.provinsi_kode')
-            ->select(
-                'A.*',
-                'B.nama_role',
-                'C.keterangan as jenis_kelamin_nama',
-                'D.keterangan as status_nama',
-                'E.kelurahan_nama',
-                'E.kelurahan_kode',
-                'F.kecamatan_nama',
-                'F.kecamatan_kode',
-                'G.kabkota_nama',
-                'G.kabkota_kode',
-                'H.provinsi_nama',
-                'H.provinsi_kode'
-            )
-            ->where('A.id_user', $id_user)
+        $data = DB::table('user')
+            ->select('user.*')
+            ->where('user.id', $id_user)
             ->first();
 
         if (!$data) {
             return response()->json(['error' => 'Data not found'], 404);
         }
+
 
         return response()->json($data);
     }
@@ -293,10 +255,9 @@ class UserController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'id_user' => 'required',
-            'nama_user' => 'required',
+            'id' => 'required',
+            'nama' => 'required',
             'email' => 'required',
-            'role_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -304,22 +265,18 @@ class UserController extends Controller
         }
 
 
-        $id_user = Crypt::decrypt($request->id_user);
+        $id_user = Crypt::decrypt($request->id);
 
-        $user = DB::table('apps_user')
-            ->where('id_user', $id_user)
+        $user = DB::table('user')
+            ->where('id', $id_user)
             ->update([
-                'nama'     => $request->nama_user,
-                'username'        => $request->username,
+                'nama'     => $request->nama,
                 'email'  => $request->email,
-                'role_id'        => $request->role_id,
-                'jenis_kelamin'  => $request->jenis_kelamin,
-                'no_telepon'        => $request->no_telepon,
-                'alamat'        => $request->alamat,
-                'kelurahan_id'        => $request->kelurahan_id,
-                'status'        => $request->status,
-                'updated_at' => date("Y-m-d H:i:s")
+                'jenis'        => $request->jenis,
+                'cabang'  => $request->cabang
             ]);
+
+        $this->dataService->createAuditTrail('Ubah Data User');
 
         if ($user) {
             return response()->json(['success' => true, 'message' => 'Berhasil update user']);
@@ -328,6 +285,34 @@ class UserController extends Controller
         }
     }
 
+    public function updatePhotoAction(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'foto' => 'required|image|mimes:jpg,jpeg,png|max:2048', 
+            'id_user' => 'required', // Pastikan id_user ada
+        ]);
+
+        // Simpan foto
+        $fotoPath = $request->file('foto')->store('uploads/user_photos', 'public');
+
+        // Dekripsi id_user jika diperlukan
+        $id_user = Crypt::decrypt($request->id_user);
+
+        // Update database
+        $user = DB::table('apps_user')
+            ->where('id_user', $id_user)
+            ->update([
+                'foto' => $fotoPath,
+                'updated_at' => now() // Gunakan now() untuk waktu saat ini
+            ]);
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Foto berhasil diperbarui', 
+            'foto' => Storage::url($fotoPath)
+        ]);
+    }
 
     public function updatePasswordAction(Request $request)
     {
@@ -346,12 +331,13 @@ class UserController extends Controller
         $id_user = Crypt::decrypt($request->id_user);
         $hashedPassword = Hash::make($request->passwordnew);
 
-        $user = DB::table('apps_user')
-            ->where('id_user', $id_user)
+        $user = DB::table('user')
+            ->where('id', $id_user)
             ->update([
-                'password'     => $hashedPassword,
-                'updated_at' => date("Y-m-d H:i:s")
+                'password'     => $hashedPassword
             ]);
+
+        $this->dataService->createAuditTrail('Ubah Password');
 
         if ($user) {
             return response()->json(['success' => true, 'message' => 'Berhasil update password']);
@@ -392,7 +378,7 @@ class UserController extends Controller
             return response()->json($validator->errors(), 422);
         }
         $id_user = Crypt::decrypt($request->id_user);
-        $deleted = DB::table('apps_user')->where('id_user', $id_user)->delete();
+        $deleted = DB::table('user')->where('id', $id_user)->delete();
 
         if ($deleted) {
             return response()->json(['success' => true, 'message' => 'Berhasil hapus user']);

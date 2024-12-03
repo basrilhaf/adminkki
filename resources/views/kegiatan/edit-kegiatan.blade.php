@@ -20,37 +20,38 @@
 												{!!$breadcrumb!!}
 											</div>
 											<div class="d-flex align-items-center gap-2 gap-lg-3">
-												<a href="{{route('role.index');}}" class="btn btn-flex btn-danger h-40px fs-7 fw-bold"> <i class="fa fa-rotate"></i> Kembali</a>
+												<a href="{{route('kegiatan.index');}}" class="btn btn-flex btn-danger h-40px fs-7 fw-bold"> <i class="fa fa-rotate"></i> Kembali</a>
 											</div>
 										</div>
 									</div>
 									<!--begin::Card-->
                                     <div class="card mb-2">
                                         <div class="card-body">
-                                            <input type="hidden" id="detail-id_role-role" value="{{$id_role}}">
+                                            <input type="hidden" id="detail-id_kegiatan-kegiatan" value="{{$id_kegiatan}}">
                                             <div class="row">
                                                
                                                 <div class="col-md-6">
                                                     <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Nama Role</label>
-                                                        <input type="text" id="detail-nama-role" class="form-control mb-2">
+                                                        <label class="required form-label">Nama Kegiatan</label>
+                                                        <input type="text" id="detail-kegiatan-kegiatan" class="form-control mb-2">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Kode Role</label>
-                                                        <input type="text" id="detail-kode-role" class="form-control mb-2">
+                                                        <label class="required form-label">Kode Kegiatan</label>
+                                                        <input type="text" id="detail-kode-kegiatan" class="form-control mb-2">
                                                     </div>
                                                 </div>
-                                                {{-- <div class="col-md-6">
+                                                <div class="col-md-6">
                                                     <div class="mb-4 fv-row">
-                                                        <label class="required form-label">Kode Role</label>
-                                                        <textarea  id="detail-keterangan-role" class="form-control" rows="3"></textarea>
+                                                        <label class="required form-label">Status Kegiatan</label>
+                                                        <select id="detail-status-kegiatan" class="form-control mb-2">
+                                                            <option value="">--Pilih Status---</option>
+                                                        </select>
                                                     </div>
-                                                </div> --}}
-                                                
+                                                </div>
                                                 <div class="col-md-12 mt-9 d-flex justify-content-end">
-                                                    <button id="updateRoleAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
+                                                    <button id="updateKegiatanAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
                                                 </div>
                                             </div>                                            
                                         </div>
@@ -75,23 +76,23 @@
 
 
             $(document).ready(function() {
-                $('#updateRoleAction').click(function(e) {
+                $('#updateKegiatanAction').click(function(e) {
                     e.preventDefault();
                     
-                    var id_role = $('#detail-id_role-role').val();
-                    var nama_role = $('#detail-nama-role').val();
-                    var kode_role = $('#detail-kode-role').val();
-                    var keterangan_role = $('#detail-keterangan-role').val();
+                    var id_kegiatan = $('#detail-id_kegiatan-kegiatan').val();
+                    var nama = $('#detail-kegiatan-kegiatan').val();
+                    var kode = $('#detail-kode-kegiatan').val();
+                    var status = $('#detail-status-kegiatan').val();
                     
                     $.ajax({
-                        url: "{{ route('updateRoleAction') }}",  // Update with your actual route
+                        url: "{{ route('updateKegiatanAction') }}", 
                         type: 'POST',
                         data: {
-                            _token: "{{ csrf_token() }}",  // CSRF token for security
-                            id_role: id_role,
-                            nama_role: nama_role,
-                            kode_role: kode_role,
-                            keterangan_role: keterangan_role
+                            _token: "{{ csrf_token() }}",  
+                            id_kegiatan: id_kegiatan,
+                            nama: nama,
+                            kode: kode,
+                            status: status
                         },
                         success: function(response) {
                             Swal.fire({
@@ -99,7 +100,7 @@
                                 text: 'Data Berhasil Disimpan',
                                 icon: 'success'
                             }).then(function() {
-                                location.reload();  // Reload the page after the alert is closed
+                                location.reload();  
                             });
                         },
                         error: function(xhr, status, error) {
@@ -109,28 +110,44 @@
                 });
 
 
-                var id_role = $('#detail-id_role-role').val();
-                var url = "{{ route('role.showDetailRole', ':id_role') }}";
-                url = url.replace(':id_role', id_role);
-                
+                var id_kegiatan = $('#detail-id_kegiatan-kegiatan').val();
+                var url = "{{ route('kegiatan.showDetailKegiatan', ':id_kegiatan') }}";
+                url = url.replace(':id_kegiatan', id_kegiatan);
                 $.ajax({
                     url: url,
                     type: 'GET',
                     success: function(response) {
-                        // alert(response)
-                        $('#detail-nama-role').val(response.nama_role);
-                        $('#detail-kode-role').val(response.kode_role);
-                        $('#detail-keterangan-role').val(response.keterangan_role);
+                        $('#detail-kegiatan-kegiatan').val(response.keterangan);
+                        $('#detail-kode-kegiatan').val(response.isi_kolom);
+                        $('#detail-status-kegiatan').val(response.status_show);
                         
+
+                        $('#detail-status-kegiatan').val(response.status_show);
+                        fetchStatus(response.status_show);
 
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', 'Data Gagal Dimuat', 'error');
+                        Swal.fire('Error', 'Data Gagal Disimpan', 'error');
                     }
                 });
 
-                
-                
+                function fetchStatus(status_show) {
+                    var $select = $('#detail-status-kegiatan');
+                    var selected_y = '';
+                    var selected_n = '';
+                    if (status_show === 'Y') {
+                        selected_y = 'selected';
+                    }
+                    if (status_show === 'N') {
+                        selected_n = 'selected';
+                    }
+                    $select.empty();
+                    $select.append('<option value="">--Pilih Status---</option>');
+                    $select.append('<option value="Y" ' + selected_y + '>Aktif</option><option value="N" ' + selected_n + '>Tidak Aktif</option>');
+                    $select.select2();
+
+                }
+
             });
 
         </script>

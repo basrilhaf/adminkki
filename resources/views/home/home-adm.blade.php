@@ -28,41 +28,8 @@
 										
 										<!--begin::Card body-->
 										<div class="card-body py-4">
-											<img src="{{ asset('assets/beranda.png') }}" style="width: 100%;" alt="">
-											<img src="{{ asset('assets/beranda2.png') }}" style="width: 100%;" alt="">
-											<img src="{{ asset('assets/beranda3.png') }}" style="width: 100%;" alt="">
-											<div class="mt-5">
-												@foreach($alur as $alur)
-													<div class="row justify-content-center" style="width: 60%; margin: auto;">
-														<div class="col-md-6">
-															<div class="card bg-dark text-white">
-																<div class="card-body">
-																	<p class="badge badge-primary" style="height: 20px;">{{ $alur->urutan }}</p>
-																	<p class="text-danger">{{ $alur->tanggal }}</p>
-																	<p>{{ $alur->judul }}</p>
-																</div>
-															</div>
-														</div>
-														<div class="col-md-6">
-															<div class="card">
-																<div class="card-body">
-																	<p>{{ $alur->deskripsi}}</p>
-																	<a class="text-danger" href="{{ $alur->url }}">{{ $alur->text_url }}</a><br>
-																	<?php 
-																		if($alur->url2 !== ''){
-																	?>
-																	<a class="text-danger" href="{{ $alur->url2 }}">{{ $alur->text_url2 }}</a><br>
-																	<?php } ?>
-																</div>
-															</div>
-														</div>
-														<hr class="text-white mt-4">
-													</div>
-													<p></p>
-												@endforeach
-											</div>
 											
-											{{-- <h1 class="text-primary text-center my-4">HOME APLIKASI MANAGEMENT TASK SURVEY</h1> --}}
+											<h1 class="text-primary text-center my-4">HOME APLIKASI SIPETA</h1>
 										</div>
 										<!--end::Card body-->
 									</div>

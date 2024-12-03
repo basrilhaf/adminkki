@@ -31,7 +31,6 @@
                                                 <div class="col-md-8 card">
                                                     
                                                     <div class="row">
-                                                    
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
                                                                 <label class="required form-label">Nama</label>
@@ -46,86 +45,41 @@
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Jenis Kelamin</label>
-                                                                <select id="detail-jenis_kelamin-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Kelamin---</option>
+                                                                <label class="required form-label">Fakultas</label>
+                                                                <select id="detail-fakultas-user" class="form-control mb-2">
+                                                                    <option value="">--Pilih fakultas---</option>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">No Telepon/HP</label>
-                                                                <input type="text" id="detail-no_telepon-user" class="form-control mb-2">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Role Aplikasi</label>
-                                                                <select id="detail-role-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Role---</option>
+                                                                <label class="required form-label">Prodi</label>
+                                                                <select id="detail-prodi-user" class="form-control mb-2">
+                                                                    <option value="">--Pilih prodi---</option>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Status User Aplikasi</label>
-                                                                <select id="detail-status-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Status---</option>
+                                                                <label class="required form-label">Angkatan</label>
+                                                                <select id="detail-angkatan-user" class="form-control mb-2">
+                                                                    <option value="">--Pilih Angkatan---</option>
                                                                 </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-12">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Alamat</label>
-                                                                <textarea name="" id="detail-alamat-user" cols="10" rows="2" class="form-control mb-2"></textarea>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Username Aplikasi</label>
-                                                                <input type="text" id="detail-username-user" class="form-control mb-2">
+                                                                <label class="required form-label">NIM</label>
+                                                                <input type="text" id="detail-nim-user" class="form-control mb-2">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="mb-4 fv-row">
+                                                                <label class="required form-label">Dosen Pendamping Akademik</label>
+                                                                <input type="text" disabled id="detail-pa-user" class="form-control mb-2">
                                                             </div>
                                                         </div>
                                                         
-                                                        <div class="card">
-                                                            <div class="card-body">
-                                                                <h2>Domisili Tugas</h2>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Provinsi Domisili</label>
-                                                                        <select id="detail-provinsi-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Provinsi---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kota/Kabupaten Domisili</label>
-                                                                        <select id="detail-kota-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kota/Kabupaten---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kecamatan Domisili</label>
-                                                                        <select id="detail-kecamatan-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kecamatan---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kelurahan Domisili</label>
-                                                                        <select id="detail-kelurahan-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kelurahan---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
 
                                                         <div class="col-md-12 mt-9 mb-4 d-flex justify-content-end">
                                                             <button id="updateUserAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
@@ -133,6 +87,21 @@
                                                     </div>   
                                                 </div>
                                                 <div class="col-md-4 card pl-2">
+                                                    <div class="row card">
+                                                        <div class="card-body">
+                                                            <div class="col-md-12">
+                                                                <div class="col-md-12 d-flex justify-content-center">
+                                                                    <img id="detail-foto-user" alt="User Image" style="width: 100px; height: 100px;">
+                                                                </div>
+                                                                <div class="col-md-12 mt-3 d-flex justify-content-center">
+                                                                    <input type="file" id="input-foto-user" accept="image/*" class="form-control" />
+                                                                </div>
+                                                                <div class="col-md-12 mt-9 d-flex justify-content-end">
+                                                                    <button id="updateFotoAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>UBAH FOTO</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                     <div class="row card">
                                                         <div class="card-body">
                                                             <div class="col-md-12">
@@ -172,7 +141,42 @@
 			<!--end::Page-->
 		</div>
         <script type="text/javascript">
+            $(document).on('click', '#updateFotoAction', function(e) {
+                e.preventDefault();
 
+                let formData = new FormData();
+                let foto = $('#input-foto-user')[0].files[0]; 
+                let id_user = $('#detail-id_user-user').val(); 
+
+                if (foto) {
+                    formData.append('foto', foto);
+                    formData.append('id_user', id_user); // Tambahkan id_user ke FormData
+
+                    $.ajax({
+                        url: "{{ route('updatePhotoAction', ':id_user') }}".replace(':id_user', id_user), // Update URL dengan ID pengguna
+                        type: 'POST',
+                        data: formData, // Gunakan formData
+                        processData: false, // Pastikan ini diset ke false
+                        contentType: false, // Pastikan ini diset ke false
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Berhasil', response.message, 'success');
+                                $('#detail-foto-user').attr('src', response.foto); // Update tampilan foto
+                            } else {
+                                Swal.fire('Gagal', 'Foto gagal diperbarui', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', 'Ada kesalahan pada server', 'error');
+                        }
+                    });
+                } else {
+                    Swal.fire('Peringatan', 'Pilih foto terlebih dahulu', 'warning');
+                }
+            });
 
 
             $(document).ready(function() {
@@ -211,20 +215,16 @@
                     }
                 });
 
-
                 $('#updateUserAction').click(function(e) {
                     e.preventDefault();
                     
                     var id_user = $('#detail-id_user-user').val();
                     var nama_user = $('#detail-nama-user').val();
                     var email = $('#detail-email-user').val();
-                    var jenis_kelamin = $('#detail-jenis_kelamin-user').val();
-                    var no_telepon = $('#detail-no_telepon-user').val();
-                    var role_id = $('#detail-role-user').val();
-                    var status = $('#detail-status-user').val();
-                    var alamat = $('#detail-alamat-user').val();
-                    var username = $('#detail-username-user').val();
-                    var kelurahan_id = $('#detail-kelurahan-user').val();
+                    var fakultas = $('#detail-fakultas-user').val();
+                    var prodi = $('#detail-prodi-user').val();
+                    var angkatan = $('#detail-angkatan-user').val();
+                    var nim = $('#detail-nim-user').val();
                     
                     $.ajax({
                         url: "{{ route('updateUserAction') }}",  // Update with your actual route
@@ -234,13 +234,10 @@
                             id_user: id_user,
                             nama_user: nama_user,
                             email: email,
-                            jenis_kelamin: jenis_kelamin,
-                            no_telepon: no_telepon,
-                            role_id: role_id,
-                            status: status,
-                            alamat: alamat,
-                            username: username,
-                            kelurahan_id: kelurahan_id
+                            fakultas: fakultas,
+                            prodi: prodi,
+                            angkatan: angkatan,
+                            nim: nim
                         },
                         success: function(response) {
                             Swal.fire({
@@ -260,239 +257,114 @@
 
                 var id_user = $('#detail-id_user-user').val();
                 var url = "{{ route('user.showDetailUser', ':id_user') }}";
+                var image = "{{ asset('assets/media/avatars/user.png') }}";
                 url = url.replace(':id_user', id_user);
+                // alert(image);
                 $.ajax({
                     url: url,
                     type: 'GET',
                     success: function(response) {
                         $('#detail-nama-user').val(response.nama);
+                        $('#detail-fakultas-user').val(response.nama_fakultas);
+                        $('#detail-prodi-user').val(response.nama_prodi);
+                        $('#detail-nim-user').val(response.nim);
+                        $('#detail-angkatan-user').val(response.nama_angkatan);
                         $('#detail-email-user').val(response.email);
-                        $('#detail-jenis_kelamin-user').val(response.jenis_kelamin);
-                        $('#detail-no_telepon-user').val(response.no_telepon);
-                        $('#detail-role-user').val(response.role_id);
-                        $('#detail-status-user').val(response.status);
-                        $('#detail-alamat-user').val(response.alamat);
-                        $('#detail-username-user').val(response.username);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        $('#detail-kota-user').val(response.kabkota_kode);
-                        $('#detail-kecamatan-user').val(response.kecamatan_kode);
-                        $('#detail-kelurahan-user').val(response.kelurahan_kode);
+                        $('#detail-pa-user').val(response.pa);
 
                         // fetch 
-                        $('#detail-role-user').val(response.role_id);
-                        fetchRole(response);
-                        $('#detail-status-user').val(response.status);
-                        fetchStatus(response.status);
-                        $('#detail-jenis_kelamin-user').val(response.jenis_kelamin);
-                        fetchJenisKelamin(response.jenis_kelamin);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        fetchProvinsi(response.provinsi_kode);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        fetchKota(response.provinsi_kode,response.kabkota_kode);
-                        $('#detail-kota-user').val(response.kabkota_kode);
-                        fetchKecamatan(response.kabkota_kode,response.kecamatan_kode);
-                        $('#detail-kecamatan-user').val(response.kecamatan_kode);
-                        fetchKelurahan(response.kecamatan_kode,response.kelurahan_kode);
-                        $('#detail-kelurahan-user').val(response.kelurahan_kode);
-
-
                         
+                        $('#detail-fakultas-user').val(response.fakultas);
+                        fetchFakultas(response.fakultas);
+                        $('#detail-prodi-user').val(response.prodi);
+                        fetchProdi(response.prodi,response.fakultas);
+                        $('#detail-angkatan-user').val(response.angkatan);
+                        fetchAngkatan(response.angkatan);
+
+                        $('#detail-foto-user').attr('src', response.foto ? response.foto : image);
 
                     },
                     error: function(xhr) {
                         Swal.fire('Error', 'Data Gagal Disimpan', 'error');
                     }
                 });
-                $('#detail-provinsi-user').on('change', function() {
-                    var selectedProvinsi = $(this).val();
-                    var kabkota_kode = '';
-                    $('#detail-kecamatan-user').empty().append('<option value="">--Pilih Kecamatan---</option>');
-                    $('#detail-kelurahan-user').empty().append('<option value="">--Pilih Kelurahan---</option>');
-                    fetchKota(selectedProvinsi,kabkota_kode);
-                });
-                $('#detail-kota-user').on('change', function() {
-                    var selectedKota = $(this).val();
-                    var kecamatan_kode = '';
-                    $('#detail-kelurahan-user').empty().append('<option value="">--Pilih Kelurahan---</option>');
-                    fetchKecamatan(selectedKota,kecamatan_kode);
-                });
-                $('#detail-kecamatan-user').on('change', function() {
-                    var selectedKecamatan = $(this).val();
-                    var kelurahan_kode = '';
-                    var wakaf_id = '';
-                    fetchKelurahan(selectedKecamatan,kelurahan_kode);
+                $('#detail-fakultas-user').on('change', function() {
+                    var selectedFakultas = $(this).val();
+                    var prodi = '';
+                    fetchProdi(prodi,selectedFakultas);
                 });
 
-                function fetchKelurahan(selectedKecamatan,kelurahan_kode) {
-                    var kelurahanUrl = "{{ route('getKelurahanByKecamatan') }}";
-                    $.ajax({
-                        url: kelurahanUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { kecamatan_kode: selectedKecamatan },
-                        success: function(data) {
-                            var $select = $('#detail-kelurahan-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kelurahan---</option>');
-                            data.forEach(function(dataKelurahan) {
-                                var selected = '';
-                                if (dataKelurahan.kelurahan_kode === kelurahan_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKelurahan.kelurahan_kode + '" ' + selected + '>' + dataKelurahan.kelurahan_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kelurahan data');
-                        }
-                    });
-                }
-
-                function fetchKecamatan(selectedkota,kecamatan_kode) {
-                    var kecamatanUrl = "{{ route('getKecamatanByKota') }}";
-                    $.ajax({
-                        url: kecamatanUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { kabkota_kode: selectedkota },
-                        success: function(data) {
-                            var $select = $('#detail-kecamatan-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kecamatan---</option>');
-                            data.forEach(function(dataKecamatan) {
-                                var selected = '';
-                                if (dataKecamatan.kecamatan_kode === kecamatan_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKecamatan.kecamatan_kode + '" ' + selected + '>' + dataKecamatan.kecamatan_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kecamatan data');
-                        }
-                    });
-                }
-
-                function fetchKota(selectedProvinsi,kabkota_kode) {
-                    var kotaUrl = "{{ route('getKotaByProvinsi') }}";
-                    $.ajax({
-                        url: kotaUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { provinsi_kode: selectedProvinsi },
-                        success: function(data) {
-                            var $select = $('#detail-kota-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kota/Kabupaten---</option>');
-                            data.forEach(function(dataKota) {
-                                var selected = '';
-                                if (dataKota.kabkota_kode === kabkota_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKota.kabkota_kode + '" ' + selected + '>' + dataKota.kabkota_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kabupaten/kota data');
-                        }
-                    });
-                }
-
-                function fetchProvinsi(provinsi_kode) {
-                    var url = "{{ route('getProvinsi') }}";
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        success: function(data) {
-                            var $select = $('#detail-provinsi-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Provinsi---</option>');
-                            data.forEach(function(data) {
-                                var selected = '';
-                                if (data.provinsi_kode === provinsi_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + data.provinsi_kode + '" ' + selected + '>' + data.provinsi_nama + '</option>'); // Adjust based on your object properties
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Master provinsi data');
-                        }
-                    });
-                }
-
-                function fetchJenisKelamin(jenis_kelamin) {
-                    var jkUrl = "{{ route('getReffJenisKelaminUser') }}";
+                
+                function fetchFakultas(fakultas) {
+                    var jkUrl = "{{ route('getFakultas') }}";
                     $.ajax({
                         url: jkUrl,
                         type: 'GET',
                         success: function(data) {
-                            var $select = $('#detail-jenis_kelamin-user');
+                            var $select = $('#detail-fakultas-user');
                             $select.empty();
-                            $select.append('<option value="">--Pilih Status---</option>');
+                            $select.append('<option value="">--Pilih Fakultas---</option>');
                             data.forEach(function(data) {
                                 var selected = '';
-                                if (data.isi_kolom === jenis_kelamin) {
+                                if (data.id === fakultas) {
                                     selected = 'selected';
                                 }
-                                $select.append('<option value="' + data.isi_kolom + '" ' + selected + '>' + data.keterangan + '</option>'); // Adjust based on your object properties
+                                $select.append('<option value="' + data.id + '" ' + selected + '>' + data.fakultas + '</option>'); // Adjust based on your object properties
                             });
                             $select.select2();
                         },
                         error: function(xhr) {
-                            console.error('An error occurred while fetching Master Jenis Kelamin data');
+                            console.error('An error occurred while fetching fakultas data');
                         }
                     });
                 }
 
-                function fetchStatus(status) {
-                    var statusUrl = "{{ route('getReffStatusUser') }}";
+                function fetchProdi(prodi,fakultas) {
+                    var kotaUrl = "{{ route('getProdiByFakultas') }}";
                     $.ajax({
-                        url: statusUrl,
+                        url: kotaUrl,
                         type: 'GET',
+                        dataType: 'json',
+                        data: { fakultas: fakultas },
                         success: function(data) {
-                            var $select = $('#detail-status-user');
+                            var $select = $('#detail-prodi-user');
                             $select.empty();
-                            $select.append('<option value="">--Pilih Status---</option>');
-                            data.forEach(function(data) {
+                            $select.append('<option value="">--Pilih Prodi---</option>');
+                            data.forEach(function(dataprodi) {
                                 var selected = '';
-                                if (data.isi_kolom === status) {
+                                if (dataprodi.id === prodi) {
                                     selected = 'selected';
                                 }
-                                $select.append('<option value="' + data.isi_kolom + '" ' + selected + '>' + data.keterangan + '</option>'); // Adjust based on your object properties
+                                $select.append('<option value="' + dataprodi.id + '" ' + selected + '>' + dataprodi.prodi + '</option>');                            
                             });
                             $select.select2();
                         },
                         error: function(xhr) {
-                            console.error('An error occurred while fetching Master status data');
+                            console.error('An error occurred while fetching prodi data');
                         }
                     });
                 }
 
-                function fetchRole(response) {
-                    var KegiatanUrl = "{{ route('getRoleUser') }}";
+                function fetchAngkatan(angkatan) {
+                    var akUrl = "{{ route('getAngkatan') }}";
                     $.ajax({
-                        url: KegiatanUrl,
+                        url: akUrl,
                         type: 'GET',
                         success: function(data) {
-                            var $select = $('#detail-role-user');
+                            var $select = $('#detail-angkatan-user');
                             $select.empty();
-                            $select.append('<option value="">--Pilih Role---</option>');
+                            $select.append('<option value="">--Pilih Angkatan---</option>');
                             data.forEach(function(data) {
                                 var selected = '';
-                                if (data.id_role === response.role_id) {
+                                if (data.id === angkatan) {
                                     selected = 'selected';
                                 }
-                                $select.append('<option value="' + data.id_role + '" ' + selected + '>' + data.nama_role + '</option>'); // Adjust based on your object properties
+                                $select.append('<option value="' + data.id + '" ' + selected + '>' + data.angkatan + '</option>'); // Adjust based on your object properties
                             });
                             $select.select2();
                         },
                         error: function(xhr) {
-                            console.error('An error occurred while fetching Master role data');
+                            console.error('An error occurred while fetching Angkatan data');
                         }
                     });
                 }

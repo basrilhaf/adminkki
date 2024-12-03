@@ -47,86 +47,22 @@
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Jenis Kelamin</label>
-                                                                <select id="detail-jenis_kelamin-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Kelamin---</option>
+                                                                <label class="required form-label">Jenis </label>
+                                                                <select id="detail-jenis-user" class="form-control mb-2">
+                                                                    <option value="">--Pilih Jenis---</option>
                                                                 </select>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <div class="mb-4 fv-row">
-                                                                <label class="required form-label">No Telepon/HP</label>
-                                                                <input type="text" id="detail-no_telepon-user" class="form-control mb-2">
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Role Aplikasi</label>
-                                                                <select id="detail-role-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Role---</option>
+                                                                <label class="required form-label">Cabang </label>
+                                                                <select id="detail-cabang-user" class="form-control mb-2">
+                                                                    <option value="">--Pilih Cabang---</option>
                                                                 </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Status User Aplikasi</label>
-                                                                <select id="detail-status-user" class="form-control mb-2">
-                                                                    <option value="">--Pilih Jenis Status---</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-12">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Alamat</label>
-                                                                <textarea name="" id="detail-alamat-user" cols="10" rows="2" class="form-control mb-2"></textarea>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="mb-4 fv-row">
-                                                                <label class="required form-label">Username Aplikasi</label>
-                                                                <input type="text" id="detail-username-user" class="form-control mb-2">
                                                             </div>
                                                         </div>
                                                         
-                                                        <div class="card">
-                                                            <div class="card-body">
-                                                                <h2>Domisili Tugas</h2>
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Provinsi Domisili</label>
-                                                                        <select id="detail-provinsi-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Provinsi---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kota/Kabupaten Domisili</label>
-                                                                        <select id="detail-kota-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kota/Kabupaten---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kecamatan Domisili</label>
-                                                                        <select id="detail-kecamatan-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kecamatan---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <div class="mb-4 fv-row">
-                                                                        <label class="required form-label">Kelurahan Domisili</label>
-                                                                        <select id="detail-kelurahan-user" class="form-control mb-2">
-                                                                            <option value="">--Pilih Kelurahan---</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                       
 
                                                         <div class="col-md-12 mt-9 mb-4 d-flex justify-content-end">
                                                             <button id="updateUserAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold"><i class="fa fa-save"></i>SIMPAN</button>
@@ -216,32 +152,22 @@
                 $('#updateUserAction').click(function(e) {
                     e.preventDefault();
                     
-                    var id_user = $('#detail-id_user-user').val();
-                    var nama_user = $('#detail-nama-user').val();
+                    var id = $('#detail-id_user-user').val();
+                    var nama = $('#detail-nama-user').val();
                     var email = $('#detail-email-user').val();
-                    var jenis_kelamin = $('#detail-jenis_kelamin-user').val();
-                    var no_telepon = $('#detail-no_telepon-user').val();
-                    var role_id = $('#detail-role-user').val();
-                    var status = $('#detail-status-user').val();
-                    var alamat = $('#detail-alamat-user').val();
-                    var username = $('#detail-username-user').val();
-                    var kelurahan_id = $('#detail-kelurahan-user').val();
+                    var jenis = $('#detail-jenis-user').val();
+                    var cabang = $('#detail-cabang-user').val();
                     
                     $.ajax({
                         url: "{{ route('updateUserAction') }}",  // Update with your actual route
                         type: 'POST',
                         data: {
                             _token: "{{ csrf_token() }}",  // CSRF token for security
-                            id_user: id_user,
-                            nama_user: nama_user,
+                            id: id,
+                            nama: nama,
                             email: email,
-                            jenis_kelamin: jenis_kelamin,
-                            no_telepon: no_telepon,
-                            role_id: role_id,
-                            status: status,
-                            alamat: alamat,
-                            username: username,
-                            kelurahan_id: kelurahan_id
+                            jenis: jenis,
+                            cabang: cabang
                         },
                         success: function(response) {
                             Swal.fire({
@@ -268,235 +194,68 @@
                     success: function(response) {
                         $('#detail-nama-user').val(response.nama);
                         $('#detail-email-user').val(response.email);
-                        $('#detail-jenis_kelamin-user').val(response.jenis_kelamin);
-                        $('#detail-no_telepon-user').val(response.no_telepon);
-                        $('#detail-role-user').val(response.role_id);
-                        $('#detail-status-user').val(response.status);
-                        $('#detail-alamat-user').val(response.alamat);
-                        $('#detail-username-user').val(response.username);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        $('#detail-kota-user').val(response.kabkota_kode);
-                        $('#detail-kecamatan-user').val(response.kecamatan_kode);
-                        $('#detail-kelurahan-user').val(response.kelurahan_kode);
 
-                        // fetch 
-                        $('#detail-role-user').val(response.role_id);
-                        fetchRole(response);
-                        $('#detail-status-user').val(response.status);
-                        fetchStatus(response.status);
-                        $('#detail-jenis_kelamin-user').val(response.jenis_kelamin);
-                        fetchJenisKelamin(response.jenis_kelamin);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        fetchProvinsi(response.provinsi_kode);
-                        $('#detail-provinsi-user').val(response.provinsi_kode);
-                        fetchKota(response.provinsi_kode,response.kabkota_kode);
-                        $('#detail-kota-user').val(response.kabkota_kode);
-                        fetchKecamatan(response.kabkota_kode,response.kecamatan_kode);
-                        $('#detail-kecamatan-user').val(response.kecamatan_kode);
-                        fetchKelurahan(response.kecamatan_kode,response.kelurahan_kode);
-                        $('#detail-kelurahan-user').val(response.kelurahan_kode);
-
-
-                        
-
+                        $('#detail-jenis-user').val(response.jenis);
+                        fetchJenis(response.jenis);
+                        $('#detail-cabang-user').val(response.cabang);
+                        fetchCabang(response.cabang);
+                    
                     },
                     error: function(xhr) {
                         Swal.fire('Error', 'Data Gagal Disimpan', 'error');
                     }
                 });
-                $('#detail-provinsi-user').on('change', function() {
-                    var selectedProvinsi = $(this).val();
-                    var kabkota_kode = '';
-                    $('#detail-kecamatan-user').empty().append('<option value="">--Pilih Kecamatan---</option>');
-                    $('#detail-kelurahan-user').empty().append('<option value="">--Pilih Kelurahan---</option>');
-                    fetchKota(selectedProvinsi,kabkota_kode);
-                });
-                $('#detail-kota-user').on('change', function() {
-                    var selectedKota = $(this).val();
-                    var kecamatan_kode = '';
-                    $('#detail-kelurahan-user').empty().append('<option value="">--Pilih Kelurahan---</option>');
-                    fetchKecamatan(selectedKota,kecamatan_kode);
-                });
-                $('#detail-kecamatan-user').on('change', function() {
-                    var selectedKecamatan = $(this).val();
-                    var kelurahan_kode = '';
-                    var wakaf_id = '';
-                    fetchKelurahan(selectedKecamatan,kelurahan_kode);
-                });
 
-                function fetchKelurahan(selectedKecamatan,kelurahan_kode) {
-                    var kelurahanUrl = "{{ route('getKelurahanByKecamatan') }}";
-                    $.ajax({
-                        url: kelurahanUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { kecamatan_kode: selectedKecamatan },
-                        success: function(data) {
-                            var $select = $('#detail-kelurahan-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kelurahan---</option>');
-                            data.forEach(function(dataKelurahan) {
-                                var selected = '';
-                                if (dataKelurahan.kelurahan_kode === kelurahan_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKelurahan.kelurahan_kode + '" ' + selected + '>' + dataKelurahan.kelurahan_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kelurahan data');
-                        }
-                    });
-                }
-
-                function fetchKecamatan(selectedkota,kecamatan_kode) {
-                    var kecamatanUrl = "{{ route('getKecamatanByKota') }}";
-                    $.ajax({
-                        url: kecamatanUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { kabkota_kode: selectedkota },
-                        success: function(data) {
-                            var $select = $('#detail-kecamatan-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kecamatan---</option>');
-                            data.forEach(function(dataKecamatan) {
-                                var selected = '';
-                                if (dataKecamatan.kecamatan_kode === kecamatan_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKecamatan.kecamatan_kode + '" ' + selected + '>' + dataKecamatan.kecamatan_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kecamatan data');
-                        }
-                    });
-                }
-
-                function fetchKota(selectedProvinsi,kabkota_kode) {
-                    var kotaUrl = "{{ route('getKotaByProvinsi') }}";
-                    $.ajax({
-                        url: kotaUrl,
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { provinsi_kode: selectedProvinsi },
-                        success: function(data) {
-                            var $select = $('#detail-kota-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Kota/Kabupaten---</option>');
-                            data.forEach(function(dataKota) {
-                                var selected = '';
-                                if (dataKota.kabkota_kode === kabkota_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + dataKota.kabkota_kode + '" ' + selected + '>' + dataKota.kabkota_nama + '</option>');                            
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Kabupaten/kota data');
-                        }
-                    });
-                }
-
-                function fetchProvinsi(provinsi_kode) {
-                    var url = "{{ route('getProvinsi') }}";
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        success: function(data) {
-                            var $select = $('#detail-provinsi-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Provinsi---</option>');
-                            data.forEach(function(data) {
-                                var selected = '';
-                                if (data.provinsi_kode === provinsi_kode) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + data.provinsi_kode + '" ' + selected + '>' + data.provinsi_nama + '</option>'); // Adjust based on your object properties
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Master provinsi data');
-                        }
-                    });
-                }
-
-                function fetchJenisKelamin(jenis_kelamin) {
-                    var jkUrl = "{{ route('getReffJenisKelaminUser') }}";
+                function fetchJenis(jenis) {
+                    var jkUrl = "{{ route('getReffJenisUserOption') }}";
                     $.ajax({
                         url: jkUrl,
                         type: 'GET',
                         success: function(data) {
-                            var $select = $('#detail-jenis_kelamin-user');
+                            var $select = $('#detail-jenis-user');
                             $select.empty();
-                            $select.append('<option value="">--Pilih Status---</option>');
+                            $select.append('<option value="">--Pilih Jenis---</option>');
                             data.forEach(function(data) {
                                 var selected = '';
-                                if (data.isi_kolom === jenis_kelamin) {
+                                if (data.value === jenis) {
                                     selected = 'selected';
                                 }
-                                $select.append('<option value="' + data.isi_kolom + '" ' + selected + '>' + data.keterangan + '</option>'); // Adjust based on your object properties
+                                $select.append('<option value="' + data.value + '" ' + selected + '>' + data.isi + '</option>'); // Adjust based on your object properties
                             });
                             $select.select2();
                         },
                         error: function(xhr) {
-                            console.error('An error occurred while fetching Master Jenis Kelamin data');
+                            console.error('An error occurred while fetching Master Jenis data');
                         }
                     });
                 }
 
-                function fetchStatus(status) {
-                    var statusUrl = "{{ route('getReffStatusUser') }}";
+                function fetchCabang(cabang) {
+                    var cbUrl = "{{ route('getCabangOption') }}";
                     $.ajax({
-                        url: statusUrl,
+                        url: cbUrl,
                         type: 'GET',
                         success: function(data) {
-                            var $select = $('#detail-status-user');
+                            var $select = $('#detail-cabang-user');
                             $select.empty();
-                            $select.append('<option value="">--Pilih Status---</option>');
+                            $select.append('<option value="">--Pilih Jenis---</option>');
                             data.forEach(function(data) {
                                 var selected = '';
-                                if (data.isi_kolom === status) {
+                                if (data.id === cabang) {
                                     selected = 'selected';
                                 }
-                                $select.append('<option value="' + data.isi_kolom + '" ' + selected + '>' + data.keterangan + '</option>'); // Adjust based on your object properties
+                                $select.append('<option value="' + data.id + '" ' + selected + '>' + data.nama + '</option>');
                             });
                             $select.select2();
                         },
                         error: function(xhr) {
-                            console.error('An error occurred while fetching Master status data');
+                            console.error('An error occurred while fetching Master Cabang data');
                         }
                     });
                 }
 
-                function fetchRole(response) {
-                    var KegiatanUrl = "{{ route('getRoleUser') }}";
-                    $.ajax({
-                        url: KegiatanUrl,
-                        type: 'GET',
-                        success: function(data) {
-                            var $select = $('#detail-role-user');
-                            $select.empty();
-                            $select.append('<option value="">--Pilih Role---</option>');
-                            data.forEach(function(data) {
-                                var selected = '';
-                                if (data.id_role === response.role_id) {
-                                    selected = 'selected';
-                                }
-                                $select.append('<option value="' + data.id_role + '" ' + selected + '>' + data.nama_role + '</option>'); // Adjust based on your object properties
-                            });
-                            $select.select2();
-                        },
-                        error: function(xhr) {
-                            console.error('An error occurred while fetching Master role data');
-                        }
-                    });
-                }
+
+
 
             });
 
