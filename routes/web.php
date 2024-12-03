@@ -72,6 +72,8 @@ Route::get('/showDetailPkp/{id}', [PkpCabangController::class, 'showDetailPkp'])
 Route::post('/updatePkpAction', [PkpCabangController::class, 'updatePkpAction'])->name('updatePkpAction');
 Route::get('/editCabang/{id}', [PkpCabangController::class, 'editCabang'])->name('editCabang');
 Route::get('/getReffJenisUserOption', [PkpCabangController::class, 'getReffJenisUserOption'])->name('getReffJenisUserOption');
+Route::get('/getPkpOption', [PkpCabangController::class, 'getPkpOption'])->name('getPkpOption');
+
 
 // route ganti password 
 Route::get('/gantiPassword', [PkpCabangController::class, 'gantiPassword'])->name('gantiPassword');
@@ -85,6 +87,8 @@ Route::get('/cariKelompok', [KelompokController::class, 'cariKelompok'])->name('
 
 // route anggota 
 Route::resource('/anggotaAktif', \App\Http\Controllers\AnggotaController ::class);
+Route::get('/masalahAnggota', [AnggotaController::class, 'masalahAnggota'])->name('masalahAnggota');
+Route::get('/getMasalahAnggota', [AnggotaController::class, 'getMasalahAnggota'])->name('getMasalahAnggota');
 
 // end route yang terpakai 
 

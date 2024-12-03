@@ -230,6 +230,12 @@ class PkpCabangController extends Controller
         return response()->json($status);
     }
 
+    public function getPkpOption()
+    {
+        $status = DB::select('SELECT * FROM pkp ORDER BY nik ASC');
+        return response()->json($status);
+    }
+
     public function getKcOption()
     {
         $kc = DB::select('SELECT * FROM pkp WHERE is_kc="1" ORDER BY nama ASC');

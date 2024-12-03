@@ -47,6 +47,20 @@ class AnggotaController extends Controller
         return view('anggota.index', $data);
     }
 
+    public function masalahAnggota(): View
+    {
+        $menu_aktif = '/masalahAnggota||/anggota';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Masalah Anggota',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('anggota.masalah-anggota', $data);
+    }
+
     
     public function cariKelompok(): View
     {
@@ -62,38 +76,37 @@ class AnggotaController extends Controller
         return view('kelompok.cari-kelompok', $data);
     }
 
-    public function masalahKelompok(): View
-    {
-        $menu_aktif = '/masalahKelompok||/kelompok';
-        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
-        $data = [
-            'menu' => 'Masalah Kelompok',
-            'menu_aktif' => $menu_aktif,
-            'navbar' => $navbar,
-            'breadcrumb' => ''
-        ];
-        
-        return view('kelompok.masalah-kelompok', $data);
-    }
+    
 
     
-    public function getMasalahKelompok(Request $request)
+    public function getMasalahAnggota(Request $request)
     {
         if ($request->ajax()) {
-            $query = DB::table('kelompok_bermasalah')
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+            $query = DB::table('anggota_bermasalah')
                 ->select(
-                    'kelompok_kb',
-                    'cabang_kb',
-                    'pkp_dkb',
-                    'kc_dkb',
-                    'nama',
-                    DB::raw('kelompok_bermasalah.id_sikki_kb AS idsikkikb'),
-                    DB::raw('COUNT(id_kb) AS jumlah'),
-                    DB::raw('SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a'),
-                    DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
-                )
-                ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
-                ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
+                    'nama_ab',
+                    'kelompok_ab',
+                    'id_anggota_ab',
+                    'cabang_ab',
+                    'id_sikki_ab',
+                    DB::raw('COUNT(id_ab) AS jumlah'),
+                    DB::raw('SUM(IF( kode_ab = "2", 1, 0)) AS kode2'),
+                    DB::raw('SUM(IF( kode_ab = "4A", 1, 0)) AS kode4a'),
+                    DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
+                );
+
+            if(Session::get('is_kc') == "1"){
+                $query->where('cabang_ab', $cabang);
+            }else if(Session::get('is_kc') == "0"){
+                $query->where('pkp_ab', $id_user);
+            }else{
+                if(Session::get('cabang') == "0"){
+                }else{
+                    $query->where('cabang_ab', $cabang);
+                }
+            }
 
             // Applying filters conditionally
             if ($request->filled('kelompok')) {
@@ -107,13 +120,13 @@ class AnggotaController extends Controller
             }
 
             // Grouping by idsikkikb and ordering by id_kb
-            $filteredData = $query->groupBy('kelompok_kb', 'cabang_kb', 'pkp_dkb', 'kc_dkb', 'nama', 'kelompok_bermasalah.id_sikki_kb')
-                ->orderBy('id_kb', 'desc')
+            $filteredData = $query->groupBy('nama_ab', 'kelompok_ab', 'id_anggota_ab', 'id_sikki_ab', 'cabang_ab')
+                ->orderBy('id_ab', 'desc')
                 ->get();
             return DataTables::of($filteredData)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $id_hash = Crypt::encrypt($row->kelompok_kb);
+                    $id_hash = Crypt::encrypt($row->kelompok_ab);
 
                     $infoUrl = route('user.infoUser', $id_hash);
                     $editUrl = route('user.editUser', $id_hash);
