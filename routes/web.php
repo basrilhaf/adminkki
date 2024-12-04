@@ -16,13 +16,15 @@ use App\Http\Controllers\AuditTrailsController;
 use App\Http\Controllers\PkpCabangController;
 use App\Http\Controllers\KelompokController;
 use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\PengecekanController;
+use App\Http\Controllers\ReportingController;
 
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
 
-Route::resource('/', \App\Http\Controllers\HomeController::class);
+Route::resource('/', \App\Http\Controllers\DashboardController::class);
 
 
 
@@ -89,7 +91,20 @@ Route::get('/cariKelompok', [KelompokController::class, 'cariKelompok'])->name('
 Route::resource('/anggotaAktif', \App\Http\Controllers\AnggotaController ::class);
 Route::get('/masalahAnggota', [AnggotaController::class, 'masalahAnggota'])->name('masalahAnggota');
 Route::get('/getMasalahAnggota', [AnggotaController::class, 'getMasalahAnggota'])->name('getMasalahAnggota');
+Route::get('/cariAnggota', [AnggotaController::class, 'cariAnggota'])->name('cariAnggota');
+Route::get('/historyAnggota', [AnggotaController::class, 'historyAnggota'])->name('historyAnggota');
 
+
+// route pengecekan 
+Route::resource('/cekTabungan', \App\Http\Controllers\PengecekanController ::class);
+Route::get('/cekKelompok', [PengecekanController::class, 'cekKelompok'])->name('cekKelompok');
+Route::get('/cekAnggota', [PengecekanController::class, 'cekAnggota'])->name('cekAnggota');
+Route::get('/cekKtp', [PengecekanController::class, 'cekKtp'])->name('cekKtp');
+
+// route reporting 
+Route::resource('/laporanHarian', \App\Http\Controllers\ReportingController ::class);
+Route::get('/laporanMingguan', [ReportingController::class, 'laporanMingguan'])->name('laporanMingguan');
+Route::get('/laporanPeriode', [ReportingController::class, 'laporanPeriode'])->name('laporanPeriode');
 // end route yang terpakai 
 
 

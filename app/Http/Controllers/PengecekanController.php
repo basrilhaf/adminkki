@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 
 
 
-class AnggotaController extends Controller
+class PengecekanController extends Controller
 {
     protected $dataService;
 
@@ -35,60 +35,60 @@ class AnggotaController extends Controller
 
     public function index(): View
     {
-        $menu_aktif = '/anggotaAktif||/anggota';
+        $menu_aktif = '/cekTabungan||/pengecekan';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Anggota Aktif',
+            'menu' => 'Cek Tabungan',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('anggota.index', $data);
+        return view('pengecekan.index', $data);
     }
 
-    public function masalahAnggota(): View
+    public function cekKelompok(): View
     {
-        $menu_aktif = '/masalahAnggota||/anggota';
+        $menu_aktif = '/cekKelompok||/pengecekan';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Masalah Anggota',
+            'menu' => 'Cek Kelompok',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('anggota.masalah-anggota', $data);
-    }
-
-    
-    public function cariAnggota(): View
-    {
-        $menu_aktif = '/cariAnggota||/anggota';
-        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
-        $data = [
-            'menu' => 'Cari Anggota',
-            'menu_aktif' => $menu_aktif,
-            'navbar' => $navbar,
-            'breadcrumb' => ''
-        ];
-        
-        return view('anggota.cari-anggota', $data);
+        return view('pengecekan.cek-kelompok', $data);
     }
 
     
-    public function historyAnggota(): View
+    public function cekAnggota(): View
     {
-        $menu_aktif = '/historyAnggota||/anggota';
+        $menu_aktif = '/cekAnggota||/pengecekan';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'History Anggota',
+            'menu' => 'Cek Anggota',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('anggota.history-anggota', $data);
+        return view('pengecekan.cek-anggota', $data);
+    }
+
+    
+    public function cekKtp(): View
+    {
+        $menu_aktif = '/cekKtp||/pengecekan';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Cek KTP',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('pengecekan.cek-ktp', $data);
     }
     
     public function cariKelompok(): View
