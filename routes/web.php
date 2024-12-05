@@ -53,6 +53,9 @@ Route::post('/updatePengisianAb', [KabKkbController::class, 'updatePengisianAb']
 Route::get('/editABDikunjungi/{id}', [KabKkbController::class, 'editABDikunjungi'])->name('editABDikunjungi');
 Route::get('/historyKunjunganKab', [KabKkbController::class, 'historyKunjunganKab'])->name('historyKunjunganKab');
 Route::post('/deleteHistorynAction', [KabKkbController::class, 'deleteHistorynAction'])->name('deleteHistorynAction');
+Route::get('/statusKabKkb', [KabKkbController::class, 'statusKabKkb'])->name('statusKabKkb');
+Route::get('/formBelumDikunjungiDikumpulkan', [KabKkbController::class, 'formBelumDikunjungiDikumpulkan'])->name('formBelumDikunjungiDikumpulkan');
+
 
 // route audit trails 
 Route::resource('/auditTrails', \App\Http\Controllers\AuditTrailsController::class);

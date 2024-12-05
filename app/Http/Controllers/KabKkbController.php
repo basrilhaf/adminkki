@@ -69,6 +69,125 @@ class KabKkbController extends Controller
         return view('kab_kkb.pengisian-kab', $data);
     }
 
+    public function statusKabKkb(Request $request): View
+    {
+        $menu_aktif = '/statusKabKkb||/kabkkb';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+
+        
+
+        $data = [
+            'menu' => 'Status',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
+                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
+                            </ul>'
+        ];
+        
+        return view('kab_kkb.status', $data);
+    }
+
+    
+    public function formBelumDikunjungiDikumpulkan(Request $request)
+    {
+        $kabkkb = $request->input('kabkkb');
+        $date_range = $request->input('daterange');
+        $cabang = $request->input('cabang');
+
+        // Split the date range into start and end dates
+        $p_date = explode("to", $date_range);
+        $awal = trim($p_date[0]); // Start date
+        $akhir = trim($p_date[1]); // End date
+
+        // Initialize $results to null
+        $results = [];
+
+        // If the 'kabkkb' value is "KAB"
+        if ($kabkkb == "KAB") {
+            $query = "
+                SELECT 
+                    B.nama, 
+                    A.pkp_ab,
+                    A.nama_ab,
+                    A.kelompok_ab,
+                    A.id_anggota_ab,
+                    A.tanggal_ab,
+                    (SELECT COUNT(id_ab) FROM anggota_bermasalah X WHERE A.id_anggota_ab = X.id_anggota_ab) as jumlah
+                FROM 
+                    anggota_bermasalah  A
+                LEFT JOIN 
+                    pkp B ON B.id = A.pkp_ab
+                WHERE 
+                    A.cabang_ab = :cabang
+                    AND A.tanggal_ab >= :awal
+                    AND A.tanggal_ab <= :akhir
+                    AND (A.dikunjungi_ab IS NULL OR A.dikunjungi_ab = '0')
+                ORDER BY 
+                    B.nama ASC
+            ";
+
+            // Execute the query and store the results
+            $results = DB::select($query, [
+                'cabang' => $cabang,
+                'awal' => $awal,
+                'akhir' => $akhir
+            ]);
+        } else {
+            // If the 'kabkkb' value is anything else (not "KAB")
+            $query = "
+                SELECT 
+                B.nama,
+                A.pkp_kb,
+                A.kelompok_kb,
+                A.kode_kb,
+                A.menit_kb,
+                A.tanggal_kb,
+                (
+                    SELECT SUM(IF(X.kode_kb = '3A', 1, 0))
+                    FROM kelompok_bermasalah X
+                    WHERE A.kelompok_kb = X.kelompok_kb
+                ) AS kode3a,
+                (
+                    SELECT SUM(IF(XX.kode_kb = '3B', 1, 0))
+                    FROM kelompok_bermasalah XX
+                    WHERE A.kelompok_kb = XX.kelompok_kb
+                ) AS kode3b
+            FROM 
+                kelompok_bermasalah A
+            LEFT JOIN pkp B ON B.id = A.pkp_kb
+            WHERE 
+                cabang_kb = :cabang 
+                AND tanggal_kb >= :awal 
+                AND tanggal_kb <= :akhir 
+                AND (dikumpulkan_kb IS NULL OR dikumpulkan_kb = '0')
+            ORDER BY 
+                B.nama ASC
+            ";
+
+            // Execute the query and store the results
+            $results = DB::select($query, [
+                'cabang' => $cabang,
+                'awal' => $awal,
+                'akhir' => $akhir
+            ]);
+        }
+
+        // Debugging: Dump the data to check if it's passed correctly
+        // dd($kabkkb, $cabang, $awal, $akhir, $results);
+
+        // Prepare data for the view
+        $data = [
+            'kabkkb' => $kabkkb,  // Corrected: Removed the trailing space
+            'cabang' => $cabang,
+            'awal' => $awal,
+            'akhir' => $akhir,
+            'results' => $results
+        ];
+
+        // Return the view with data
+        return view('kab_kkb.form-belum-dikunjungi-dikumpulkan', $data);
+    }
     
     public function historyKunjunganKab(Request $request)
     {
