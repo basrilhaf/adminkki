@@ -18,7 +18,7 @@ use App\Http\Controllers\KelompokController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\PengecekanController;
 use App\Http\Controllers\ReportingController;
-
+use App\Http\Controllers\SkorsingBlacklistController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -105,6 +105,18 @@ Route::get('/cekKtp', [PengecekanController::class, 'cekKtp'])->name('cekKtp');
 Route::resource('/laporanHarian', \App\Http\Controllers\ReportingController ::class);
 Route::get('/laporanMingguan', [ReportingController::class, 'laporanMingguan'])->name('laporanMingguan');
 Route::get('/laporanPeriode', [ReportingController::class, 'laporanPeriode'])->name('laporanPeriode');
+Route::get('/laporanKompilasi', [ReportingController::class, 'laporanKompilasi'])->name('laporanKompilasi');
+Route::get('/rangkumanMasalah', [ReportingController::class, 'rangkumanMasalah'])->name('rangkumanMasalah');
+Route::get('/masalahPerCabang', [ReportingController::class, 'masalahPerCabang'])->name('masalahPerCabang');
+
+// route skorsing & blacklist 
+Route::resource('/skorsing', \App\Http\Controllers\SkorsingBlacklistController ::class);
+Route::get('/blacklist', [SkorsingBlacklistController::class, 'blacklist'])->name('blacklist');
+Route::get('/getAnggotaBlacklist', [SkorsingBlacklistController::class, 'getAnggotaBlacklist'])->name('getAnggotaBlacklist');
+Route::get('/getRekomendasiBlacklist', [SkorsingBlacklistController::class, 'getRekomendasiBlacklist'])->name('getRekomendasiBlacklist');
+
+Route::post('/deleteBlacklistAction', [SkorsingBlacklistController::class, 'deleteBlacklistAction'])->name('deleteBlacklistAction');
+
 // end route yang terpakai 
 
 

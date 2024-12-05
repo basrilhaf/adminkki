@@ -62,47 +62,47 @@ class ReportingController extends Controller
     }
 
     
-    public function cekAnggota(): View
+    public function laporanKompilasi(): View
     {
-        $menu_aktif = '/cekAnggota||/pengecekan';
+        $menu_aktif = '/laporanKompilasi||/reporting';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Cek Anggota',
+            'menu' => 'Laporan Kompilasi',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('pengecekan.cek-anggota', $data);
+        return view('reporting.laporan-kompilasi', $data);
     }
 
     
-    public function cekKtp(): View
+    public function rangkumanMasalah(): View
     {
-        $menu_aktif = '/cekKtp||/pengecekan';
+        $menu_aktif = '/rangkumanMasalah||/reporting';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Cek KTP',
+            'menu' => 'Rangkuman Masalah',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('pengecekan.cek-ktp', $data);
+        return view('reporting.rangkuman-masalah', $data);
     }
     
-    public function cariKelompok(): View
+    public function masalahPerCabang(): View
     {
-        $menu_aktif = '/cariKelompok||/kelompok';
+        $menu_aktif = '/masalahPerCabang||/reporting';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Cari Kelompok',
+            'menu' => 'Masalah Per Cabang',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
         ];
         
-        return view('kelompok.cari-kelompok', $data);
+        return view('reporting.masalah-per-cabang', $data);
     }
 
     
