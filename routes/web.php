@@ -55,7 +55,8 @@ Route::get('/historyKunjunganKab', [KabKkbController::class, 'historyKunjunganKa
 Route::post('/deleteHistorynAction', [KabKkbController::class, 'deleteHistorynAction'])->name('deleteHistorynAction');
 Route::get('/statusKabKkb', [KabKkbController::class, 'statusKabKkb'])->name('statusKabKkb');
 Route::get('/formBelumDikunjungiDikumpulkan', [KabKkbController::class, 'formBelumDikunjungiDikumpulkan'])->name('formBelumDikunjungiDikumpulkan');
-
+Route::get('/formKelompokBermasalah', [KabKkbController::class, 'formKelompokBermasalah'])->name('formKelompokBermasalah');
+Route::get('/getTableFormKelompokBermasalahKab', [KabKkbController::class, 'getTableFormKelompokBermasalahKab'])->name('getTableFormKelompokBermasalahKab');
 
 // route audit trails 
 Route::resource('/auditTrails', \App\Http\Controllers\AuditTrailsController::class);

@@ -95,15 +95,12 @@ class KabKkbController extends Controller
         $date_range = $request->input('daterange');
         $cabang = $request->input('cabang');
 
-        // Split the date range into start and end dates
         $p_date = explode("to", $date_range);
         $awal = trim($p_date[0]); // Start date
         $akhir = trim($p_date[1]); // End date
 
-        // Initialize $results to null
         $results = [];
 
-        // If the 'kabkkb' value is "KAB"
         if ($kabkkb == "KAB") {
             $query = "
                 SELECT 
@@ -127,14 +124,12 @@ class KabKkbController extends Controller
                     B.nama ASC
             ";
 
-            // Execute the query and store the results
             $results = DB::select($query, [
                 'cabang' => $cabang,
                 'awal' => $awal,
                 'akhir' => $akhir
             ]);
         } else {
-            // If the 'kabkkb' value is anything else (not "KAB")
             $query = "
                 SELECT 
                 B.nama,
@@ -165,7 +160,6 @@ class KabKkbController extends Controller
                 B.nama ASC
             ";
 
-            // Execute the query and store the results
             $results = DB::select($query, [
                 'cabang' => $cabang,
                 'awal' => $awal,
@@ -173,22 +167,265 @@ class KabKkbController extends Controller
             ]);
         }
 
-        // Debugging: Dump the data to check if it's passed correctly
-        // dd($kabkkb, $cabang, $awal, $akhir, $results);
-
-        // Prepare data for the view
+       
         $data = [
-            'kabkkb' => $kabkkb,  // Corrected: Removed the trailing space
+            'kabkkb' => $kabkkb,  
             'cabang' => $cabang,
             'awal' => $awal,
             'akhir' => $akhir,
             'results' => $results
         ];
 
-        // Return the view with data
         return view('kab_kkb.form-belum-dikunjungi-dikumpulkan', $data);
     }
+
     
+    public function formKelompokBermasalah(Request $request)
+    {
+        $kabkkb = $request->input('kabkkb');
+        $date_range = $request->input('daterange');
+        $cabang = $request->input('cabang');
+
+        $p_date = explode("to", $date_range);
+        $awal = trim($p_date[0]); // Start date
+        $akhir = trim($p_date[1]); // End date
+        // dd($cabang, $awal, $akhir);       
+
+        $results = DB::select("
+            SELECT pkp.nama, pkp.id
+            FROM pkp
+            LEFT JOIN anggota_bermasalah ON pkp.id = anggota_bermasalah.pkp_ab
+            LEFT JOIN kelompok_bermasalah ON kelompok_bermasalah.pkp_kb = pkp.id
+            WHERE 
+                (cabang_ab = $cabang OR cabang_kb = $cabang)
+                AND ((anggota_bermasalah.tanggal_ab >= '$awal' AND anggota_bermasalah.tanggal_ab <= '$akhir') 
+                OR (kelompok_bermasalah.tanggal_kb >= '$awal' AND kelompok_bermasalah.tanggal_kb <= '$akhir'))
+                GROUP BY pkp.nama, pkp.id
+            ");
+
+        $data = [
+            'kabkkb' => $kabkkb,  
+            'cabang' => $cabang,
+            'awal' => $awal,
+            'akhir' => $akhir,
+            'results' => $results
+        ];
+
+        return view('kab_kkb.form-kelompok-bermasalah', $data);
+    }
+    
+    
+    // public function getTableFormKelompokBermasalahKab(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $awal = $request->input('awal');
+    //         $akhir = $request->input('akhir');
+    //         $cabang = $request->input('cabang');
+
+    //         $query = DB::select("
+    //             SELECT pkp.nama, pkp.id
+    //                 FROM pkp
+    //                 LEFT JOIN anggota_bermasalah ON pkp.id = anggota_bermasalah.pkp_ab
+    //                 LEFT JOIN kelompok_bermasalah ON kelompok_bermasalah.pkp_kb = pkp.id
+    //                 WHERE 
+    //                     (cabang_ab = $cabang OR cabang_kb = $cabang)
+    //                     AND ((anggota_bermasalah.tanggal_ab >= $awal AND anggota_bermasalah.tanggal_ab <= $akhir) OR (kelompok_bermasalah.tanggal_kb >= $awal AND kelompok_bermasalah.tanggal_kb <= $akhir))
+    //                 GROUP BY pkp.nama, pkp.id
+    //         ");
+            
+    //         $filteredData = $query->orderBy('pkp.nama', 'asc')->get();
+            
+    //         $query2 = DB::select("
+    //             SELECT id_anggota_ab FROM anggota_bermasalah
+    //             WHERE pkp_ab = '$pkp' AND tanggal_ab >= '$awal' AND tanggal_ab <= '$akhir' AND cabang_ab = '$cabang'
+    //         ");
+
+    //         $dtr1=0;
+    //         $dtr2=0;
+    //         $dtr3=0;
+    //         $nama_ab = "";
+    //         $kel_ab ="";
+    //         $nox=1;
+
+    //         foreach($query2 as $rowx){
+    //             $id_anggota = $rowx->id_anggota_ab;
+
+    //             $query3 = DB::select("
+    //                 SELECT count(id_ab) as total,nama_ab,kelompok_ab FROM anggota_bermasalah
+    //                 WHERE id_anggota_ab = '$id_anggota'
+    //             ");
+
+    //             foreach($query3 as $rowr){
+    //                 $nama_ab = $nama_ab."<p> [".$nox."]".$rowr->nama_ab.",</p>";
+    //                 $kel_ab = $kel_ab."<p> [".$nox."]".$rowr->kelompok_ab.",</p>";
+    //                 if($rowr->total > 0 && $rowr->total <= 1){
+    //                     $dtr1 = $dtr1+1;
+    //                     $dtr2 = $dtr2+0;
+    //                     $dtr3 = $dtr3+0;
+    //                  } else if($rowr->total >= 2 && $rowr->total <= 3){
+    //                      $dtr1 = $dtr1+0;
+    //                      $dtr2 = $dtr2+1;
+    //                      $dtr3 = $dtr3+0;    
+    //                  } else {
+    //                      $dtr1 = $dtr1+0;
+    //                      $dtr2 = $dtr2+0;
+    //                      $dtr3 = $dtr3+1;
+    //                  }
+    //             }
+    //             $nox = $nox+1;
+    //         }
+
+    //         return DataTables::of($filteredData)
+    //             ->addIndexColumn()
+                
+    //             ->addColumn('total_ab', function ($row) {
+    //                 $pkp_ab = $row->id;
+    //                 $quee = DB::select("
+    //                     SELECT count(id_ab) as total 
+    //                     FROM anggota_bermasalah
+    //                     WHERE pkp_ab = '$pkp_ab' AND tanggal_ab >= '$awal' AND tanggal_ab <= '$akhir' AND cabang_ab = '$cabang'
+    //                 ");
+                    
+    //                 $total = $quee->total;
+    //                 return $total;
+    //             })
+    //             ->addColumn('total_kb', function ($row) {
+    //                 $pkp_kb = $row->id;
+    //                 $queee = DB::select("
+    //                     SELECT kelompok_kb, count(id_kb) as total FROM kelompok_bermasalah
+    //                     WHERE pkp_kb = '$pkp_kb' AND tanggal_kb >= '$awal' AND tanggal_kb <= '$akhir' AND cabang_kb = '$cabang'
+    //                 ");
+                    
+    //                 $total = $queee->total;
+    //                 return $total;
+    //             })
+    //             ->addColumn('dtr_1', function ($row) {
+    //                 $pkp_kb = $row->id;
+    //                 $queee = DB::select("
+    //                     SELECT kelompok_kb, count(id_kb) as total FROM kelompok_bermasalah
+    //                     WHERE pkp_kb = '$pkp_kb' AND tanggal_kb >= '$awal' AND tanggal_kb <= '$akhir' AND cabang_kb = '$cabang'
+    //                 ");
+                    
+    //                 $total = $queee->total;
+    //                 return $total;
+    //             })
+                
+    //             ->rawColumns(['total_ab','total_kb'])
+    //             ->make(true);
+    //     }
+    // }
+    public function getTableFormKelompokBermasalahKab(Request $request)
+    {
+        try {
+            if ($request->ajax()) {
+                $awal = $request->input('awal');
+                $akhir = $request->input('akhir');
+                $cabang = $request->input('cabang');
+
+                // Validate the input data
+                if (!$awal || !$akhir || !$cabang) {
+                    return response()->json(['error' => 'Invalid input data.'], 400);
+                }
+    
+                $query = DB::select("
+                    SELECT pkp.nama, pkp.id
+                    FROM pkp
+                    LEFT JOIN anggota_bermasalah ON pkp.id = anggota_bermasalah.pkp_ab
+                    LEFT JOIN kelompok_bermasalah ON kelompok_bermasalah.pkp_kb = pkp.id
+                    WHERE 
+                        (cabang_ab = $cabang OR cabang_kb = $cabang)
+                        AND ((anggota_bermasalah.tanggal_ab >= '$awal' AND anggota_bermasalah.tanggal_ab <= '$akhir') 
+                        OR (kelompok_bermasalah.tanggal_kb >= '$awal' AND kelompok_bermasalah.tanggal_kb <= '$akhir'))
+                    GROUP BY pkp.nama, pkp.id
+                ");
+                
+                // Data processing for dtr1, dtr2, dtr3
+                $data = [];
+                foreach ($query as $row) {
+                    $pkp = $row->id;
+                    // Initialize counts
+                    $dtr1 = 0;
+                    $dtr2 = 0;
+                    $dtr3 = 0;
+                    $nama_ab = "";
+                    $kel_ab = "";
+                    $nox = 1;
+    
+                    // Get anggota_bermasalah for this pkp
+                    $query2 = DB::select("
+                        SELECT id_anggota_ab FROM anggota_bermasalah
+                        WHERE pkp_ab = $pkp AND tanggal_ab >= '$awal' AND tanggal_ab <= '$akhir' AND cabang_ab = $cabang
+                    ");
+    
+                    foreach ($query2 as $rowx) {
+                        $id_anggota = $rowx->id_anggota_ab;
+    
+                        $query3 = DB::select("
+                            SELECT count(id_ab) as total, nama_ab, kelompok_ab 
+                            FROM anggota_bermasalah
+                            WHERE id_anggota_ab = $id_anggota
+                        ");
+    
+                        foreach ($query3 as $rowr) {
+                            $nama_ab .= "<p> [{$nox}] {$rowr->nama_ab},</p>";
+                            $kel_ab .= "<p> [{$nox}] {$rowr->kelompok_ab},</p>";
+    
+                            if ($rowr->total > 0 && $rowr->total <= 1) {
+                                $dtr1 += 1;
+                            } elseif ($rowr->total >= 2 && $rowr->total <= 3) {
+                                $dtr2 += 1;
+                            } else {
+                                $dtr3 += 1;
+                            }
+                            $nox++;
+                        }
+                    }
+    
+                    $data[] = [
+                        'nama' => $row->nama,
+                        'total_ab' => $this->getTotalAb($pkp, $awal, $akhir, $cabang),
+                        'total_kb' => $this->getTotalKb($pkp, $awal, $akhir, $cabang),
+                        'nama_ab' => $nama_ab,
+                        'kel_ab' => $kel_ab,
+                        'dtr1' => $dtr1,
+                        'dtr2' => $dtr2,
+                        'dtr3' => $dtr3,
+                    ];
+                }
+    
+                return response()->json($data); // Send the response if everything is okay
+    
+            }
+        } catch (\Exception $e) {
+            // Catch and log errors
+            \Log::error('Error fetching data: ' . $e->getMessage());
+            return response()->json(['error' => 'An error occurred while processing the request.'], 500);
+        }
+    }
+
+    // Helper functions for total_ab and total_kb
+    private function getTotalAb($pkp_ab, $awal, $akhir, $cabang)
+    {
+        $result = DB::select("
+            SELECT count(id_ab) as total 
+            FROM anggota_bermasalah
+            WHERE pkp_ab = $pkp_ab AND tanggal_ab >= $awal AND tanggal_ab <= $akhir AND cabang_ab = $cabang
+        ");
+
+        return $result[0]->total ?? 0;
+    }
+
+    private function getTotalKb($pkp_kb, $awal, $akhir, $cabang)
+    {
+        $result = DB::select("
+            SELECT count(id_kb) as total 
+            FROM kelompok_bermasalah
+            WHERE pkp_kb = $pkp_kb AND tanggal_kb >= $awal AND tanggal_kb <= $akhir AND cabang_kb = $cabang
+        ");
+
+        return $result[0]->total ?? 0;
+    }
+
     public function historyKunjunganKab(Request $request)
     {
         if ($request->ajax()) {
