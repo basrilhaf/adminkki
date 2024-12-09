@@ -41,10 +41,7 @@ class KabKkbController extends Controller
             'menu' => 'Dashboard',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
-            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
-                                
-                            </ul>'
+            'breadcrumb' => ''
         ];
         
         return view('dashboard.index', $data);
@@ -61,9 +58,7 @@ class KabKkbController extends Controller
             'menu' => 'KAB',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
-            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
-                            </ul>'
+            'breadcrumb' => ''
         ];
         
         return view('kab_kkb.pengisian-kab', $data);
@@ -80,14 +75,29 @@ class KabKkbController extends Controller
             'menu' => 'Status',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
-            'breadcrumb' => '<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
-                                <li class="breadcrumb-item text-gray-700 fw-bold lh-1"><a href="#" class="text-gray-500 text-hover-primary"><i class="ki-duotone ki-home fs-6 text-gray-500 me-n1"></i></a></li>
-                            </ul>'
+            'breadcrumb' => ''
         ];
         
         return view('kab_kkb.status', $data);
     }
 
+    
+    public function rangkumanDtr(Request $request): View
+    {
+        $menu_aktif = '/rangkumanDtr||/kabkkb';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+
+        
+
+        $data = [
+            'menu' => 'Rangkuman Penyebab DTR',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('kab_kkb.rangkuman-dtr', $data);
+    }
     
     public function formBelumDikunjungiDikumpulkan(Request $request)
     {
@@ -424,6 +434,42 @@ class KabKkbController extends Controller
         ");
 
         return $result[0]->total ?? 0;
+    }
+
+    
+    public function getTableRangkumanDtr(Request $request)
+    {
+        if ($request->ajax()) {
+            $daterange = $request->input('daterange');
+            $p_date = explode("to", $daterange);
+            $awal = trim($p_date[0]); // Start date
+            $akhir = trim($p_date[1]); // End date
+
+            $query = DB::table('anggota_bermasalah')
+                ->select('penyebab_ab', DB::raw('COUNT(id_ab) as jumlah'))
+                ->where('tanggal_ab','>=', $awal)
+                ->where('tanggal_ab','<=', $akhir);
+               
+
+            if ($request->input('cabang') != '0') {
+                $query->where('cabang_ab',  $request->input('cabang') );
+            }
+
+            $filteredData = $query->groupBy('penyebab_ab')
+                ->orderBy('penyebab_ab', 'ASC')
+                ->get();
+
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-history btn-sm" data-id="' . $row->penyebab_ab . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+                
+
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
 
     public function historyKunjunganKab(Request $request)
