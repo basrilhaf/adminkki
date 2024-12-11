@@ -150,7 +150,7 @@ class AnggotaController extends Controller
 
             // Grouping by idsikkikb and ordering by id_kb
             $filteredData = $query->groupBy('nama_ab', 'kelompok_ab', 'id_anggota_ab', 'id_sikki_ab', 'cabang_ab')
-                ->orderBy('id_ab', 'desc')
+                ->orderBy('id_sikki_ab', 'desc')
                 ->get();
             return DataTables::of($filteredData)
                 ->addIndexColumn()

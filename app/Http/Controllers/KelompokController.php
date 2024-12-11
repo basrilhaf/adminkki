@@ -108,7 +108,7 @@ class KelompokController extends Controller
 
             // Grouping by idsikkikb and ordering by id_kb
             $filteredData = $query->groupBy('kelompok_kb', 'cabang_kb', 'pkp_dkb', 'kc_dkb', 'nama', 'kelompok_bermasalah.id_sikki_kb')
-                ->orderBy('id_kb', 'desc')
+                ->orderBy('kelompok_bermasalah.id_sikki_kb', 'desc')
                 ->get();
             return DataTables::of($filteredData)
                 ->addIndexColumn()
