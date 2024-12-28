@@ -46,6 +46,8 @@ class DashboardController extends Controller
                                 
                             </ul>'
         ];
+
+        
         
         return view('dashboard.index', $data);
     }
@@ -65,6 +67,23 @@ class DashboardController extends Controller
         ];
         
         return view('dashboard.anggota', $data);
+    }
+
+    
+    public function getDataTotalDashboard()
+    {
+        $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('SELECT COUNT(nasabah_id) as total FROM tabung WHERE kode_integrasi = 202 AND saldo_akhir > 10000');
+        $kelompok_aktif = DB::connection('mysql_secondary')->select('SELECT COUNT(kode_group1) as total FROM tab_kode_group1 WHERE status_aktif = 1');
+        $kumpulan_aktif = DB::connection('mysql_secondary')->select('SELECT COUNT(kode_group3) as total FROM tab_kode_group3');
+        $data = [
+            'anggota_aktif_dgn_md' => $anggota_aktif_dgn_md[0]->total,
+            'anggota_aktif_tanpa_md' => 0,
+            'kelompok_aktif' => $kelompok_aktif[0]->total,
+            'kumpulan_aktif' => $kumpulan_aktif[0]->total
+        ];
+        // var_dump($data);die();
+        
+        return response()->json($data); // Mengirimkan nilai total_quantity
     }
 
     

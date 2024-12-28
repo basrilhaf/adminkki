@@ -12,6 +12,9 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Response;
 
 
 
@@ -47,6 +50,60 @@ class AnggotaController extends Controller
         return view('anggota.index', $data);
     }
 
+    public function exportAnggota()
+    {
+        // Ambil data dari database
+        $data = \DB::connection('mysql_secondary')
+            ->table('tabung as A')
+            ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+            ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+            ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+            ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
+            ->where('A.kode_integrasi', 201)
+            ->where('A.saldo_akhir', '>=', 10000)
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'ID Nasabah')
+              ->setCellValue('B1', 'Nama Nasabah')
+              ->setCellValue('C1', 'Kelompok')
+              ->setCellValue('D1', 'Jumlah Pinjaman')
+              ->setCellValue('E1', 'No. KTP');
+
+        // Isi data ke dalam spreadsheet
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+            $sheet->setCellValue('A' . $row, $user->nasabah_id)
+                  ->setCellValue('B' . $row, $user->NAMA_NASABAH)
+                  ->setCellValue('C' . $row, $user->DESKRIPSI_GROUP1)
+                  ->setCellValue('D' . $row, $user->jml_pinjaman)
+                  ->setCellValue('E' . $row, $user->no_id);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'anggota_aktif.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
+  
     public function masalahAnggota(): View
     {
         $menu_aktif = '/masalahAnggota||/anggota';
@@ -105,8 +162,145 @@ class AnggotaController extends Controller
         return view('kelompok.cari-kelompok', $data);
     }
 
-    
+    public function getCariAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
 
+            // Determine which column to search based on the 'cari' parameter
+            $cari = $request->input('cari');
+            $kolom = '';
+            switch ($cari) {
+                case '3':
+                    $kolom = 'B.nasabah_id';
+                    break;
+                case '1':
+                    $kolom = 'B.NAMA_NASABAH';
+                    break;
+                case '2':
+                    $kolom = 'B.no_id';
+                    break;
+                case '4':
+                    $kolom = 'D.DESKRIPSI_GROUP1';
+                    break;
+                default:
+                    $kolom = 'B.nasabah_id'; // Default column for safety
+                    break;
+            }
+
+            // Get the keyword for search
+            $keyword = $request->input('keyword');
+
+            // Start building the query
+            $query = DB::connection('mysql_secondary')
+                ->table('tabung as A')
+                ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+                ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+                ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+                ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
+                ->where('A.kode_integrasi', 201)
+                ->where($kolom, 'like', '%' . $keyword . '%'); // Apply the keyword filter
+
+            // Additional filters
+            if ($request->filled('kelompok')) {
+                $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
+            }
+            if ($request->filled('nama')) {
+                $query->where('B.NAMA_NASABAH', 'like', '%' . $request->input('nama') . '%');
+            }
+            if ($request->filled('ktp')) {
+                $query->where('B.no_id', 'like', '%' . $request->input('ktp') . '%');
+            }
+
+            // Handle sorting
+            if ($request->has('order')) {
+                $orderColumn = $request->input('order.0.column');
+                $orderDirection = $request->input('order.0.dir');
+                
+                // Define the columns that can be sorted
+                $columns = [
+                    0 => 'B.nasabah_id',
+                    1 => 'B.NAMA_NASABAH',
+                    2 => 'D.DESKRIPSI_GROUP1',
+                    3 => 'B.no_id',
+                    4 => 'C.jml_pinjaman'
+                ];
+
+                // Apply ordering if valid
+                if (isset($columns[$orderColumn])) {
+                    $query->orderBy($columns[$orderColumn], $orderDirection);
+                }
+            }
+
+            // Return the result as a DataTables response
+            return DataTables::of($query)
+                ->addIndexColumn()  // Adds row index
+                ->addColumn('action', function ($row) {
+                    // Define the URL for the action buttons
+                    $infoUrl = route('user.infoUser', $row->nasabah_id);
+                    // Return a button with the URL
+                    return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                })
+                ->rawColumns(['action'])  // Allow HTML rendering in the action column
+                ->make(true);  // Return the response in DataTables format
+        }
+    }
+    
+    public function getAnggotaAktif(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            $query = DB::connection('mysql_secondary')
+                ->table('tabung as A')
+                ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+                ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+                ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+                ->select('B.*', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'C.jml_angsuran', 'C.periode_angsuran')
+                ->where('A.kode_integrasi', 201)
+                ->where('A.saldo_akhir', '>=', 10000);
+
+            if ($request->filled('kelompok')) {
+                $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
+            }
+            if ($request->filled('nama')) {
+                $query->where('B.NAMA_NASABAH', 'like', '%' . $request->input('nama') . '%');
+            }
+            if ($request->filled('ktp')) {
+                $query->where('B.no_id', 'like', '%' . $request->input('ktp') . '%');
+            }
+
+            if ($request->has('order')) {
+                $orderColumn = $request->input('order.0.column'); 
+                $orderDirection = $request->input('order.0.dir'); 
+
+                $columns = [
+                    'NAMA_NASABAH', // Column 1
+                    'nasabah_id',   // Column 2
+                    'kode_kantor',  // Column 3
+                    'jml_pinjaman', // Column 4
+                    'no_id'         // Column 5
+                ];
+
+                // Order by the appropriate column
+                if (isset($columns[$orderColumn])) {
+                    $query->orderBy($columns[$orderColumn], $orderDirection);
+                }
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()  // This is for the row index numbering
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('user.infoUser', $row->nasabah_id);
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
     
     public function getMasalahAnggota(Request $request)
     {

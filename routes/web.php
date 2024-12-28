@@ -41,6 +41,7 @@ Route::get('/dashboardAnggota', [DashboardController::class, 'dashboardAnggota']
 Route::get('/chartAnggotaBermasalah', [DashboardController::class, 'chartAnggotaBermasalah'])->name('chartAnggotaBermasalah');
 Route::get('/chartKelompokTelat', [DashboardController::class, 'chartKelompokTelat'])->name('chartKelompokTelat');
 Route::get('/chartKelompokBerat', [DashboardController::class, 'chartKelompokBerat'])->name('chartKelompokBerat');
+Route::get('/getDataTotalDashboard', [DashboardController::class, 'getDataTotalDashboard'])->name('getDataTotalDashboard');
 
 
 // route KAB/KKB 
@@ -100,6 +101,11 @@ Route::get('/masalahAnggota', [AnggotaController::class, 'masalahAnggota'])->nam
 Route::get('/getMasalahAnggota', [AnggotaController::class, 'getMasalahAnggota'])->name('getMasalahAnggota');
 Route::get('/cariAnggota', [AnggotaController::class, 'cariAnggota'])->name('cariAnggota');
 Route::get('/historyAnggota', [AnggotaController::class, 'historyAnggota'])->name('historyAnggota');
+Route::get('/getAnggotaAktif', [AnggotaController::class, 'getAnggotaAktif'])->name('getAnggotaAktif');
+Route::get('/exportAnggota', [AnggotaController::class, 'exportAnggota'])->name('exportAnggota');
+Route::get('/getCariAnggota', [AnggotaController::class, 'getCariAnggota'])->name('getCariAnggota');
+
+
 
 
 // route pengecekan 

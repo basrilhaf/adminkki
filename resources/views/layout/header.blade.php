@@ -99,7 +99,7 @@
 												<div class="d-flex flex-column">
 													<div class="fw-bold d-flex align-items-center fs-5">{{ session('nama_user') }} 
 													<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">{{ session('role_user') }} </span></div>
-													<a href="{{route('user.profilUser', session('id_user'))}}" class="fw-semibold text-muted text-hover-primary fs-7">{{ session('email_user') }} </a>
+													<a href="{{route('user.editUser', session('id_user'))}}" class="fw-semibold text-muted text-hover-primary fs-7">{{ session('email_user') }} </a>
 												</div>
 												<!--end::Username-->
 											</div>
@@ -110,7 +110,7 @@
 										<!--end::Menu separator-->
 										<!--begin::Menu item-->
 										<div class="menu-item px-5">
-											<a href="{{route('user.profilUser', session('id_user'))}}" class="menu-link px-5">Profil Saya</a>
+											<a href="{{route('user.editUser', session('id_user'))}}" class="menu-link px-5">Profil Saya</a>
 										</div>
 										<!--end::Menu item-->
 										
