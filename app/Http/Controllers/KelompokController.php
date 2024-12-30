@@ -12,6 +12,9 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Response;
 
 
 
@@ -77,6 +80,143 @@ class KelompokController extends Controller
     }
 
     
+    public function getKelompokAktif(Request $request)
+    {
+        if ($request->ajax()) {
+    
+            $query = DB::connection('mysql_secondary')
+                ->table('kredit as A')
+                ->select(
+                    'B.deskripsi_group1',
+                    'B.kode_group1',
+                    'D.NAMA_KANTOR',
+                    'A.tgl_realisasi',
+                    'A.tgl_jatuh_tempo',
+                    'C.deskripsi_group2',
+                    'A.jml_angsuran',
+                    'A.tgl_jatuh_tempo',
+                    DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman')
+                )
+                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
+                ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
+                ->where('A.pokok_saldo_akhir', '>', 0);
+    
+            // Filter by "nama" if present
+            if ($request->filled('nama')) {
+                $query->where('B.kode_group1', 'like', '%' . $request->input('nama') . '%');
+            }
+    
+            // Filter by "cabang" if present
+            if ($request->filled('cabang')) {
+                $query->where('D.NAMA_KANTOR', 'like', '%' . $request->input('cabang') . '%');
+            }
+    
+            // Filter by "pkp" if present (using the correct column alias for deskripsi_group2)
+            if ($request->filled('pkp')) {
+                $query->where('C.deskripsi_group2', 'like', '%' . $request->input('pkp') . '%');
+            }
+    
+            // Grouping the results and applying the order
+            $filteredData = $query->groupBy(
+                    'B.deskripsi_group1', 
+                    'B.kode_group1', 
+                    'D.NAMA_KANTOR', 
+                    'A.tgl_realisasi', 
+                    'A.tgl_jatuh_tempo', 
+                    'C.deskripsi_group2', 
+                    'A.jml_angsuran', 
+                    'A.tgl_jatuh_tempo'
+                )
+                ->orderBy('B.kode_group1', 'desc')
+                ->get();
+    
+            // Returning the results for DataTables with action buttons
+            return DataTables::of($filteredData)
+                ->addIndexColumn()  // Adds the index column
+                ->addColumn('action', function ($row) {
+                    // URL for the action button
+                    $infoUrl = route('user.infoUser', $row->kode_group1);
+                    // Creating the action button
+                    $btn = '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                    return $btn;
+                })
+                ->rawColumns(['action'])  // Ensures the action button is rendered as HTML
+                ->make(true);
+        }
+    }
+
+    
+    public function exportKelompok()
+    {
+       
+
+        $data = DB::connection('mysql_secondary')
+            ->table('kredit as A')
+            ->select('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3'
+                ,DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman'))
+            ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+            ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
+            ->join('kre_kode_group3 as E', 'E.kode_group3', '=', 'A.kode_group3')
+            ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
+            ->where('A.pokok_saldo_akhir', '>', 0)
+            ->groupBy('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3')
+            ->orderBy('B.kode_group1', 'desc')
+            ->get();;
+            
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'Nama Kelompok')
+              ->setCellValue('B1', 'Tanggal Cair')
+              ->setCellValue('C1', 'Cabang')
+              ->setCellValue('D1', 'PKP')
+              ->setCellValue('E1', 'Jumlah Pinjaman')
+              ->setCellValue('F1', 'Durasi')
+              ->setCellValue('G1', 'Tanggal Closed')
+              ->setCellValue('H1', 'Kumpulan')
+              ->setCellValue('I1', 'ID Kumpulan DB');
+
+         
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+            $sheet->setCellValue('A' . $row, $user->deskripsi_group1)
+                  ->setCellValue('B' . $row, $user->tgl_realisasi)
+                  ->setCellValue('C' . $row, $user->NAMA_KANTOR)
+                  ->setCellValue('D' . $row, $user->deskripsi_group2)
+                  ->setCellValue('E' . $row, $user->jumlah_pinjaman)
+                  ->setCellValue('F' . $row, $user->jml_angsuran)
+                  ->setCellValue('G' . $row, $user->tgl_jatuh_tempo)
+                  ->setCellValue('H' . $row, $user->deskripsi_group3)
+                  ->setCellValue('I' . $row, $user->kode_group3);
+
+                  
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'kelompok_aktif.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+    
+
     public function getMasalahKelompok(Request $request)
     {
         if ($request->ajax()) {

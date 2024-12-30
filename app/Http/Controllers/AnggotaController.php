@@ -133,6 +133,22 @@ class AnggotaController extends Controller
         return view('anggota.cari-anggota', $data);
     }
 
+    public function detailAnggota($nasabah_id, Request $request)
+    {
+        $menu_aktif = '/cariAnggota||/anggota';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Detail Anggota',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => '',
+            'nasabah_id' => $nasabah_id
+        ];
+        
+        return view('anggota.detail-anggota', $data);
+
+    }
+
     
     public function historyAnggota(): View
     {
@@ -198,7 +214,7 @@ class AnggotaController extends Controller
                 ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
                 ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
                 ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
-                ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
+                ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'B.no_id')
                 ->where('A.kode_integrasi', 201)
                 ->where($kolom, 'like', '%' . $keyword . '%'); // Apply the keyword filter
 
@@ -212,7 +228,7 @@ class AnggotaController extends Controller
             if ($request->filled('ktp')) {
                 $query->where('B.no_id', 'like', '%' . $request->input('ktp') . '%');
             }
-
+            $query->groupBy('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'B.no_id');
             // Handle sorting
             if ($request->has('order')) {
                 $orderColumn = $request->input('order.0.column');
@@ -238,7 +254,7 @@ class AnggotaController extends Controller
                 ->addIndexColumn()  // Adds row index
                 ->addColumn('action', function ($row) {
                     // Define the URL for the action buttons
-                    $infoUrl = route('user.infoUser', $row->nasabah_id);
+                    $infoUrl = route('detailAnggota', $row->nasabah_id);
                     // Return a button with the URL
                     return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                 })
@@ -300,6 +316,51 @@ class AnggotaController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
+    }
+    
+    public function getHistoryAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            $query = DB::connection('mysql_secondary')
+                ->table('kredit as A')
+                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                ->select('A.*', 'B.deskripsi_group1')
+                ->where('A.nasabah_id', $request->input('nasabah_id'));
+
+            $query->orderBy('A.tgl_realisasi', 'asc');
+
+            return DataTables::of($query)
+                ->addIndexColumn()  // This is for the row index numbering
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('user.infoUser', $row->nasabah_id);
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    public function getDetailAnggota($nasabah_id)
+    {
+        $data = DB::connection('mysql_secondary')
+            ->table('nasabah as A')
+            ->join('kredit as C', 'C.nasabah_id', '=', 'A.nasabah_id')
+            ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'C.kode_group1')
+            ->select('A.*', 'B.deskripsi_group1','C.jml_pinjaman','C.tgl_realisasi')
+            ->where('A.nasabah_id', $nasabah_id)
+            ->orderBy('C.tgl_realisasi', 'desc')
+            ->first();
+
+        if (!$data) {
+            return response()->json(['error' => 'Data not found'], 404);
+        }
+
+
+        return response()->json($data);
     }
     
     public function getMasalahAnggota(Request $request)

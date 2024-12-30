@@ -83,7 +83,6 @@
                                                         <th class="min-w-100px">Nama</th>
 														<th class="min-w-100px">Klpk Terakhir</th>
                                                         <th class="min-w-100px">KTP</th>
-                                                        <th class="min-w-100px">Pinjaman</th>
                                                         <th class="min-w-100px">Action</th>
                                                         
 													</tr>
@@ -131,7 +130,6 @@
                                 {data: 'NAMA_NASABAH', name: 'NAMA_NASABAH'},
                                 {data: 'DESKRIPSI_GROUP1', name: 'DESKRIPSI_GROUP1'},
                                 {data: 'no_id', name: 'no_id'},
-                                {data: 'jml_pinjaman', name: 'jml_pinjaman'},
                                 {data: 'action', name: 'action', orderable: false, searchable: false}
                             ]
                         });

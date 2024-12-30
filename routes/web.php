@@ -94,6 +94,10 @@ Route::resource('/kelompokAktif', \App\Http\Controllers\KelompokController::clas
 Route::get('/masalahKelompok', [KelompokController::class, 'masalahKelompok'])->name('masalahKelompok');
 Route::get('/getMasalahKelompok', [KelompokController::class, 'getMasalahKelompok'])->name('getMasalahKelompok');
 Route::get('/cariKelompok', [KelompokController::class, 'cariKelompok'])->name('cariKelompok');
+Route::get('/getKelompokAktif', [KelompokController::class, 'getKelompokAktif'])->name('getKelompokAktif');
+Route::get('/exportKelompok', [KelompokController::class, 'exportKelompok'])->name('exportKelompok');
+
+
 
 // route anggota 
 Route::resource('/anggotaAktif', \App\Http\Controllers\AnggotaController ::class);
@@ -104,7 +108,9 @@ Route::get('/historyAnggota', [AnggotaController::class, 'historyAnggota'])->nam
 Route::get('/getAnggotaAktif', [AnggotaController::class, 'getAnggotaAktif'])->name('getAnggotaAktif');
 Route::get('/exportAnggota', [AnggotaController::class, 'exportAnggota'])->name('exportAnggota');
 Route::get('/getCariAnggota', [AnggotaController::class, 'getCariAnggota'])->name('getCariAnggota');
-
+Route::get('/detailAnggota/{nasabah_id}', [AnggotaController::class, 'detailAnggota'])->name('detailAnggota');
+Route::get('/getHistoryAnggota', [AnggotaController::class, 'getHistoryAnggota'])->name('getHistoryAnggota');
+Route::get('/getDetailAnggota/{nasabah_id}', [AnggotaController::class, 'getDetailAnggota'])->name('getDetailAnggota');
 
 
 

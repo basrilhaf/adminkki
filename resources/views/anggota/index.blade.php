@@ -79,7 +79,7 @@
                                                         <th class="min-w-100px">Pinjaman</th>
                                                         <th class="min-w-100px">Periode</th>
                                                         <th class="min-w-100px">No KTP</th>
-                                                        <th></th>
+                                                        {{-- <th></th> --}}
 													</tr>
 												</thead>
 											
@@ -122,7 +122,7 @@
                         },
                         {data: 'jml_angsuran', name: 'jml_angsuran', orderable: false, searchable: false},
                         {data: 'no_id', name: 'no_id'},
-                        {data: 'action', name: 'action', orderable: false, searchable: false},
+                        // {data: 'action', name: 'action', orderable: false, searchable: false},
                     ]
                 });
                 $('#searchAnggota').click(function () {
