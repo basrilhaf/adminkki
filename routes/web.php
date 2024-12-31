@@ -96,6 +96,13 @@ Route::get('/getMasalahKelompok', [KelompokController::class, 'getMasalahKelompo
 Route::get('/cariKelompok', [KelompokController::class, 'cariKelompok'])->name('cariKelompok');
 Route::get('/getKelompokAktif', [KelompokController::class, 'getKelompokAktif'])->name('getKelompokAktif');
 Route::get('/exportKelompok', [KelompokController::class, 'exportKelompok'])->name('exportKelompok');
+Route::get('/getCariKelompok', [KelompokController::class, 'getCariKelompok'])->name('getCariKelompok');
+Route::get('/detailKelompok/{kode_group1}', [KelompokController::class, 'detailKelompok'])->name('detailKelompok');
+Route::get('/getDetailKelompok/{kode_group1}', [KelompokController::class, 'getDetailKelompok'])->name('getDetailKelompok');
+Route::get('/getAnggotaKelompok', [KelompokController::class, 'getAnggotaKelompok'])->name('getAnggotaKelompok');
+Route::get('/getCariDownloadKelompok', [KelompokController::class, 'getCariDownloadKelompok'])->name('getCariDownloadKelompok');
+Route::get('/downloadKelompok', [KelompokController::class, 'downloadKelompok'])->name('downloadKelompok');
+Route::get('/exportDownloadKelompok', [KelompokController::class, 'exportDownloadKelompok'])->name('exportDownloadKelompok');
 
 
 
