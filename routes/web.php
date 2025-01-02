@@ -42,6 +42,11 @@ Route::get('/chartAnggotaBermasalah', [DashboardController::class, 'chartAnggota
 Route::get('/chartKelompokTelat', [DashboardController::class, 'chartKelompokTelat'])->name('chartKelompokTelat');
 Route::get('/chartKelompokBerat', [DashboardController::class, 'chartKelompokBerat'])->name('chartKelompokBerat');
 Route::get('/getDataTotalDashboard', [DashboardController::class, 'getDataTotalDashboard'])->name('getDataTotalDashboard');
+Route::get('/chartPencairanAnggota', [DashboardController::class, 'chartPencairanAnggota'])->name('chartPencairanAnggota');
+Route::get('/chartPencairanKelompok', [DashboardController::class, 'chartPencairanKelompok'])->name('chartPencairanKelompok');
+Route::get('/chartCabangAnggota', [DashboardController::class, 'chartCabangAnggota'])->name('chartCabangAnggota');
+Route::get('/chartCabangKelompok', [DashboardController::class, 'chartCabangKelompok'])->name('chartCabangKelompok');
+
 
 
 // route KAB/KKB 
@@ -103,6 +108,8 @@ Route::get('/getAnggotaKelompok', [KelompokController::class, 'getAnggotaKelompo
 Route::get('/getCariDownloadKelompok', [KelompokController::class, 'getCariDownloadKelompok'])->name('getCariDownloadKelompok');
 Route::get('/downloadKelompok', [KelompokController::class, 'downloadKelompok'])->name('downloadKelompok');
 Route::get('/exportDownloadKelompok', [KelompokController::class, 'exportDownloadKelompok'])->name('exportDownloadKelompok');
+Route::get('/dataKelompok', [KelompokController::class, 'dataKelompok'])->name('dataKelompok');
+Route::get('/getSemuaKelompok', [KelompokController::class, 'getSemuaKelompok'])->name('getSemuaKelompok');
 
 
 
@@ -118,7 +125,7 @@ Route::get('/getCariAnggota', [AnggotaController::class, 'getCariAnggota'])->nam
 Route::get('/detailAnggota/{nasabah_id}', [AnggotaController::class, 'detailAnggota'])->name('detailAnggota');
 Route::get('/getHistoryAnggota', [AnggotaController::class, 'getHistoryAnggota'])->name('getHistoryAnggota');
 Route::get('/getDetailAnggota/{nasabah_id}', [AnggotaController::class, 'getDetailAnggota'])->name('getDetailAnggota');
-
+Route::get('/downloadAnggotaAktif', [AnggotaController::class, 'downloadAnggotaAktif'])->name('downloadAnggotaAktif');
 
 
 // route pengecekan 

@@ -163,6 +163,21 @@ class AnggotaController extends Controller
         
         return view('anggota.history-anggota', $data);
     }
+
+    public function downloadAnggotaAktif(): View
+    {
+        $menu_aktif = '/downloadAnggotaAktif||/anggota';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Download Anggota Aktif',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('anggota.download-anggota-aktif', $data);
+    }
+    
     
     public function cariKelompok(): View
     {

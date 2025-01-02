@@ -79,6 +79,22 @@ class KelompokController extends Controller
         return view('kelompok.download-kelompok', $data);
     }
 
+    public function dataKelompok(): View
+    {
+        $menu_aktif = '/dataKelompok||/kelompok';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Data Kelompok',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('kelompok.data-kelompok', $data);
+    }
+
+    
+
     public function masalahKelompok(): View
     {
         $menu_aktif = '/masalahKelompok||/kelompok';
@@ -93,7 +109,70 @@ class KelompokController extends Controller
         return view('kelompok.masalah-kelompok', $data);
     }
 
+    public function getSemuaKelompok(Request $request)
+    {
+        if ($request->ajax()) {
     
+            $query = DB::connection('mysql_secondary')
+                ->table('kredit as A')
+                ->select(
+                    'B.deskripsi_group1',
+                    'B.kode_group1',
+                    'A.tgl_realisasi',
+                    'A.tgl_jatuh_tempo'  
+                )
+                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2');
+    
+            if ($request->filled('nama')) {
+                $query->where('B.deskripsi_group1', 'like', '%' . $request->input('nama') . '%');
+            }
+    
+            if ($request->filled('id')) {
+                $query->where('B.kode_group1', 'like', '%' . $request->input('id') . '%');
+            }
+    
+            if ($request->filled('status')) {
+                if($request->input('status') == 1){
+                    $query->where('A.tgl_jatuh_tempo', '>=', date('Y-m-d'));
+                }else if($request->input('status') == 2){
+                    $query->where('A.tgl_jatuh_tempo', '<', date('Y-m-d'));
+                }else{
+
+                }
+                
+            }
+    
+            $filteredData = $query->groupBy(
+                    'B.deskripsi_group1',
+                    'B.kode_group1',
+                    'A.tgl_realisasi',
+                    'A.tgl_jatuh_tempo'
+                )
+                ->orderBy('B.kode_group1', 'desc')
+                ->get();
+    
+            return DataTables::of($filteredData)
+                ->addIndexColumn() 
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('user.infoUser', $row->kode_group1);
+                    $btn = '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                    return $btn;
+                })
+                ->addColumn('status', function ($row) {
+                    if($row->tgl_jatuh_tempo >= date('Y-m-d')){
+                        $status = '<span class="btn btn-light-success btn-sm">Aktif</span>';
+                    }else{
+                        $status = '<span class="btn btn-light-danger btn-sm">Tidak Aktif</span>';
+                    }
+                    
+                    return $status;
+                })
+                ->rawColumns(['action','status']) 
+                ->make(true);
+        }
+    }
+
     public function getKelompokAktif(Request $request)
     {
         if ($request->ajax()) {

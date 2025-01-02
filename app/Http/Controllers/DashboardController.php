@@ -75,15 +75,90 @@ class DashboardController extends Controller
         $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('SELECT COUNT(nasabah_id) as total FROM tabung WHERE kode_integrasi = 202 AND saldo_akhir > 10000');
         $kelompok_aktif = DB::connection('mysql_secondary')->select('SELECT COUNT(kode_group1) as total FROM tab_kode_group1 WHERE status_aktif = 1');
         $kumpulan_aktif = DB::connection('mysql_secondary')->select('SELECT COUNT(kode_group3) as total FROM tab_kode_group3');
+        $tabungan_anggota_aktif = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) as total FROM tabung A inner join nasabah B on A.nasabah_id = B.nasabah_id inner join tabung C on A.nasabah_id = C.nasabah_id and C.kode_integrasi = '201' and C.saldo_akhir >= 10000 where A.kode_integrasi = '203'");
+        $tabungan_semua_anggota = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) as total FROM tabung A where A.kode_integrasi = '203'");
+
+
         $data = [
             'anggota_aktif_dgn_md' => $anggota_aktif_dgn_md[0]->total,
             'anggota_aktif_tanpa_md' => 0,
             'kelompok_aktif' => $kelompok_aktif[0]->total,
-            'kumpulan_aktif' => $kumpulan_aktif[0]->total
+            'kumpulan_aktif' => $kumpulan_aktif[0]->total,
+            'tabungan_anggota_aktif' => $tabungan_anggota_aktif[0]->total,
+            'tabungan_semua_anggota' => $tabungan_semua_anggota[0]->total,
         ];
         // var_dump($data);die();
         
         return response()->json($data); // Mengirimkan nilai total_quantity
+    }
+
+    
+    public function chartPencairanAnggota(Request $request)
+    {
+        $tahun = $request->input('tahun');
+
+        $chart_pa = DB::connection('mysql_secondary')
+                ->table('kredit')
+                ->select(DB::raw('DATE_FORMAT(tgl_realisasi, "%b-%Y") as bulan'), DB::raw('count(nasabah_id) as jumlah'))
+                ->whereYear('tgl_realisasi', '=', $tahun)
+                ->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+
+        return response()->json([
+            'bulan' => $chart_pa->pluck('bulan'),
+            'jumlah' => $chart_pa->pluck('jumlah'),
+        ]);
+    }
+
+    public function chartPencairanKelompok(Request $request)
+    {
+        $tahun = $request->input('tahun');
+
+        $chart_pa = DB::connection('mysql_secondary')
+                ->table('kredit')
+                ->select(DB::raw('DATE_FORMAT(tgl_realisasi, "%b-%Y") as bulan'), DB::raw('count(DISTINCT kode_group1) as jumlah'))
+                ->whereYear('tgl_realisasi', '=', $tahun)
+                ->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+
+        return response()->json([
+            'bulan' => $chart_pa->pluck('bulan'),
+            'jumlah' => $chart_pa->pluck('jumlah'),
+        ]);
+    }
+
+    public function chartCabangAnggota(Request $request)
+    {
+
+        $chart_ca = DB::connection('mysql_secondary')
+                ->table('kredit')
+                ->select('app_kode_kantor.NAMA_KANTOR as bulan', DB::raw('count(kredit.nasabah_id) as jumlah'))
+                ->join('app_kode_kantor', 'app_kode_kantor.KODE_KANTOR', '=', 'kredit.KODE_KANTOR')
+                ->join('tabung', 'tabung.nasabah_id', '=', 'kredit.nasabah_id')
+                ->where('tabung.kode_integrasi', '=', '201')
+                ->where('tabung.saldo_akhir', '>=', 10000)
+                ->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+
+        return response()->json([
+            'bulan' => $chart_ca->pluck('bulan'),
+            'jumlah' => $chart_ca->pluck('jumlah'),
+        ]);
+    }
+
+    public function chartCabangKelompok(Request $request)
+    {
+
+        $chart_ca = DB::connection('mysql_secondary')
+                ->table('kredit')
+                ->select('app_kode_kantor.NAMA_KANTOR as bulan', DB::raw('count(DISTINCT kredit.kode_group1) as jumlah'))
+                ->join('app_kode_kantor', 'app_kode_kantor.KODE_KANTOR', '=', 'kredit.KODE_KANTOR')
+                ->join('tabung', 'tabung.nasabah_id', '=', 'kredit.nasabah_id')
+                ->where('tabung.kode_integrasi', '=', '201')
+                ->where('tabung.saldo_akhir', '>=', 10000)
+                ->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+
+        return response()->json([
+            'bulan' => $chart_ca->pluck('bulan'),
+            'jumlah' => $chart_ca->pluck('jumlah'),
+        ]);
     }
 
     
