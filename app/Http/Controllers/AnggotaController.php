@@ -177,8 +177,129 @@ class AnggotaController extends Controller
         
         return view('anggota.download-anggota-aktif', $data);
     }
+
+    public function downloadAnggota(): View
+    {
+        $menu_aktif = '/downloadAnggota||/anggota';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Download Semua Anggota',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => ''
+        ];
+        
+        return view('anggota.download-semua-anggota', $data);
+    }
     
     
+    public function getSemuaAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            $query = DB::connection('mysql_secondary')
+                ->table('tabung as A')
+                ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+                ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+                ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+                ->select('B.*', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'C.jml_angsuran', 'C.periode_angsuran')
+                ->where('A.kode_integrasi', 201);
+
+            if ($request->filled('kelompok')) {
+                $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
+            }
+            if ($request->filled('nama')) {
+                $query->where('B.NAMA_NASABAH', 'like', '%' . $request->input('nama') . '%');
+            }
+            if ($request->filled('ktp')) {
+                $query->where('B.no_id', 'like', '%' . $request->input('ktp') . '%');
+            }
+
+            if ($request->has('order')) {
+                $orderColumn = $request->input('order.0.column'); 
+                $orderDirection = $request->input('order.0.dir'); 
+
+                $columns = [
+                    'NAMA_NASABAH', // Column 1
+                    'nasabah_id',   // Column 2
+                    'kode_kantor',  // Column 3
+                    'jml_pinjaman', // Column 4
+                    'no_id'         // Column 5
+                ];
+
+                // Order by the appropriate column
+                if (isset($columns[$orderColumn])) {
+                    $query->orderBy($columns[$orderColumn], $orderDirection);
+                }
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()  // This is for the row index numbering
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('user.infoUser', $row->nasabah_id);
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    
+    public function exportSemuaAnggota()
+    {
+        // Ambil data dari database
+        $data = \DB::connection('mysql_secondary')
+            ->table('tabung as A')
+            ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+            ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+            ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+            ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
+            ->where('A.kode_integrasi', 201)
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'ID Nasabah')
+              ->setCellValue('B1', 'Nama Nasabah')
+              ->setCellValue('C1', 'Kelompok')
+              ->setCellValue('D1', 'Jumlah Pinjaman')
+              ->setCellValue('E1', 'No. KTP');
+
+        // Isi data ke dalam spreadsheet
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+            $sheet->setCellValue('A' . $row, $user->nasabah_id)
+                  ->setCellValue('B' . $row, $user->NAMA_NASABAH)
+                  ->setCellValue('C' . $row, $user->DESKRIPSI_GROUP1)
+                  ->setCellValue('D' . $row, $user->jml_pinjaman)
+                  ->setCellValue('E' . $row, $user->no_id);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'anggota_aktif.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
     public function cariKelompok(): View
     {
         $menu_aktif = '/cariKelompok||/kelompok';
@@ -268,12 +389,18 @@ class AnggotaController extends Controller
             return DataTables::of($query)
                 ->addIndexColumn()  // Adds row index
                 ->addColumn('action', function ($row) {
-                    // Define the URL for the action buttons
                     $infoUrl = route('detailAnggota', $row->nasabah_id);
-                    // Return a button with the URL
                     return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                 })
-                ->rawColumns(['action'])  // Allow HTML rendering in the action column
+                ->addColumn('cek_tabungan', function ($row) {
+                    $cekTabunganUrl = route('cekTabunganAnggota', $row->nasabah_id);
+                    return '<a href="' . $cekTabunganUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                })
+                ->addColumn('cek_tabungan_view', function ($row) {
+                    return 'Nama Anggota: '.$row->NAMA_NASABAH.'<br> ID: '.$row->nasabah_id.'<br> KLPK Terakhir: '.$row->DESKRIPSI_GROUP1.'<br>KTP: '.$row->no_id;
+
+                })
+                ->rawColumns(['action','cek_tabungan','cek_tabungan_view'])  // Allow HTML rendering in the action column
                 ->make(true);  // Return the response in DataTables format
         }
     }
@@ -354,9 +481,76 @@ class AnggotaController extends Controller
                     $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
                     return $btn;
                 })
-                ->rawColumns(['action'])
+                ->addColumn('status', function ($row) {
+                    if($row->tgl_jatuh_tempo >= date('Y-m-d')){
+                        $status = '<span class="btn btn-light-success btn-sm">Aktif</span>';
+                    }else{
+                        $status = '<span class="btn btn-light-danger btn-sm">Tidak Aktif</span>';
+                    }
+                    return $status;
+                })
+                ->rawColumns(['action', 'status'])
                 ->make(true);
         }
+    }
+
+    public function exportDownloadHistoryAnggota(Request $request)
+    {
+        $nasabah_id = $request->input('nasabah_id');
+        $data = DB::connection('mysql_secondary')
+                ->table('kredit as A')
+                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                ->select('A.*', 'B.deskripsi_group1')
+                ->where('A.nasabah_id', $request->input('nasabah_id'))
+                ->orderBy('A.tgl_realisasi', 'asc')
+                ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'Nama Kelompok')
+              ->setCellValue('B1', 'Jumlah Pinjaman')
+              ->setCellValue('C1', 'Tanggal Cair')
+              ->setCellValue('D1', 'Periode')
+              ->setCellValue('E1', 'Status');
+
+              
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+            if($user->tgl_jatuh_tempo >= date('Y-m-d')){
+                $status = 'Aktif';
+            }else{
+                $status = 'Tidak Aktif';
+            }
+            $sheet->setCellValue('A' . $row, $user->deskripsi_group1)
+                  ->setCellValue('B' . $row, $user->jml_pinjaman)
+                  ->setCellValue('C' . $row, $user->tgl_realisasi)
+                  ->setCellValue('D' . $row, $user->jml_angsuran)
+                  ->setCellValue('E' . $row, $status);
+
+                  
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'history_anggota.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
     }
 
     public function getDetailAnggota($nasabah_id)
@@ -377,6 +571,30 @@ class AnggotaController extends Controller
 
         return response()->json($data);
     }
+
+    // public function getSaldoAnggota($nasabah_id)
+    // {
+    //     $data = DB::connection('mysql_secondary')
+    //         ->table('nasabah as A')
+    //         ->join('tabung as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+    //         ->join('tabtrans as C', 'C.NO_REKENING', '=', 'B.no_rekening')
+    //         ->select('C.KODE_TRANS','C.POKOK')
+    //         ->where('A.nasabah_id', $nasabah_id)
+    //         ->whereIn('C.KODE_TRANS', ['100','200'])
+    //         ->orderBy('C.tgl_realisasi', 'desc')
+    //         ->get();
+
+    //     if (!$data) {
+    //         return response()->json(['error' => 'Data not found'], 404);
+    //     }
+
+    //     $data->transform(function ($item) {
+    //         $item->TRANS_TYPE = ($item->KODE_TRANS == '100') ? 'Tambah' : 'Tarik';
+    //         return $item;
+    //     });
+
+    //     return response()->json($data);
+    // }
     
     public function getMasalahAnggota(Request $request)
     {

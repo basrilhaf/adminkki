@@ -276,7 +276,15 @@ class KelompokController extends Controller
                     $infoUrl = route('detailKelompok', $row->kode_group1);
                     return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                 })
-                ->rawColumns(['action'])  // Allow HTML rendering in the action column
+                ->addColumn('status', function ($row) {
+                    if($row->tgl_jatuh_tempo >= date('Y-m-d')){
+                        $status = '<span class="btn btn-light-success btn-sm">Aktif</span>';
+                    }else{
+                        $status = '<span class="btn btn-light-danger btn-sm">Tidak Aktif</span>';
+                    }
+                    return $status;
+                })
+                ->rawColumns(['action','status'])  // Allow HTML rendering in the action column
                 ->make(true);  // Return the response in DataTables format
         }
     }

@@ -126,6 +126,10 @@ Route::get('/detailAnggota/{nasabah_id}', [AnggotaController::class, 'detailAngg
 Route::get('/getHistoryAnggota', [AnggotaController::class, 'getHistoryAnggota'])->name('getHistoryAnggota');
 Route::get('/getDetailAnggota/{nasabah_id}', [AnggotaController::class, 'getDetailAnggota'])->name('getDetailAnggota');
 Route::get('/downloadAnggotaAktif', [AnggotaController::class, 'downloadAnggotaAktif'])->name('downloadAnggotaAktif');
+Route::get('/downloadAnggota', [AnggotaController::class, 'downloadAnggota'])->name('downloadAnggota');
+Route::get('/getSemuaAnggota', [AnggotaController::class, 'getSemuaAnggota'])->name('getSemuaAnggota');
+Route::get('/exportSemuaAnggota', [AnggotaController::class, 'exportSemuaAnggota'])->name('exportSemuaAnggota');
+Route::get('/exportDownloadHistoryAnggota', [AnggotaController::class, 'exportDownloadHistoryAnggota'])->name('exportDownloadHistoryAnggota');
 
 
 // route pengecekan 
@@ -133,6 +137,9 @@ Route::resource('/cekTabungan', \App\Http\Controllers\PengecekanController ::cla
 Route::get('/cekKelompok', [PengecekanController::class, 'cekKelompok'])->name('cekKelompok');
 Route::get('/cekAnggota', [PengecekanController::class, 'cekAnggota'])->name('cekAnggota');
 Route::get('/cekKtp', [PengecekanController::class, 'cekKtp'])->name('cekKtp');
+Route::get('/cekTabunganAnggota/{nasabah_id}', [PengecekanController::class, 'cekTabunganAnggota'])->name('cekTabunganAnggota');
+Route::get('/getCekTabunganAnggota', [PengecekanController::class, 'getCekTabunganAnggota'])->name('getCekTabunganAnggota');
+
 
 // route reporting 
 Route::resource('/laporanHarian', \App\Http\Controllers\ReportingController ::class);
