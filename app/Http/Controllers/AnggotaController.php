@@ -404,7 +404,415 @@ class AnggotaController extends Controller
                 ->make(true);  // Return the response in DataTables format
         }
     }
+
+    public function getCekAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            $cari = $request->input('cari');
+            $kolom = '';
+            switch ($cari) {
+                case '3':
+                    $kolom = 'B.nasabah_id';
+                    break;
+                case '1':
+                    $kolom = 'B.NAMA_NASABAH';
+                    break;
+                case '2':
+                    $kolom = 'B.no_id';
+                    break;
+                case '4':
+                    $kolom = 'D.DESKRIPSI_GROUP1';
+                    break;
+                default:
+                    $kolom = 'B.nasabah_id'; 
+                    break;
+            }
+
+            $keyword = $request->input('keyword');
+            $query = DB::connection('mysql_secondary')
+                ->table('tabung as A')
+                ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+                ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+                ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
+                ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'B.no_id','C.jml_pinjaman')
+                ->where('A.kode_integrasi', 201)
+                ->where($kolom, 'like', '%' . $keyword . '%'); // Apply the keyword filter
+
+            // Additional filters
+            if ($request->filled('kelompok')) {
+                $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
+            }
+            if ($request->filled('nama')) {
+                $query->where('B.NAMA_NASABAH', 'like', '%' . $request->input('nama') . '%');
+            }
+            if ($request->filled('ktp')) {
+                $query->where('B.no_id', 'like', '%' . $request->input('ktp') . '%');
+            }
+            $query->groupBy('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'B.no_id','C.jml_pinjaman');
+            // Handle sorting
+            if ($request->has('order')) {
+                $orderColumn = $request->input('order.0.column');
+                $orderDirection = $request->input('order.0.dir');
+                
+                // Define the columns that can be sorted
+                $columns = [
+                    0 => 'B.nasabah_id',
+                    1 => 'B.NAMA_NASABAH',
+                    2 => 'D.DESKRIPSI_GROUP1',
+                    3 => 'B.no_id',
+                    4 => 'C.jml_pinjaman'
+                ];
+
+                // Apply ordering if valid
+                if (isset($columns[$orderColumn])) {
+                    $query->orderBy($columns[$orderColumn], $orderDirection);
+                }
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()  // Adds row index
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('detailAnggota', $row->nasabah_id);
+                    return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                })
+                ->addColumn('cek_tabungan', function ($row) {
+                    $cekTabunganUrl = route('cekTabunganAnggota', $row->nasabah_id);
+                    return '<a href="' . $cekTabunganUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                })
+                ->addColumn('cek_tabungan_view', function ($row) {
+                    return 'Nama Anggota: '.$row->NAMA_NASABAH.'<br> ID: '.$row->nasabah_id.'<br> KLPK Terakhir: '.$row->DESKRIPSI_GROUP1.'<br>KTP: '.$row->no_id;
+
+                })
+                ->addColumn('dtr', function ($row) {
+                    $nasabah_id_ussi = $row->nasabah_id;
+                    $nasabah_id = str_pad($nasabah_id_ussi, 5, '0', STR_PAD_LEFT);
+                    $kelompok = $row->DESKRIPSI_GROUP1;
+                    // var_dump($nasabah_id,$kelompok);die();
+
+
+                    $data_dtr = DB::table('anggota_bermasalah')
+                    ->select(
+                        'kelompok_ab',
+                        'id_anggota_ab',
+                        DB::raw('COUNT(id_ab) AS jumlah'),
+                        DB::raw('SUM(IF( kode_ab = "2", 1, 0)) AS kode2'),
+                        DB::raw('SUM(IF( kode_ab = "4A", 1, 0)) AS kode4a'),
+                        DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
+                    )
+                    ->where('kelompok_ab', $kelompok)
+                    ->where('id_anggota_ab', $nasabah_id)
+                    ->groupBy('kelompok_ab', 'id_anggota_ab')
+                    ->first();
+
+                
+                // return 'DTR 2: '.$data_dtr->kode2.'<br> DTR 4A: '.$data_dtr->kode4a.'<br> DTR 4B: '.$data_dtr->kode4b;
+                if ($data_dtr) {
+                    return 'DTR 2: ' . $data_dtr->kode2 . '<br> DTR 4A: ' . $data_dtr->kode4a . '<br> DTR 4B: ' . $data_dtr->kode4b;
+                } else {
+                    // Jika tidak ada data, tampilkan pesan default atau nilai 0
+                    return 'DTR 2: 0<br> DTR 4A: 0<br> DTR 4B: 0';
+                }
+
+                })
+
+                ->rawColumns(['action','cek_tabungan','cek_tabungan_view','dtr'])  // Allow HTML rendering in the action column
+                ->make(true);  // Return the response in DataTables format
+        }
+    }
+
     
+    // public function getCekKtp(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $cabang = Session::get('cabang');
+    //         $id_user = Session::get('id_user2');
+            
+    //         $query = DB::connection('mysql_secondary')
+    //             ->table('nasabah as B')
+    //             ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'B.no_id')
+    //             ->where('B.no_id', $request->input('ktp1'));
+
+    //         if ($request->filled('ktp2')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp2'));
+    //         }
+    //         if ($request->filled('ktp3')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp3'));
+    //         }
+    //         if ($request->filled('ktp4')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp4'));
+    //         }
+    //         if ($request->filled('ktp5')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp5'));
+    //         }
+    //         if ($request->filled('ktp6')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp6'));
+    //         }
+    //         if ($request->filled('ktp7')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp7'));
+    //         }
+    //         if ($request->filled('ktp8')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp8'));
+    //         }
+    //         if ($request->filled('ktp9')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp9'));
+    //         }
+    //         if ($request->filled('ktp10')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp10'));
+    //         }
+    //         if ($request->filled('ktp11')) {
+    //             $query->orWhere('B.no_id', $request->input('ktp11'));
+    //         }
+
+    //         // var_dump($query);die();
+    //         return DataTables::of($query)
+    //             ->addIndexColumn()  // Adds row index
+    //             ->addColumn('action', function ($row) {
+    //                 $infoUrl = route('detailAnggota', $row->nasabah_id);
+    //                 return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+    //             })
+    //             ->addColumn('kelompok', function ($row) {
+    //                 $nasabah_id = $row->nasabah_id;
+    //                 $data_kelompok = DB::connection('mysql_secondary')
+    //                     ->table('kredit as A')
+    //                     ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+    //                     ->select('B.DESKRIPSI_GROUP1', 'A.jml_pinjaman', 'A.tgl_jatuh_tempo')
+    //                     ->where('A.nasabah_id', $nasabah_id)
+    //                     ->orderBy('A.tgl_realisasi', 'desc')
+    //                     ->limit(1)
+    //                     ->first();
+                    
+                    
+
+    //                 if ($data_kelompok) {
+    //                     if($data_kelompok->tgl_jatuh_tempo >= date('Y-m-d')){
+    //                         $status = 'Aktif';
+    //                         $class = 'text-success';
+    //                     }else{
+    //                         $status = 'Tidak Aktif';
+    //                         $class = 'text-danger';
+    //                     }
+    //                     return '<p class="'. $class .'">Nama: ' . $data_kelompok->DESKRIPSI_GROUP1 . '<br> Pinjaman: ' . $data_kelompok->jml_pinjaman . '<br> Status: ' . $status . '</p>';
+    //                 } else {
+    //                     return '<p class="text-danger">Kelompok Tidak Ditemukan</p>';
+    //                 }
+
+                    
+    //             })
+                
+    //             ->addColumn('dtr', function ($row) {
+    //                 $nasabah_id_ussi = $row->nasabah_id;
+    //                 $nasabah_id = str_pad($nasabah_id_ussi, 5, '0', STR_PAD_LEFT);
+
+    //                 $data_dtr = DB::table('anggota_bermasalah')
+    //                     ->select(
+    //                         'kelompok_ab',
+    //                         'id_anggota_ab',
+    //                         DB::raw('COUNT(id_ab) AS jumlah'),
+    //                         DB::raw('SUM(IF( kode_ab = "2", 1, 0)) AS kode2'),
+    //                         DB::raw('SUM(IF( kode_ab = "4A", 1, 0)) AS kode4a'),
+    //                         DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
+    //                     )
+    //                     ->where('id_anggota_ab', $nasabah_id)
+    //                     ->groupBy('kelompok_ab', 'id_anggota_ab')
+    //                     ->first();
+
+    //                 if ($data_dtr) {
+    //                     return 'DTR 2: ' . $data_dtr->kode2 . '<br> DTR 4A: ' . $data_dtr->kode4a . '<br> DTR 4B: ' . $data_dtr->kode4b;
+    //                 } else {
+    //                     return 'DTR 2: 0<br> DTR 4A: 0<br> DTR 4B: 0';
+    //                 }
+    //             })
+    //             ->rawColumns(['action', 'kelompok', 'dtr'])  // Allow HTML rendering in the action column
+    //             ->make(true); 
+    //     }
+    // }
+    
+    public function getCekKtp(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            // Initialize the query
+            $query = DB::connection('mysql_secondary')
+                ->table('nasabah as B')
+                ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'B.no_id')
+                ->where(function($query) use ($request) {
+                    // Apply 'orWhere' for each ktp field if it's filled
+                    if ($request->filled('ktp1')) {
+                        $query->orWhere('B.no_id', $request->input('ktp1'));
+                    }
+                    if ($request->filled('ktp2')) {
+                        $query->orWhere('B.no_id', $request->input('ktp2'));
+                    }
+                    if ($request->filled('ktp3')) {
+                        $query->orWhere('B.no_id', $request->input('ktp3'));
+                    }
+                    if ($request->filled('ktp4')) {
+                        $query->orWhere('B.no_id', $request->input('ktp4'));
+                    }
+                    if ($request->filled('ktp5')) {
+                        $query->orWhere('B.no_id', $request->input('ktp5'));
+                    }
+                    if ($request->filled('ktp6')) {
+                        $query->orWhere('B.no_id', $request->input('ktp6'));
+                    }
+                    if ($request->filled('ktp7')) {
+                        $query->orWhere('B.no_id', $request->input('ktp7'));
+                    }
+                    if ($request->filled('ktp8')) {
+                        $query->orWhere('B.no_id', $request->input('ktp8'));
+                    }
+                    if ($request->filled('ktp9')) {
+                        $query->orWhere('B.no_id', $request->input('ktp9'));
+                    }
+                    if ($request->filled('ktp10')) {
+                        $query->orWhere('B.no_id', $request->input('ktp10'));
+                    }
+                    if ($request->filled('ktp11')) {
+                        $query->orWhere('B.no_id', $request->input('ktp11'));
+                    }
+                });
+
+            // Apply dynamic ordering
+            if ($request->filled('ktp1')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp1')]);
+            }
+            if ($request->filled('ktp2')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp2')]);
+            }
+            if ($request->filled('ktp3')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp3')]);
+            }
+            if ($request->filled('ktp4')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp4')]);
+            }
+            if ($request->filled('ktp5')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp5')]);
+            }
+            if ($request->filled('ktp6')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp6')]);
+            }
+            if ($request->filled('ktp7')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp7')]);
+            }
+            if ($request->filled('ktp8')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp8')]);
+            }
+            if ($request->filled('ktp9')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp9')]);
+            }
+            if ($request->filled('ktp10')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp10')]);
+            }
+            if ($request->filled('ktp11')) {
+                $query->orderByRaw('FIELD(B.no_id, ?) DESC', [$request->input('ktp11')]);
+            }
+
+            // Execute the query
+            $data = $query->get();
+
+            // Ensure all ktp values are displayed, even if not found in the database
+            $ktp_values = [
+                $request->input('ktp1'),
+                $request->input('ktp2'),
+                $request->input('ktp3'),
+                $request->input('ktp4'),
+                $request->input('ktp5'),
+                $request->input('ktp6'),
+                $request->input('ktp7'),
+                $request->input('ktp8'),
+                $request->input('ktp9'),
+                $request->input('ktp10'),
+                $request->input('ktp11'),
+            ];
+
+            // Merge the ktp values with the query results
+            foreach ($ktp_values as $ktp) {
+                if (!$data->contains('no_id', $ktp)) {
+                    $data->push((object)[
+                        'no_id' => $ktp,
+                        'NAMA_NASABAH' => '',
+                        'nasabah_id' => null
+                    ]);
+                }
+            }
+
+            // Return DataTable response
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    // Only show the action button if the ktp is found (nasabah_id exists)
+                    if (isset($row->nasabah_id) && $row->nasabah_id !== null) {
+                        $infoUrl = route('detailAnggota', $row->nasabah_id);
+                        return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                    }
+                    return '';  // Return empty if no action button should be shown
+                })
+                ->addColumn('kelompok', function ($row) {
+                    $nasabah_id = $row->nasabah_id;
+
+                    if (!$nasabah_id) {
+                        // If nasabah_id doesn't exist (ktp not found), display a message
+                        return '';
+                    }
+
+                    $data_kelompok = DB::connection('mysql_secondary')
+                        ->table('kredit as A')
+                        ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                        ->select('B.DESKRIPSI_GROUP1', 'A.jml_pinjaman', 'A.tgl_jatuh_tempo')
+                        ->where('A.nasabah_id', $nasabah_id)
+                        ->orderBy('A.tgl_realisasi', 'desc')
+                        ->limit(1)
+                        ->first();
+
+                    if ($data_kelompok) {
+                        // Determine the status based on the tgl_jatuh_tempo
+                        $status = ($data_kelompok->tgl_jatuh_tempo >= date('Y-m-d')) ? 'Aktif' : 'Tidak Aktif';
+                        $class = ($status == 'Aktif') ? 'text-success' : 'text-danger';
+
+                        return '<p class="' . $class . '">Nama: ' . $data_kelompok->DESKRIPSI_GROUP1 . '<br> Pinjaman: ' . $data_kelompok->jml_pinjaman . '<br> Status: ' . $status . '</p>';
+                    } else {
+                        return '<p class="text-danger">Kelompok Tidak Ditemukan</p>';
+                    }
+                })
+                ->addColumn('dtr', function ($row) {
+                    if (isset($row->nasabah_id) && $row->nasabah_id !== null) {
+                        $nasabah_id_ussi = $row->nasabah_id;
+                        $nasabah_id = str_pad($nasabah_id_ussi, 5, '0', STR_PAD_LEFT);
+
+                        $data_dtr = DB::table('anggota_bermasalah')
+                            ->select(
+                                'kelompok_ab',
+                                'id_anggota_ab',
+                                DB::raw('COUNT(id_ab) AS jumlah'),
+                                DB::raw('SUM(IF( kode_ab = "2", 1, 0)) AS kode2'),
+                                DB::raw('SUM(IF( kode_ab = "4A", 1, 0)) AS kode4a'),
+                                DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
+                            )
+                            ->where('id_anggota_ab', $nasabah_id)
+                            ->groupBy('kelompok_ab', 'id_anggota_ab')
+                            ->first();
+
+                        if ($data_dtr) {
+                            return 'DTR 2: ' . $data_dtr->kode2 . '<br> DTR 4A: ' . $data_dtr->kode4a . '<br> DTR 4B: ' . $data_dtr->kode4b;
+                        } else {
+                            return 'DTR 2: 0<br> DTR 4A: 0<br> DTR 4B: 0';
+                        }
+                    }
+                    return '<p class="text-danger">KTP Tidak Ditemukan</p>'; 
+
+                    
+                })
+                ->rawColumns(['action', 'kelompok', 'dtr'])  // Allow HTML rendering in the action column
+                ->make(true);
+        }
+    }
+
+
     public function getAnggotaAktif(Request $request)
     {
         if ($request->ajax()) {

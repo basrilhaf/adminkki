@@ -130,6 +130,8 @@ Route::get('/downloadAnggota', [AnggotaController::class, 'downloadAnggota'])->n
 Route::get('/getSemuaAnggota', [AnggotaController::class, 'getSemuaAnggota'])->name('getSemuaAnggota');
 Route::get('/exportSemuaAnggota', [AnggotaController::class, 'exportSemuaAnggota'])->name('exportSemuaAnggota');
 Route::get('/exportDownloadHistoryAnggota', [AnggotaController::class, 'exportDownloadHistoryAnggota'])->name('exportDownloadHistoryAnggota');
+Route::get('/getCekAnggota', [AnggotaController::class, 'getCekAnggota'])->name('getCekAnggota');
+Route::get('/getCekKtp', [AnggotaController::class, 'getCekKtp'])->name('getCekKtp');
 
 
 // route pengecekan 
