@@ -807,7 +807,39 @@ class AnggotaController extends Controller
 
                     
                 })
-                ->rawColumns(['action', 'kelompok', 'dtr'])  // Allow HTML rendering in the action column
+                ->addColumn('sanksi', function ($row) {
+                    if (isset($row->nasabah_id) && $row->nasabah_id !== null) {
+                        $ktp = $row->no_id;
+                        $nasabah_id_ussi = $row->nasabah_id;
+                        $nasabah_id = str_pad($nasabah_id_ussi, 5, '0', STR_PAD_LEFT);
+
+                        $data_skorsing = DB::table('skorsing')
+                            ->select('*')
+                            ->where('ktp_sk', $ktp)
+                            ->where('selesai_sk', '>=', date('Y-m-d'))
+                            ->first();
+
+                        $data_blacklist = DB::table('blacklist')
+                            ->select('*')
+                            ->where('id_anggota_bl', $row->nasabah_id)
+                            ->first();
+
+                        if ($data_skorsing && $data_blacklist) {
+                            return '<span class="badge badge-danger">Skorsing & Blacklist</span>';
+
+                        } else if (!$data_skorsing && $data_blacklist) {
+                            return '<span class="badge badge-danger">Blacklist</span>';
+                        } else if ($data_skorsing && !$data_blacklist) {
+                            return '<span class="badge badge-warning">Skorsing</span>';
+                        } else {
+                            return '<span class="badge badge-success">-</span>';
+                        }
+                    }
+                    return ''; 
+
+                    
+                })
+                ->rawColumns(['action', 'kelompok', 'dtr', 'sanksi'])  // Allow HTML rendering in the action column
                 ->make(true);
         }
     }

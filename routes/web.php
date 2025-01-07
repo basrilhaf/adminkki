@@ -19,6 +19,7 @@ use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\PengecekanController;
 use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\SkorsingBlacklistController;
+use App\Http\Controllers\TabunganSetoranController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -134,6 +135,18 @@ Route::get('/getCekAnggota', [AnggotaController::class, 'getCekAnggota'])->name(
 Route::get('/getCekKtp', [AnggotaController::class, 'getCekKtp'])->name('getCekKtp');
 
 
+// route setoran dan tabungan 
+Route::resource('/tabunganLapangan', \App\Http\Controllers\TabunganSetoranController ::class);
+Route::get('/getTableTabLapangan', [TabunganSetoranController::class, 'getTableTabLapangan'])->name('getTableTabLapangan');
+Route::get('/exportDownloadTabunganLapangan', [TabunganSetoranController::class, 'exportDownloadTabunganLapangan'])->name('exportDownloadTabunganLapangan');
+Route::get('/tabunganKantor', [TabunganSetoranController::class, 'tabunganKantor'])->name('tabunganKantor');
+Route::get('/getTableTabKantor', [TabunganSetoranController::class, 'getTableTabKantor'])->name('getTableTabKantor');
+Route::get('/exportDownloadTabunganKantor', [TabunganSetoranController::class, 'exportDownloadTabunganKantor'])->name('exportDownloadTabunganKantor');
+Route::get('/setoranTabungan', [TabunganSetoranController::class, 'setoranTabungan'])->name('setoranTabungan');
+Route::get('/getTableSetTab', [TabunganSetoranController::class, 'getTableSetTab'])->name('getTableSetTab');
+
+
+
 // route pengecekan 
 Route::resource('/cekTabungan', \App\Http\Controllers\PengecekanController ::class);
 Route::get('/cekKelompok', [PengecekanController::class, 'cekKelompok'])->name('cekKelompok');
@@ -156,7 +169,6 @@ Route::resource('/skorsing', \App\Http\Controllers\SkorsingBlacklistController :
 Route::get('/blacklist', [SkorsingBlacklistController::class, 'blacklist'])->name('blacklist');
 Route::get('/getAnggotaBlacklist', [SkorsingBlacklistController::class, 'getAnggotaBlacklist'])->name('getAnggotaBlacklist');
 Route::get('/getRekomendasiBlacklist', [SkorsingBlacklistController::class, 'getRekomendasiBlacklist'])->name('getRekomendasiBlacklist');
-
 Route::post('/deleteBlacklistAction', [SkorsingBlacklistController::class, 'deleteBlacklistAction'])->name('deleteBlacklistAction');
 
 // end route yang terpakai 

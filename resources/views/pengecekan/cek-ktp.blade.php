@@ -112,6 +112,7 @@
                                                         <th class="min-w-100px">KTP</th>
                                                         <th class="min-w-100px">Kelompok Terakhir</th>
                                                         <th class="min-w-100px">DTR </th>
+                                                        <th class="min-w-100px">Sanksi </th>
                                                         <th class="min-w-100px">Action</th>
                                                         
 													</tr>
@@ -163,6 +164,7 @@
                                 {data: 'no_id', name: 'no_id'},
                                 {data: 'kelompok', name: 'kelompok', orderable: false, searchable: false},
                                 {data: 'dtr', name: 'dtr', orderable: false, searchable: false},
+                                {data: 'sanksi', name: 'sanksi', orderable: false, searchable: false},
                                 {data: 'action', name: 'action', orderable: false, searchable: false}
                             ]
                         });
