@@ -33,12 +33,12 @@
                                                         <div class="col-md-9">
                                                             <div class="form-group">
                                                                 <label for="daterange">Tanggal: </label>
-                                                                <input type="text" id="search-daterange-setTab" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                                <input type="text" id="search-daterange-set" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
                                                             </div>
                                                         </div>
                                                         
                                                         <div class="col-md-3">
-                                                            <button id="submitSetTab" class="btn btn-primary rounded mt-4">Submit</button>
+                                                            <button id="submitSet" class="btn btn-primary rounded mt-4">Submit</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -60,22 +60,19 @@
                                         </div>
                                     </div>
                                     <div class="card">
-										<div class="card-header">
-                                            <h2 class="mt-4">List Tabungan Kantor</h2>
-                                        </div>
+										
 										<!--begin::Card body-->
 										<div class="card-body py-4">
 											<!--begin::Table-->
-											<table class="table align-middle table-row-dashed fs-6 gy-5" id="tableSetTab" style="display: none">
+											<table class="table align-middle table-row-dashed fs-6 gy-5" id="tableSet" style="display: none">
 												<thead>
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
-                                                        <th>Cabang</th>
                                                         <th class="min-w-125px">Anggota</th>
-                                                        <th class="min-w-125px">Kelompok</th>
                                                         <th class="min-w-125px">Setoran</th>
-                                                        <th class="min-w-125px">Tanggal Setoran</th>
+                                                        <th class="min-w-125px">Kelompok</th>
                                                         <th class="min-w-125px">Tabungan</th>
+                                                        <th class="min-w-125px"></th>
 													</tr>
 												</thead>
 											
@@ -92,29 +89,27 @@
                                         $(document).ready(function () {
                                             var tableSetTab;
 
-                                            $('#submitSetTab').click(function () {
-                                                $('#tableSetTab').show();
-                                                if ($.fn.dataTable.isDataTable('#tableSetTab')) {
-                                                    tableSetTab.ajax.reload();
+                                            $('#submitSet').click(function () {
+                                                $('#tableSet').show();
+                                                if ($.fn.dataTable.isDataTable('#tableSet')) {
+                                                    tableSet.ajax.reload();
                                                 } else {
-                                                    tableSetTab = $('#tableSetTab').DataTable({
+                                                    tableSet = $('#tableSet').DataTable({
                                                         processing: true,
                                                         serverSide: true,
                                                         ajax: {
-                                                            url: "{{ route('getTableSetTab') }}",
+                                                            url: "{{ route('getTableSet') }}",
                                                             data: function (d) {
-                                                                d.daterange = $('#search-daterange-setTab').val();
+                                                                d.daterange = $('#search-daterange-set').val();
                                                             }
                                                         },
                                                         columns: [
                                                             {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                                                            {data: 'NAMA_KANTOR', name: 'NAMA_KANTOR'},
                                                             {data: 'data_anggota', name: 'data_anggota', orderable: false, searchable: false},
-                                                            {data: 'data_kelompok', name: 'data_kelompok', orderable: false, searchable: false},
                                                             {data: 'data_setoran', name: 'data_setoran', orderable: false, searchable: false},
-                                                            {data: 'date_trans', name: 'date_trans', orderable: false, searchable: false},
-                                                            
+                                                            {data: 'data_kelompok', name: 'data_kelompok', orderable: false, searchable: false},
                                                             {data: 'data_tabungan', name: 'data_tabungan', orderable: false, searchable: false},
+                                                            {data: 'data_lainnya', name: 'data_lainnya', orderable: false, searchable: false},
                                                         ]
                                                     });
                                                 }
@@ -125,14 +120,14 @@
                                                 e.preventDefault(); 
 
                                                 // Get the selected date from the input field
-                                                var selectedDate = $('#search-daterange-setTab').val();
+                                                var selectedDate = $('#search-daterange-set').val();
                                                 
                                                 if (!selectedDate) {
                                                     alert('Please select a date.');
                                                     return;
                                                 }
 
-                                                window.location.href = "{{ route('exportDownloadSetoranTabungan') }}" + "?daterange=" + selectedDate;
+                                                window.location.href = "{{ route('exportDownloadSetoran') }}" + "?daterange=" + selectedDate;
                                             });
                                             
                                         });
@@ -158,7 +153,7 @@
         
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
-            flatpickr("#search-daterange-setTab", {
+            flatpickr("#search-daterange-set", {
                 mode: "range",
                 dateFormat: "Y-m-d",
                 locale: "id"

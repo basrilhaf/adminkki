@@ -176,6 +176,200 @@ class SkorsingBlacklistController extends Controller
         }
     }
 
+    public function addBlacklistAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|string|max:200',
+            'setoran' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $detail = DB::connection('mysql_secondary')
+            ->table('nasabah as A')
+            ->join('kredit as C', 'C.nasabah_id', '=', 'A.nasabah_id')
+            ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'C.kode_group1')
+            ->select('A.*', 'B.deskripsi_group1')
+            ->where('A.nasabah_id', $request->id)
+            ->orderBy('C.tgl_realisasi', 'desc')
+            ->first();
+
+        if($detail){
+            $save = DB::table('blacklist')->insert([
+                'id_anggota_bl'        => $request->id,
+                'anggota_bl'  => $detail->NAMA_NASABAH,
+                'kelompok_bl' => $detail->deskripsi_group1,
+                'set_ke_bl'        => $request->setoran,
+                'alasan_bl'  => $request->alasan
+            ]);
+            if($save){
+                $this->dataService->createAuditTrail('Tambah Anggota Blacklist');
+                return response()->json(['success' => true, 'message' => 'Berhasil Menambahkan Anggota Blacklist', 'icon' => 'success']);
+            }else{
+                return response()->json(['success' => false, 'message' => 'Gagal Menambahkan Anggota Blacklist', 'icon' => 'warning']);
+            }
+        }else{
+            return response()->json(['success' => false, 'message' => 'ID Anggota tidak terdaftar', 'icon' => 'warning']);
+        }
+        
+    }
+    
+
+    public function getAnggotaSkorsing(Request $request)
+    {
+        if ($request->ajax()) {
+
+            $query = DB::table('skorsing')
+                ->select('*');
+            if ($request->filled('nama')) {
+                $query->where('nama_sk', 'like', '%' . $request->input('nama') . '%');
+            }
+            if ($request->filled('id')) {
+                $query->where('id_anggota_sk', 'like', '%' . $request->input('id') . '%');
+            }
+            $filteredData = $query->orderBy('id_sk', 'desc')->get();
+
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-sk btn-sm" data-id="' . $row->id_sk . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+                
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    
+    public function deleteSkorsingAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $deleted = DB::table('skorsing')->where('id_sk', $request->id)->delete();
+
+        $this->dataService->createAuditTrail('Hapus Anggota Skorsing');
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus skorsing']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus skorsing']);
+        }
+    }
+
+    
+    public function getRekomendasiSkorsing(Request $request)
+    {
+        if ($request->ajax()) {
+
+            $query = DB::table('anggota_bermasalah')
+                ->leftJoin('skorsing', 'skorsing.id_anggota_sk', '=', 'anggota_bermasalah.id_anggota_ab')
+                ->select(
+                    'anggota_bermasalah.id_anggota_ab',
+                    'anggota_bermasalah.nama_ab',
+                    'anggota_bermasalah.kelompok_ab',
+                    DB::raw('MAX(anggota_bermasalah.setoran_ab) as max_set'),
+                    DB::raw('MAX(anggota_bermasalah.tanggal_ab) as tanggal_max'),
+                    DB::raw('COUNT(anggota_bermasalah.id_ab) as jumlah'),
+                    DB::raw('SUM(IF(anggota_bermasalah.kode_ab = "2", 1, 0)) AS kode2'),
+                    DB::raw('SUM(IF(anggota_bermasalah.kode_ab = "4A", 1, 0)) AS kode4a'),
+                    DB::raw('SUM(IF(anggota_bermasalah.kode_ab = "4B", 1, 0)) AS kode4b')
+                )
+                ->groupBy(
+                    'anggota_bermasalah.id_anggota_ab',
+                    'anggota_bermasalah.nama_ab',
+                    'anggota_bermasalah.kelompok_ab',
+                    'skorsing.id_anggota_sk'
+                )
+                ->havingRaw('COUNT(anggota_bermasalah.id_ab) >= 4')
+                ->orderByDesc('jumlah');
+
+            if ($request->filled('nama')) {
+                $query->where('anggota_bermasalah.nama_ab', 'like', '%' . $request->input('nama') . '%');
+            }
+
+            if ($request->filled('id')) {
+                $query->where('anggota_bermasalah.id_anggota_ab', 'like', '%' . $request->input('id') . '%');
+            }
+
+            $filteredData = $query->get();
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                
+                ->addColumn('status', function ($row) {
+                    $status="<span class='text-white badge badge-warning'>Rekomendasi</span>";
+                    
+                    return $status;
+                })
+                ->addColumn('dtr', function ($row) {
+                    $status="<span class='text-white badge badge-primary'>Kode2: ".$row->kode2."</span>
+                            <br><span class='text-white badge badge-success'>kode4a: ".$row->kode4a."</span>
+                            <br><span class='text-white badge badge-dark'>kode4b: ".$row->kode4b."</span>";
+                    
+                    return $status;
+                })
+                
+                ->rawColumns(['dtr','status'])
+                ->make(true);
+        }
+    }
+
+
+    
+    public function addSkorsingAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|string|max:200',
+            'mulai' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $waktu = $request->lama." ".$request->satuan;
+        $selesai = date('Y-m-d',strtotime ( $waktu , strtotime ( $request->mulai ) ));
+
+        $detail = DB::connection('mysql_secondary')
+            ->table('nasabah as A')
+            ->leftJoin('kredit as C', 'C.nasabah_id', '=', 'A.nasabah_id')
+            ->leftJoin('kre_kode_group1 as B', 'B.kode_group1', '=', 'C.kode_group1')
+            ->select('A.*', 'B.deskripsi_group1')
+            ->where('A.nasabah_id', $request->id)
+            ->orderBy('C.tgl_realisasi', 'desc')
+            ->first();
+
+        if($detail){
+            $save = DB::table('skorsing')->insert([
+                'id_anggota_sk'        => $request->id,
+                'nama_sk'  => $detail->NAMA_NASABAH,
+                'ktp_sk' => $detail->no_id,
+                'mulai_sk'        => $request->mulai,
+                'selesai_sk'  => $selesai
+            ]);
+            if($save){
+                $this->dataService->createAuditTrail('Tambah Anggota Skorsing');
+                return response()->json(['success' => true, 'message' => 'Berhasil Menambahkan Anggota Skorsing', 'icon' => 'success']);
+            }else{
+                return response()->json(['success' => false, 'message' => 'Gagal Menambahkan Anggota Skorsing', 'icon' => 'warning']);
+            }
+        }else{
+            return response()->json(['success' => false, 'message' => 'ID Anggota tidak terdaftar', 'icon' => 'warning']);
+        }
+        
+    }
+
     
     public function getTableKab(Request $request)
     {

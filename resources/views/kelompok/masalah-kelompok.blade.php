@@ -21,7 +21,7 @@
 											</div>
                                             <div>
                                                 <div class="">
-                                                    <button type="button" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addPkpModal">
+                                                    <button type="button" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addMasalahKelompokModal">
                                                         <i class="fa fa-plus"></i>Tambah
                                                     </button>
                                                     <button type="button" class="btn btn-flex btn-success h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addCabangModal">
@@ -35,45 +35,50 @@
 											
 
                                             <!-- Modal add PKP-->
-                                            <div class="modal fade" id="addPkpModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+                                            <div class="modal fade" id="addMasalahKelompokModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                    <h5 class="modal-title" id="addModalLabel">Form Tambah PKP/KC:</h5>
+                                                    <h5 class="modal-title" id="addModalLabel">Form Tambah Kelompok Bermasalah:</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row">
-                                                            <div class="col-md-12">
+                                                            <div class="col-md-9">
                                                                 <div class="mb-3">
-                                                                    <label for="name" class="form-label">Nama PKP/KC:</label>
-                                                                    <input type="text" class="form-control" id="add-nama-pkp" required>
+                                                                    <label for="name" class="form-label">No Kelompok:</label>
+                                                                    <input type="text" class="form-control" id="add-no_kelompok-kb" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="mt-4">
+                                                                    <button class="btn btn-primary" id="cek-kelompok-kb">Cek</button>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
-                                                                    <label for="name" class="form-label">NIK PKP/KC:</label>
-                                                                    <input type="text" class="form-control" id="add-nik-pkp" required>
+                                                                    <label for="name" class="form-label">Pilih Kelompok:</label>
+                                                                    <select class="form-control" id="add-kelompok-kb"></select>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
-                                                                    <label for="name" class="form-label">Email PKP/KC:</label>
-                                                                    <input type="text" class="form-control" id="add-email-pkp" required>
+                                                                    <label for="name" class="form-label">Setoran Ke:</label>
+                                                                    <input step="0.01" min="0" type="number" class="form-control" id="add-set_ke-kb" required>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
-                                                                    <label for="name" class="form-label">Password:</label>
-                                                                    <input type="password" class="form-control" id="add-password-pkp" required>
+                                                                    <label for="name" class="form-label">Tanggal Bermasalah:</label>
+                                                                    <input type="date" class="form-control" id="add-tanggal-kb" required>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
-                                                                    <label class="form-label">PKP/KC:</label>
-                                                                    <select class="form-control" id="add-is_kc-pkp">
-                                                                        <option value="0">PKP</option>
-                                                                        <option value="1">KC</option>
+                                                                    <label class="form-label">Kode:</label>
+                                                                    <select class="form-control" id="add-kode-kb">
+                                                                        <option value="3A">3A</option>
+                                                                        <option value="3B">3B</option>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -404,7 +409,7 @@
                         text: 'PKP/KC Berhasil Ditambahkan',
                         icon: 'success'
                         }).then(function() {
-                            $('#addPkpModal').modal('hide');
+                            $('#addMasalahKelompokModal').modal('hide');
                             location.reload();  
                         });
                     },

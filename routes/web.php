@@ -144,7 +144,10 @@ Route::get('/getTableTabKantor', [TabunganSetoranController::class, 'getTableTab
 Route::get('/exportDownloadTabunganKantor', [TabunganSetoranController::class, 'exportDownloadTabunganKantor'])->name('exportDownloadTabunganKantor');
 Route::get('/setoranTabungan', [TabunganSetoranController::class, 'setoranTabungan'])->name('setoranTabungan');
 Route::get('/getTableSetTab', [TabunganSetoranController::class, 'getTableSetTab'])->name('getTableSetTab');
-
+Route::get('/exportDownloadSetoranTabungan', [TabunganSetoranController::class, 'exportDownloadSetoranTabungan'])->name('exportDownloadSetoranTabungan');
+Route::get('/setoran', [TabunganSetoranController::class, 'setoran'])->name('setoran');
+Route::get('/getTableSet', [TabunganSetoranController::class, 'getTableSet'])->name('getTableSet');
+Route::get('/exportDownloadSetoran', [TabunganSetoranController::class, 'exportDownloadSetoran'])->name('exportDownloadSetoran');
 
 
 // route pengecekan 
@@ -170,6 +173,12 @@ Route::get('/blacklist', [SkorsingBlacklistController::class, 'blacklist'])->nam
 Route::get('/getAnggotaBlacklist', [SkorsingBlacklistController::class, 'getAnggotaBlacklist'])->name('getAnggotaBlacklist');
 Route::get('/getRekomendasiBlacklist', [SkorsingBlacklistController::class, 'getRekomendasiBlacklist'])->name('getRekomendasiBlacklist');
 Route::post('/deleteBlacklistAction', [SkorsingBlacklistController::class, 'deleteBlacklistAction'])->name('deleteBlacklistAction');
+Route::post('/addBlacklistAction', [SkorsingBlacklistController::class, 'addBlacklistAction'])->name('addBlacklistAction');
+Route::get('/getAnggotaSkorsing', [SkorsingBlacklistController::class, 'getAnggotaSkorsing'])->name('getAnggotaSkorsing');
+Route::post('/deleteSkorsingAction', [SkorsingBlacklistController::class, 'deleteSkorsingAction'])->name('deleteSkorsingAction');
+Route::get('/getRekomendasiSkorsing', [SkorsingBlacklistController::class, 'getRekomendasiSkorsing'])->name('getRekomendasiSkorsing');
+Route::post('/addSkorsingAction', [SkorsingBlacklistController::class, 'addSkorsingAction'])->name('addSkorsingAction');
+
 
 // end route yang terpakai 
 

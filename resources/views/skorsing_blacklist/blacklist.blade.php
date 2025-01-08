@@ -71,14 +71,14 @@
                                                 <div class="col-md-4">
                                                     <label class="form-label fs-6 fw-bold">ID ANGGOTA:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-id-bl" placeholder="no kelompok" />
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-id-bl" placeholder="ID" />
                                                     </div>
                                                 </div>
                                                 
                                                 <div class="col-md-4">
                                                     <label class="form-label fs-6 fw-bold">NAMA ANGGOTA:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-nama-bl" placeholder="Nama kelompok" />
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-nama-bl" placeholder="Nama" />
                                                     </div>
                                                 </div>
                                                 
@@ -100,6 +100,7 @@
 														<th>No</th>
 														<th class="min-w-100px">ID Anggota</th>
                                                         <th class="min-w-100px">Nama Anggota</th>
+                                                        <th class="min-w-100px">Nama Kelompok</th>
                                                         <th class="">Set Ke</th>
                                                         <th class="min-w-125px">Alasan</th>
                                                         <th class="min-w-100px">Action</th>
@@ -116,14 +117,14 @@
                                                 <div class="col-md-4">
                                                     <label class="form-label fs-6 fw-bold">ID ANGGOTA:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-id-rk" placeholder="no kelompok" />
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-id-rk" placeholder="ID" />
                                                     </div>
                                                 </div>
                                                 
                                                 <div class="col-md-4">
                                                     <label class="form-label fs-6 fw-bold">NAMA ANGGOTA:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-nama-rk" placeholder="Nama kelompok" />
+                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-nama-rk" placeholder="Nama " />
                                                     </div>
                                                 </div>
                                                 
@@ -182,6 +183,7 @@
                         {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                         {data: 'id_anggota_bl', name: 'id_anggota_bl'},
                         {data: 'anggota_bl', name: 'anggota_bl'},
+                        {data: 'kelompok_bl', name: 'kelompok_bl'},
                         {data: 'set_ke_bl', name: 'set_ke_bl'},
                         {data: 'alasan_bl', name: 'alasan_bl'},
                         {data: 'action', name: 'action', orderable: false, searchable: false},
@@ -258,121 +260,44 @@
                 });
                 
             });
-            $(document).ready(function() {
-                Swal.fire({ title: 'Loading...', text: 'Sedang memuat data', didOpen: () => {Swal.showLoading() }, allowOutsideClick: false });
-                $.ajax({
-                    url: "{{ route('getCabangOption') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        var select = $('#add-cabang-pkp');
-                        select.append('<option value="">--Pilih Cabang--</option>');
-                        data.forEach(function(data) {
-                            select.append('<option value="' + data.id + '">' + data.nama + '</option>');
-                        });
-                        select.select2({
-                            placeholder: "--Pilih Cabang---",
-                            allowClear: true
-                        });
-                        Swal.close();
-                    }
-                });
-                Swal.close();
-            });
-
+           
             
-            $(document).ready(function() {
-                Swal.fire({ title: 'Loading...', text: 'Sedang memuat data', didOpen: () => {Swal.showLoading() }, allowOutsideClick: false });
-                $.ajax({
-                    url: "{{ route('getKcOption') }}",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        var select = $('#add-kc-cabang');
-                        select.append('<option value="">--Pilih Cabang--</option>');
-                        data.forEach(function(data) {
-                            select.append('<option value="' + data.id + '">' + data.nama + '</option>');
-                        });
-                        select.select2({
-                            placeholder: "--Pilih KC---",
-                            allowClear: true
-                        });
-                        Swal.close();
-                    }
-                });
-                Swal.close();
-            });
 
             $(document).ready(function() {
-            
                 
-            
-            $('#buttonAddCabangAction').click(function(e) {
+            $('#buttonAddBlAction').click(function(e) {
                 e.preventDefault();
 
-                let nama = $('#add-nama-cabang').val();
-                let kc = $('#add-kc-cabang').val();
+                let id = $('#add-id-bl').val();
+                let setoran = $('#add-setoran-bl').val();
+                let alasan = $('#add-alasan-bl').val();
                 
 
                 $.ajax({
-                    url: "{{ route('addCabangAction') }}", 
+                    url: "{{ route('addBlacklistAction') }}", 
                     method: "POST",
                     data: {
                         _token: "{{ csrf_token() }}", // CSRF token
-                        nama: nama,
-                        kc: kc
+                        id: id,
+                        setoran: setoran,
+                        alasan: alasan
+                        
                     },
                     success: function(response) {
                         Swal.fire({
-                        title: 'Success',
-                        text: 'Cabang Berhasil Ditambahkan',
-                        icon: 'success'
+                        title: response.icon,
+                        text: response.message,
+                        icon: response.icon
                         }).then(function() {
-                            $('#addCabangModal').modal('hide');
-                            location.reload();  
+                            if(response.icon === 'success'){
+                                $('#addBlacklistModal').modal('hide');
+                                location.reload();  
+                            }
+                            
                         });
                     },
                     error: function(xhr, status, error) {
-                        Swal.fire('Error', 'Cabang Gagal Ditambahkan', 'error');
-                    }
-                    
-                });
-            });
-                
-            $('#buttonAddPkpAction').click(function(e) {
-                e.preventDefault();
-
-                let namaPkp = $('#add-nama-pkp').val();
-                let nikPkp = $('#add-nik-pkp').val();
-                let emailPkp = $('#add-email-pkp').val();
-                let passwordPkp = $('#add-password-pkp').val();
-                let isKcPkp = $('#add-is_kc-pkp').val();
-                let cabangPkp = $('#add-cabang-pkp').val();
-
-                $.ajax({
-                    url: "{{ route('addPkpAction') }}", 
-                    method: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}", // CSRF token
-                        nama_pkp: namaPkp,
-                        nik_pkp: nikPkp,
-                        email_pkp: emailPkp,
-                        password_pkp: passwordPkp,
-                        is_kc_pkp: isKcPkp,
-                        cabang_pkp: cabangPkp
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                        title: 'Success',
-                        text: 'PKP/KC Berhasil Ditambahkan',
-                        icon: 'success'
-                        }).then(function() {
-                            $('#addPkpModal').modal('hide');
-                            location.reload();  
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        Swal.fire('Error', 'PKP/KC Gagal Ditambahkan', 'error');
+                        Swal.fire('Error', 'Anggota Gagal Ditambahkan', 'error');
                     }
                     
                 });
