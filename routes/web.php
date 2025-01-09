@@ -111,7 +111,11 @@ Route::get('/downloadKelompok', [KelompokController::class, 'downloadKelompok'])
 Route::get('/exportDownloadKelompok', [KelompokController::class, 'exportDownloadKelompok'])->name('exportDownloadKelompok');
 Route::get('/dataKelompok', [KelompokController::class, 'dataKelompok'])->name('dataKelompok');
 Route::get('/getSemuaKelompok', [KelompokController::class, 'getSemuaKelompok'])->name('getSemuaKelompok');
-
+Route::get('/getCekKelompokOption', [KelompokController::class, 'getCekKelompokOption'])->name('getCekKelompokOption');
+Route::post('/addMasalahKelompokAction', [KelompokController::class, 'addMasalahKelompokAction'])->name('addMasalahKelompokAction');
+Route::get('/exportDownloadRangkumanMk', [KelompokController::class, 'exportDownloadRangkumanMk'])->name('exportDownloadRangkumanMk');
+Route::get('/exportDownloadHistoryMk', [KelompokController::class, 'exportDownloadHistoryMk'])->name('exportDownloadHistoryMk');
+Route::post('/deleteMasalahKelompokAction', [KelompokController::class, 'deleteMasalahKelompokAction'])->name('deleteMasalahKelompokAction');
 
 
 // route anggota 
@@ -133,6 +137,7 @@ Route::get('/exportSemuaAnggota', [AnggotaController::class, 'exportSemuaAnggota
 Route::get('/exportDownloadHistoryAnggota', [AnggotaController::class, 'exportDownloadHistoryAnggota'])->name('exportDownloadHistoryAnggota');
 Route::get('/getCekAnggota', [AnggotaController::class, 'getCekAnggota'])->name('getCekAnggota');
 Route::get('/getCekKtp', [AnggotaController::class, 'getCekKtp'])->name('getCekKtp');
+Route::get('/getCekAnggotaValue', [AnggotaController::class, 'getCekAnggotaValue'])->name('getCekAnggotaValue');
 
 
 // route setoran dan tabungan 

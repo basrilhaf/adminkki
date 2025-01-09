@@ -46,6 +46,30 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row">
+                                                            <div class="col-md-9">
+                                                                <div class="mb-3">
+                                                                    <label for="name" class="form-label">ID Anggota:</label>
+                                                                    <input type="text" class="form-control" id="add-id_anggota-ab" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="mt-4">
+                                                                    <button class="btn btn-primary" id="cek-anggota-ab">Cek</button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <div class="mb-3">
+                                                                    <label for="name" class="form-label">Nama Anggota:</label>
+                                                                    <input type="text" class="form-control" id="add-anggota-ab">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <div class="mb-3">
+                                                                    <label for="name" class="form-label">Nama Kelompok:</label>
+                                                                    <input type="text" class="form-control" id="add-kelompok-ab">
+                                                                    <input type="hidden" id="add-id_sikki-ab">
+                                                                </div>
+                                                            </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
                                                                     <label for="name" class="form-label">ID Anggota:</label>
@@ -68,7 +92,7 @@
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
                                                                     <label class="form-label">Kode:</label>
-                                                                    <select class="form-control" id="add-is_kc-pkp">
+                                                                    <select class="form-control" id="add-kode-ab">
                                                                         <option value="2">2</option>
                                                                         <option value="4A">4A</option>
                                                                         <option value="4B">4B</option>
@@ -99,7 +123,7 @@
                                                         </div>
                                                         <div class="col-md-12">
                                                             <div class="mb-3 text-end">
-                                                                <button type="submit" class="btn btn-primary" id="buttonAddPkpAction">Submit</button>
+                                                                <button type="submit" class="btn btn-primary" id="buttonAddMasalahAnggotaAction">Submit</button>
                                                             </div>
                                                         </div>
                                                         
@@ -203,7 +227,37 @@
 		</div>
 		
         <script type="text/javascript">
+            $(document).ready(function() {
+                $('#cek-anggota-ab').click(function(e) {
+                    e.preventDefault();
+                    
+                    var idAnggota = $('#add-id_anggota-ab').val();  // Get the ID Anggota
+                    
+                    if (idAnggota) {
+                        $.ajax({
+                            url: "{{ route('getCekAnggotaValue') }}",  // Laravel route to handle the request
+                            method: 'GET',
+                            data: { id_anggota: idAnggota },  // Send the ID Anggota as parameter
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#add-anggota-ab').val(response.data.NAMA_NASABAH);
+                                    $('#add-kelompok-ab').val(response.data.deskripsi_group1);
+                                    $('#add-id_sikki-ab').val(response.data.nasabah_id);
+                                } else {
+                                    alert('Data tidak ditemukan!');
+                                }
+                            },
+                            error: function() {
+                                alert('Terjadi kesalahan, coba lagi!');
+                            }
+                        });
+                    } else {
+                        alert('ID Anggota tidak boleh kosong!');
+                    }
+                });
+            });
             
+
             $(document).ready(function () {
                 $('#masalahAnggotaTable').DataTable({
                     processing: true,
@@ -339,60 +393,37 @@
             });
 
             $(document).ready(function() {
-            
-            $('#buttonAddCabangAction').click(function(e) {
+           
+                
+            $('#buttonAddMasalahAnggotaAction').click(function(e) {
                 e.preventDefault();
 
-                let nama = $('#add-nama-cabang').val();
-                let kc = $('#add-kc-cabang').val();
+                let nama = $('#add-anggota-ab').val();
+                let kelompok = $('#add-kelompok-ab').val();
+                let id_anggota = $('#add-id_anggota-ab').val();
+                let setoran_ke = $('#add-setoran_ke-ab').val();
+                let tanggal = $('#add-tanggal-ab').val();
+                let kode = $('#add-kode-ab').val();
+                let menit = $('#add-menit-ab').val();
+                let cabang = $('#add-cabang-ab').val();
+                let pkp = $('#add-pkp-ab').val();
+                let id_sikki_ab = $('#add-id_sikki-ab').val();
                 
-
-                $.ajax({
-                    url: "{{ route('addCabangAction') }}", 
-                    method: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}", // CSRF token
-                        nama: nama,
-                        kc: kc
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                        title: 'Success',
-                        text: 'Cabang Berhasil Ditambahkan',
-                        icon: 'success'
-                        }).then(function() {
-                            $('#addCabangModal').modal('hide');
-                            location.reload();  
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        Swal.fire('Error', 'Cabang Gagal Ditambahkan', 'error');
-                    }
-                    
-                });
-            });
-                
-            $('#buttonAddPkpAction').click(function(e) {
-                e.preventDefault();
-
-                let namaPkp = $('#add-nama-pkp').val();
-                let nikPkp = $('#add-nik-pkp').val();
-                let emailPkp = $('#add-email-pkp').val();
-                let passwordPkp = $('#add-password-pkp').val();
-                let isKcPkp = $('#add-is_kc-pkp').val();
-                let cabangPkp = $('#add-cabang-ab').val();
 
                 $.ajax({
                     url: "{{ route('addPkpAction') }}", 
                     method: "POST",
                     data: {
                         _token: "{{ csrf_token() }}", // CSRF token
-                        nama_pkp: namaPkp,
-                        nik_pkp: nikPkp,
-                        email_pkp: emailPkp,
-                        password_pkp: passwordPkp,
-                        is_kc_pkp: isKcPkp,
-                        cabang_pkp: cabangPkp
+                        nama: nama,
+                        kelompok: kelompok,
+                        id_anggota: id_anggota,
+                        setoran_ke: setoran_ke,
+                        tanggal: tanggal,
+                        kode: kode,
+                        menit: menit,
+                        cabang: cabang,
+                        id_sikki_ab: id_sikki_ab
                     },
                     success: function(response) {
                         Swal.fire({

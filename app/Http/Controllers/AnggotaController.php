@@ -1012,6 +1012,35 @@ class AnggotaController extends Controller
         return response()->json($data);
     }
 
+    public function getCekAnggotaValue(Request $request)
+    {
+        $validated = $request->validate([
+            'id_anggota' => 'required|string'
+        ]);
+
+        $anggotaDetails = DB::connection('mysql_secondary')
+            ->table('nasabah as A')
+            ->select(
+                'C.deskripsi_group1',
+                'A.nasabah_id',
+                'A.NAMA_NASABAH'
+            )
+            ->join('kredit as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+            ->join('kre_kode_group1 as C', 'B.kode_group1', '=', 'C.kode_group1')
+            ->where('A.nasabah_id', $request->id_anggota)
+            ->orderBy('B.tgl_realisasi', 'desc')
+            ->first();  // Assign the result to $kelompokList here
+
+        if ($anggotaDetails) {
+            return response()->json([
+                'success' => true,
+                'data' => $anggotaDetails
+            ]);
+        } else {
+            return response()->json(['success' => false]);
+        }
+    }
+
     // public function getSaldoAnggota($nasabah_id)
     // {
     //     $data = DB::connection('mysql_secondary')

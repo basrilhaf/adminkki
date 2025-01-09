@@ -290,6 +290,235 @@ class KelompokController extends Controller
     }
 
     
+     
+    public function addMasalahKelompokAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'kelompok' => 'required',
+            'tanggal' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $p_kelompok = explode("~~", $request->kelompok);
+        $id_kelompok = $p_kelompok[0];
+        $nama_kelompok = $p_kelompok[1];
+        $tgl_cair = $p_kelompok[2]." 00:00:00";
+
+        
+            $save = DB::table('kelompok_bermasalah')->insert([
+                'kelompok_kb'        => $nama_kelompok,
+                'tanggal_kb'  => $request->tanggal,
+                'menit_kb' => $request->menit,
+                'kode_kb'        => $request->kode,
+                'setoran_kb'  => $request->setke,
+                'cabang_kb'  => $request->cabang,
+                'pkp_kb' => $request->pkp,
+                'kc_kb'        => $request->kc,
+                'tanggal_pencairan_kb'  => $tgl_cair,
+                'id_sikki_kb' => $id_kelompok
+            ]);
+            if($save){
+                $this->dataService->createAuditTrail('Tambah Masalah Kelompok');
+                return response()->json(['success' => true, 'message' => 'Berhasil Menambahkan Masalah Kelompok', 'icon' => 'success']);
+            }else{
+                return response()->json(['success' => false, 'message' => 'Gagal Menambahkan Masalah Kelompok', 'icon' => 'warning']);
+            }
+       
+        
+    }
+
+
+    
+    public function getCekKelompokOption(Request $request)
+    {
+        $validated = $request->validate([
+            'no_kelompok' => 'required|string'
+        ]);
+
+        $kelompokList = DB::connection('mysql_secondary')
+            ->table('kredit as A')
+            ->select(
+                'B.deskripsi_group1',
+                'B.kode_group1',
+                'A.tgl_realisasi',
+                'A.jml_angsuran',
+                'A.tgl_jatuh_tempo'
+            )
+            ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+            ->where('B.deskripsi_group1', 'like', '%' . $request->no_kelompok . '%')
+            ->groupBy(
+                'B.deskripsi_group1',
+                'B.kode_group1',
+                'A.tgl_realisasi',
+                'A.jml_angsuran',
+                'A.tgl_jatuh_tempo'
+            )
+            ->orderBy('A.tgl_realisasi', 'desc')
+            ->get();  // Assign the result to $kelompokList here
+
+        // Check if the result is empty
+        if ($kelompokList->isEmpty()) {
+            return response()->json(['success' => false]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'kelompok' => $kelompokList
+        ]);
+    }
+
+    
+    public function exportDownloadRangkumanMk()
+    {
+        $data = DB::table('kelompok_bermasalah')
+            ->select(
+                'kelompok_kb',
+                'tanggal_pencairan_kb',
+                'cabang_kb',
+                'kelompok_bermasalah.id_sikki_kb',
+                DB::raw('kelompok_bermasalah.id_sikki_kb AS idsikkikb'),
+                DB::raw('COUNT(id_kb) AS jumlah'),
+                DB::raw('SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a'),
+                DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
+            )
+            ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
+            ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id')
+            ->groupBy('kelompok_kb', 'cabang_kb', 'tanggal_pencairan_kb','kelompok_bermasalah.id_sikki_kb')
+            ->orderBy('tanggal_pencairan_kb', 'desc')
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'Kelompok')
+              ->setCellValue('B1', 'Cabang')
+              ->setCellValue('C1', 'Jumlah Bermasalah')
+              ->setCellValue('D1', 'Kasus 3A')
+              ->setCellValue('E1', 'Kasus 3B')
+              ->setCellValue('F1', 'Status')
+              ->setCellValue('G1', 'Tanggal BTAB')
+              ->setCellValue('H1', 'Tanggal Cair')
+              ->setCellValue('I1', 'ID Kelompok SIKKI');
+
+        // Isi data ke dalam spreadsheet
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+
+            // $detail = DB::connection('mysql_secondary')
+            //     ->table('kredit as A')
+            //     ->select('A.tgl_realisasi','A.tgl_jatuh_tempo')
+            //     ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+            //     ->where('B.deskripsi_group1', $user->kelompok_kb)
+            //     ->groupBy('A.tgl_realisasi','A.tgl_jatuh_tempo')
+            //     ->first();
+
+            // if ($detail) {
+            //     if ($detail->tgl_jatuh_tempo >= date('Y-m-d')) {
+            //         $status = 'Aktif';
+            //         $btab = '';
+            //     } else {
+            //         $status = 'Tidak Aktif';
+            //         $btab = $detail->tgl_jatuh_tempo;
+            //     }
+            // } else {
+            //     // Handle case where no record is found
+            //     $status = 'Kelompok Tidak Ditemukan di USSI';
+            //     $btab = '';
+            // }
+
+            $sheet->setCellValue('A' . $row, $user->kelompok_kb)
+                  ->setCellValue('B' . $row, $user->cabang_kb)
+                  ->setCellValue('C' . $row, $user->jumlah)
+                  ->setCellValue('D' . $row, $user->kode3a)
+                  ->setCellValue('E' . $row, $user->kode3b)
+
+                  ->setCellValue('F' . $row, '')
+                  ->setCellValue('G' . $row, '')
+
+                  ->setCellValue('H' . $row, $user->tanggal_pencairan_kb)
+                  ->setCellValue('I' . $row, $user->id_sikki_kb);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'Rangkuman_kelompok_bermasalah.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+    
+    public function exportDownloadHistoryMk()
+    {
+        $data = DB::table('kelompok_bermasalah')
+            ->select(
+                'kelompok_bermasalah.*',
+                'pkp.nama'
+            )
+            ->join('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id')
+            ->orderBy('kelompok_kb', 'asc')
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'Kelompok')
+              ->setCellValue('B1', 'Tanggal Bermasalah')
+              ->setCellValue('C1', 'Setoran Ke')
+              ->setCellValue('D1', 'Kode')
+              ->setCellValue('E1', 'Menit')
+              ->setCellValue('F1', 'Cabang')
+              ->setCellValue('G1', 'PKP FSK');
+
+        // Isi data ke dalam spreadsheet
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+            $sheet->setCellValue('A' . $row, $user->kelompok_kb)
+                  ->setCellValue('B' . $row, $user->tanggal_kb)
+                  ->setCellValue('C' . $row, $user->setoran_kb)
+                  ->setCellValue('D' . $row, $user->kode_kb)
+                  ->setCellValue('E' . $row, $user->menit_kb)
+                  ->setCellValue('F' . $row, $user->cabang_kb)
+                  ->setCellValue('G' . $row, $user->nama);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'History_kelompok_bermasalah.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
     public function getCariDownloadKelompok(Request $request)
     {
         if ($request->ajax()) {
@@ -616,17 +845,37 @@ class KelompokController extends Controller
                 ->addColumn('action', function ($row) {
                     $id_hash = Crypt::encrypt($row->kelompok_kb);
 
-                    $infoUrl = route('user.infoUser', $id_hash);
-                    $editUrl = route('user.editUser', $id_hash);
                     
-                    $btn = '<a href=' . $editUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
-                    $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-user btn-sm" data-id="' . $id_hash . '"><span class="fa fa-trash"></span></button>';
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-mk btn-sm" data-id="' . $row->kelompok_kb . '"><span class="fa fa-trash"></span></button>';
                     return $btn;
                 })
                 
 
                 ->rawColumns(['action'])
                 ->make(true);
+        }
+    }
+
+    
+    public function deleteMasalahKelompokAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $deleted = DB::table('kelompok_bermasalah')->where('kelompok_kb', $request->id)->delete();
+
+        $this->dataService->createAuditTrail('Hapus Masalah Kelompok');
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus masalah kelompok']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus masalah kelompok']);
         }
     }
 
