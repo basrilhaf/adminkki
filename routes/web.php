@@ -138,6 +138,14 @@ Route::get('/exportDownloadHistoryAnggota', [AnggotaController::class, 'exportDo
 Route::get('/getCekAnggota', [AnggotaController::class, 'getCekAnggota'])->name('getCekAnggota');
 Route::get('/getCekKtp', [AnggotaController::class, 'getCekKtp'])->name('getCekKtp');
 Route::get('/getCekAnggotaValue', [AnggotaController::class, 'getCekAnggotaValue'])->name('getCekAnggotaValue');
+Route::post('/addMasalahAnggotaAction', [AnggotaController::class, 'addMasalahAnggotaAction'])->name('addMasalahAnggotaAction');
+Route::get('/exportRangkumanAb', [AnggotaController::class, 'exportRangkumanAb'])->name('exportRangkumanAb');
+Route::get('/exportHistoryAb', [AnggotaController::class, 'exportHistoryAb'])->name('exportHistoryAb');
+Route::get('/getDetailMA/{id_ma}', [AnggotaController::class, 'getDetailMA'])->name('getDetailMA');
+Route::get('/getDetailMasalahAnggota', [AnggotaController::class, 'getDetailMasalahAnggota'])->name('getDetailMasalahAnggota');
+Route::post('/deleteDetailMaAction', [AnggotaController::class, 'deleteDetailMaAction'])->name('deleteDetailMaAction');
+Route::post('/deleteMaAction', [AnggotaController::class, 'deleteMaAction'])->name('deleteMaAction');
+
 
 
 // route setoran dan tabungan 

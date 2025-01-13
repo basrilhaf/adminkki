@@ -26,17 +26,17 @@
                                                     <button type="button" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addAbModal">
                                                         <i class="fa fa-plus"></i>Tambah
                                                     </button>
-                                                    <button type="button" class="btn btn-flex btn-success h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addCabangModal">
-                                                        <i class="fa fa-download"></i>Export Rangkuman
-                                                    </button>
-                                                    <button type="button" class="btn btn-flex btn-warning h-40px fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#addCabangModal">
-                                                        <i class="fa fa-download"></i>Export History
-                                                    </button>
+                                                    <a href="#" id="exportDownloadRangkuman" class="btn btn-flex btn-success h-40px fs-7 fw-bold">
+                                                        <i class="fa fa-download"></i> Export Rangkuman
+                                                    </a>
+                                                    <a href="#" id="exportDownloadHistory" class="btn btn-flex btn-warning h-40px fs-7 fw-bold">
+                                                        <i class="fa fa-download"></i> Export History
+                                                    </a>
                                                 </div>
                                             </div>
 											
 
-                                            <!-- Modal add PKP-->
+                                            <!-- Modal add AB-->
                                             <div class="modal fade" id="addAbModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                 <div class="modal-content">
@@ -131,43 +131,8 @@
                                                 </div>
                                                 </div>
                                             </div>
-                                            {{-- end modal add pkp  --}}
+                                            {{-- end modal add AB  --}}
                                             
-                                            <!-- Modal add Cabang-->
-                                            <div class="modal fade" id="addCabangModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                    <h5 class="modal-title" id="addModalLabel">Form Tambah Cabang:</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="row">
-                                                            <div class="col-md-12">
-                                                                <div class="mb-3">
-                                                                    <label for="name" class="form-label">Nama Cabang:</label>
-                                                                    <input type="text" class="form-control" id="add-nama-cabang" required>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-12">
-                                                                <div class="mb-3">
-                                                                    <label class="form-label">KC:</label>
-                                                                    <select class="form-control" id="add-kc-cabang">
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-12">
-                                                            <div class="mb-3 text-end">
-                                                                <button type="submit" class="btn btn-primary" id="buttonAddCabangAction">Submit</button>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            </div>
-                                            {{-- end modal add Cabang  --}}
 										</div>
 									</div>
 									<!--begin::Card-->
@@ -393,55 +358,99 @@
             });
 
             $(document).ready(function() {
+                $('#exportDownloadRangkuman').on('click', function(e) {
+                    e.preventDefault(); 
+                    window.location.href = "{{ route('exportRangkumanAb') }}";
+                });
+
+                $('#exportDownloadHistory').on('click', function(e) {
+                    e.preventDefault(); 
+                    window.location.href = "{{ route('exportHistoryAb') }}";
+                });
            
                 
-            $('#buttonAddMasalahAnggotaAction').click(function(e) {
-                e.preventDefault();
+                $('#buttonAddMasalahAnggotaAction').click(function(e) {
+                    e.preventDefault();
 
-                let nama = $('#add-anggota-ab').val();
-                let kelompok = $('#add-kelompok-ab').val();
-                let id_anggota = $('#add-id_anggota-ab').val();
-                let setoran_ke = $('#add-setoran_ke-ab').val();
-                let tanggal = $('#add-tanggal-ab').val();
-                let kode = $('#add-kode-ab').val();
-                let menit = $('#add-menit-ab').val();
-                let cabang = $('#add-cabang-ab').val();
-                let pkp = $('#add-pkp-ab').val();
-                let id_sikki_ab = $('#add-id_sikki-ab').val();
+                    let nama = $('#add-anggota-ab').val();
+                    let kelompok = $('#add-kelompok-ab').val();
+                    let id_anggota = $('#add-id_anggota-ab').val();
+                    let setoran_ke = $('#add-setoran_ke-ab').val();
+                    let tanggal = $('#add-tanggal-ab').val();
+                    let kode = $('#add-kode-ab').val();
+                    let menit = $('#add-menit-ab').val();
+                    let cabang = $('#add-cabang-ab').val();
+                    let pkp = $('#add-pkp-ab').val();
+                    let id_sikki_ab = $('#add-id_sikki-ab').val();
                 
-
-                $.ajax({
-                    url: "{{ route('addPkpAction') }}", 
-                    method: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}", // CSRF token
-                        nama: nama,
-                        kelompok: kelompok,
-                        id_anggota: id_anggota,
-                        setoran_ke: setoran_ke,
-                        tanggal: tanggal,
-                        kode: kode,
-                        menit: menit,
-                        cabang: cabang,
-                        id_sikki_ab: id_sikki_ab
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                        title: 'Success',
-                        text: 'PKP/KC Berhasil Ditambahkan',
-                        icon: 'success'
-                        }).then(function() {
-                            $('#addAbModal').modal('hide');
-                            location.reload();  
-                        });
-                    },
-                    error: function(xhr, status, error) {
-                        Swal.fire('Error', 'PKP/KC Gagal Ditambahkan', 'error');
-                    }
-                    
+                    $.ajax({
+                        url: "{{ route('addMasalahAnggotaAction') }}", 
+                        method: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}", // CSRF token
+                            nama: nama,
+                            kelompok: kelompok,
+                            id_anggota: id_anggota,
+                            setoran_ke: setoran_ke,
+                            tanggal: tanggal,
+                            kode: kode,
+                            menit: menit,
+                            cabang: cabang,
+                            id_sikki_ab: id_sikki_ab,
+                            pkp: pkp
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                            title: response.icon,
+                            text: response.message,
+                            icon: response.icon
+                            }).then(function() {
+                                if(response.icon === 'success'){
+                                    $('#addAbModal').modal('hide');
+                                    location.reload();  
+                                }
+                                
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.fire('Error', 'PKP/KC Gagal Ditambahkan', 'error');
+                        }
+                        
+                    });
                 });
+
+                $(document).on('click', '.btn-delete-ma', function() {
+                    var maId = $(this).data('id');
+                    Swal.fire({
+                        title: 'Konfirmasi', text: 'Apakah Anda yakin menghapus data masalah ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Ya', cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: "{{ route('deleteMaAction') }}", 
+                                type: 'POST',
+                                data: {
+                                    _token: "{{ csrf_token() }}",  
+                                    id_anggota_ab: maId
+                                },
+                                success: function(response) {
+                                    Swal.fire({
+                                        title: 'Success',
+                                        text: 'Data Berhasil Dihapus',
+                                        icon: 'success'
+                                    }).then(function() {
+                                        location.reload();  
+                                    });
+                                },
+                                error: function(xhr, status, error) {
+                                    Swal.fire('Error', 'Data Gagal Dihapus', 'error');
+                                }
+                            });
+                        }
+                    });
+
+                });
+
             });
-        });
         
         </script>
         @include('layout.footer')

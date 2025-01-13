@@ -118,6 +118,21 @@ class AnggotaController extends Controller
         return view('anggota.masalah-anggota', $data);
     }
 
+    public function getDetailMA($id_ma, Request $request)
+    {
+        $menu_aktif = '/masalahAnggota||/anggota';
+        $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
+        $data = [
+            'menu' => 'Detail Masalah Anggota',
+            'menu_aktif' => $menu_aktif,
+            'navbar' => $navbar,
+            'breadcrumb' => '',
+            'id_ma' => $id_ma
+        ];
+        
+        return view('anggota.detail-masalah-anggota', $data);
+    }
+
     
     public function cariAnggota(): View
     {
@@ -523,112 +538,6 @@ class AnggotaController extends Controller
         }
     }
 
-    
-    // public function getCekKtp(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $cabang = Session::get('cabang');
-    //         $id_user = Session::get('id_user2');
-            
-    //         $query = DB::connection('mysql_secondary')
-    //             ->table('nasabah as B')
-    //             ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'B.no_id')
-    //             ->where('B.no_id', $request->input('ktp1'));
-
-    //         if ($request->filled('ktp2')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp2'));
-    //         }
-    //         if ($request->filled('ktp3')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp3'));
-    //         }
-    //         if ($request->filled('ktp4')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp4'));
-    //         }
-    //         if ($request->filled('ktp5')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp5'));
-    //         }
-    //         if ($request->filled('ktp6')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp6'));
-    //         }
-    //         if ($request->filled('ktp7')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp7'));
-    //         }
-    //         if ($request->filled('ktp8')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp8'));
-    //         }
-    //         if ($request->filled('ktp9')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp9'));
-    //         }
-    //         if ($request->filled('ktp10')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp10'));
-    //         }
-    //         if ($request->filled('ktp11')) {
-    //             $query->orWhere('B.no_id', $request->input('ktp11'));
-    //         }
-
-    //         // var_dump($query);die();
-    //         return DataTables::of($query)
-    //             ->addIndexColumn()  // Adds row index
-    //             ->addColumn('action', function ($row) {
-    //                 $infoUrl = route('detailAnggota', $row->nasabah_id);
-    //                 return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
-    //             })
-    //             ->addColumn('kelompok', function ($row) {
-    //                 $nasabah_id = $row->nasabah_id;
-    //                 $data_kelompok = DB::connection('mysql_secondary')
-    //                     ->table('kredit as A')
-    //                     ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
-    //                     ->select('B.DESKRIPSI_GROUP1', 'A.jml_pinjaman', 'A.tgl_jatuh_tempo')
-    //                     ->where('A.nasabah_id', $nasabah_id)
-    //                     ->orderBy('A.tgl_realisasi', 'desc')
-    //                     ->limit(1)
-    //                     ->first();
-                    
-                    
-
-    //                 if ($data_kelompok) {
-    //                     if($data_kelompok->tgl_jatuh_tempo >= date('Y-m-d')){
-    //                         $status = 'Aktif';
-    //                         $class = 'text-success';
-    //                     }else{
-    //                         $status = 'Tidak Aktif';
-    //                         $class = 'text-danger';
-    //                     }
-    //                     return '<p class="'. $class .'">Nama: ' . $data_kelompok->DESKRIPSI_GROUP1 . '<br> Pinjaman: ' . $data_kelompok->jml_pinjaman . '<br> Status: ' . $status . '</p>';
-    //                 } else {
-    //                     return '<p class="text-danger">Kelompok Tidak Ditemukan</p>';
-    //                 }
-
-                    
-    //             })
-                
-    //             ->addColumn('dtr', function ($row) {
-    //                 $nasabah_id_ussi = $row->nasabah_id;
-    //                 $nasabah_id = str_pad($nasabah_id_ussi, 5, '0', STR_PAD_LEFT);
-
-    //                 $data_dtr = DB::table('anggota_bermasalah')
-    //                     ->select(
-    //                         'kelompok_ab',
-    //                         'id_anggota_ab',
-    //                         DB::raw('COUNT(id_ab) AS jumlah'),
-    //                         DB::raw('SUM(IF( kode_ab = "2", 1, 0)) AS kode2'),
-    //                         DB::raw('SUM(IF( kode_ab = "4A", 1, 0)) AS kode4a'),
-    //                         DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
-    //                     )
-    //                     ->where('id_anggota_ab', $nasabah_id)
-    //                     ->groupBy('kelompok_ab', 'id_anggota_ab')
-    //                     ->first();
-
-    //                 if ($data_dtr) {
-    //                     return 'DTR 2: ' . $data_dtr->kode2 . '<br> DTR 4A: ' . $data_dtr->kode4a . '<br> DTR 4B: ' . $data_dtr->kode4b;
-    //                 } else {
-    //                     return 'DTR 2: 0<br> DTR 4A: 0<br> DTR 4B: 0';
-    //                 }
-    //             })
-    //             ->rawColumns(['action', 'kelompok', 'dtr'])  // Allow HTML rendering in the action column
-    //             ->make(true); 
-    //     }
-    // }
     
     public function getCekKtp(Request $request)
     {
@@ -1041,29 +950,42 @@ class AnggotaController extends Controller
         }
     }
 
-    // public function getSaldoAnggota($nasabah_id)
-    // {
-    //     $data = DB::connection('mysql_secondary')
-    //         ->table('nasabah as A')
-    //         ->join('tabung as B', 'B.nasabah_id', '=', 'A.nasabah_id')
-    //         ->join('tabtrans as C', 'C.NO_REKENING', '=', 'B.no_rekening')
-    //         ->select('C.KODE_TRANS','C.POKOK')
-    //         ->where('A.nasabah_id', $nasabah_id)
-    //         ->whereIn('C.KODE_TRANS', ['100','200'])
-    //         ->orderBy('C.tgl_realisasi', 'desc')
-    //         ->get();
 
-    //     if (!$data) {
-    //         return response()->json(['error' => 'Data not found'], 404);
-    //     }
+    public function addMasalahAnggotaAction(Request $request)
+    {
 
-    //     $data->transform(function ($item) {
-    //         $item->TRANS_TYPE = ($item->KODE_TRANS == '100') ? 'Tambah' : 'Tarik';
-    //         return $item;
-    //     });
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required',
+            'id_anggota' => 'required',
+        ]);
 
-    //     return response()->json($data);
-    // }
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        
+        $save = DB::table('anggota_bermasalah')->insert([
+            'nama_ab'        => $request->nama,
+            'cabang_ab'  => $request->cabang,
+            'kelompok_ab' => $request->kelompok,
+            'id_anggota_ab'        => $request->id_anggota,
+            'setoran_ab'  => $request->setoran_ke,
+            'tanggal_ab'  => $request->tanggal,
+            'kode_ab' => $request->kode,
+            'menit_ab'        => $request->menit,
+            'pkp_ab'  => $request->pkp
+        ]);
+        // var_dump($save);die();
+        if($save){
+            $this->dataService->createAuditTrail('Tambah Masalah Anggota');
+            return response()->json(['success' => true, 'message' => 'Berhasil Menambahkan Masalah Anggota', 'icon' => 'success']);
+        }else{
+            return response()->json(['success' => false, 'message' => 'Gagal Menambahkan Masalah Anggota', 'icon' => 'warning']);
+        }
+       
+        
+    }
     
     public function getMasalahAnggota(Request $request)
     {
@@ -1096,14 +1018,12 @@ class AnggotaController extends Controller
 
             // Applying filters conditionally
             if ($request->filled('kelompok')) {
-                $query->where('kelompok_kb', 'like', '%' . $request->input('kelompok') . '%');
+                $query->where('kelompok_ab', 'like', '%' . $request->input('kelompok') . '%');
             }
-            if ($request->filled('pkp')) {
-                $query->where('pkp_dkb', 'like', '%' . $request->input('pkp') . '%');
+            if ($request->filled('anggota')) {
+                $query->where('nama_ab', 'like', '%' . $request->input('anggota') . '%');
             }
-            if ($request->filled('kc')) {
-                $query->where('kc_dkb', 'like', '%' . $request->input('kc') . '%');
-            }
+          
 
             // Grouping by idsikkikb and ordering by id_kb
             $filteredData = $query->groupBy('nama_ab', 'kelompok_ab', 'id_anggota_ab', 'id_sikki_ab', 'cabang_ab')
@@ -1112,13 +1032,10 @@ class AnggotaController extends Controller
             return DataTables::of($filteredData)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $id_hash = Crypt::encrypt($row->kelompok_ab);
-
-                    $infoUrl = route('user.infoUser', $id_hash);
-                    $editUrl = route('user.editUser', $id_hash);
+                    $infoUrl = route('getDetailMA', $row->id_anggota_ab);
                     
-                    $btn = '<a href=' . $editUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
-                    $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-user btn-sm" data-id="' . $id_hash . '"><span class="fa fa-trash"></span></button>';
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-ma btn-sm" data-id="' . $row->id_anggota_ab . '"><span class="fa fa-trash"></span></button>';
                     return $btn;
                 })
                 
@@ -1126,6 +1043,204 @@ class AnggotaController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
+    }
+
+    
+    public function getDetailMasalahAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+            $query = DB::table('anggota_bermasalah as A')
+                ->join('pkp as B', 'B.id', '=', 'A.pkp_ab')
+                ->select(
+                    'A.*', 'B.nama'
+                )
+                ->where('id_anggota_ab', $request->input('id_ma'));
+
+            
+            $filteredData = $query->orderBy('A.id_ab', 'desc')
+                ->get();
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {                    
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-detail-ma btn-sm" data-id="' . $row->id_ab . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+                
+
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
+    public function deleteDetailMaAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id_ab' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $deleted = DB::table('anggota_bermasalah')->where('id_ab', $request->id_ab)->delete();
+
+        $this->dataService->createAuditTrail('Hapus Masalah Anggota');
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus masalah anggota']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus masalah anggota']);
+        }
+    }
+
+    public function deleteMaAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id_anggota_ab' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $deleted = DB::table('anggota_bermasalah')->where('id_anggota_ab', $request->id_anggota_ab)->delete();
+
+        $this->dataService->createAuditTrail('Hapus Masalah Anggota');
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus masalah anggota']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus masalah anggota']);
+        }
+    }
+
+    
+    
+    public function exportRangkumanAb()
+    {
+        $data = DB::table('anggota_bermasalah as A')
+            ->join('cabang as B', 'B.id', '=', 'A.cabang_ab')
+            ->select(
+                'A.nama_ab',
+                'A.kelompok_ab',
+                'A.id_anggota_ab',
+                'B.nama',
+                'A.id_sikki_ab',
+                DB::raw('COUNT(A.id_ab) AS jumlah'),
+                DB::raw('SUM(IF( A.kode_ab = "2", 1, 0)) AS kode2'),
+                DB::raw('SUM(IF( A.kode_ab = "4A", 1, 0)) AS kode4a'),
+                DB::raw('SUM(IF( A.kode_ab = "4B", 1, 0)) AS kode4b')
+            )
+            ->groupBy('A.nama_ab', 'A.kelompok_ab', 'A.id_anggota_ab', 'A.id_sikki_ab', 'B.nama')
+            ->orderBy('id_sikki_ab', 'desc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'ID Anggota')
+              ->setCellValue('B1', 'Nama Anggota')
+              ->setCellValue('C1', 'Kelompok')
+              ->setCellValue('D1', 'Cabang')
+              ->setCellValue('E1', 'Jumlah Bermasalah')
+              ->setCellValue('F1', 'Kasus 2')
+              ->setCellValue('G1', 'Kasus 4A')
+              ->setCellValue('H1', 'Kasus 4B');
+
+        $row = 2; // Mulai dari baris 2 setelah header
+        foreach ($data as $user) {
+
+            $sheet->setCellValue('A' . $row, $user->id_anggota_ab)
+                  ->setCellValue('B' . $row, $user->nama_ab)
+                  ->setCellValue('C' . $row, $user->kelompok_ab)
+                  ->setCellValue('D' . $row, $user->nama)
+                  ->setCellValue('E' . $row, $user->jumlah)
+                  ->setCellValue('F' . $row, $user->kode2)
+                  ->setCellValue('G' . $row, $user->kode4a)
+                  ->setCellValue('H' . $row, $user->kode4b);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'Rangkuman_anggota_bermasalah.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
+    
+    public function exportHistoryAb()
+    {
+        $data = DB::table('anggota_bermasalah as A')
+            ->join('cabang as B', 'B.id', '=', 'A.cabang_ab')
+            ->join('pkp as C', 'C.id', '=', 'A.pkp_ab')
+            ->select(
+                'A.*',
+                'B.nama as nama_cabang',
+                'C.nama as nama_pkp'
+            )
+            ->orderBy('id_sikki_ab', 'desc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set header kolom
+        $sheet->setCellValue('A1', 'Nama Anggota')
+              ->setCellValue('B1', 'ID Anggota')
+              ->setCellValue('C1', 'Kelompok')
+              ->setCellValue('D1', 'Tanggal Bermasalah')
+              ->setCellValue('E1', 'Setoran Ke')
+              ->setCellValue('F1', 'Kode')
+              ->setCellValue('G1', 'Cabang')
+              ->setCellValue('H1', 'PKP FSK');
+
+        $row = 2; 
+        foreach ($data as $user) {
+
+            $sheet->setCellValue('A' . $row, $user->nama_ab)
+                  ->setCellValue('B' . $row, $user->id_anggota_ab)
+                  ->setCellValue('C' . $row, $user->kelompok_ab)
+                  ->setCellValue('D' . $row, $user->tanggal_ab)
+                  ->setCellValue('E' . $row, $user->setoran_ab)
+                  ->setCellValue('F' . $row, $user->kode_ab)
+                  ->setCellValue('G' . $row, $user->nama_cabang)
+                  ->setCellValue('H' . $row, $user->nama_pkp);
+            $row++;
+        }
+
+        // Set file writer
+        $writer = new Xlsx($spreadsheet);
+
+        // Output file Excel ke browser
+        $filename = 'History_anggota_bermasalah.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
     }
 
     
