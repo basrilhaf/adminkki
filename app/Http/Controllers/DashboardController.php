@@ -75,7 +75,14 @@ class DashboardController extends Controller
         $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('select count(distinct(A.nasabah_id)) as total from kredit A inner join tabung B on A.nasabah_id = B.nasabah_id and B.kode_integrasi = 202 where B.saldo_akhir >= 10000');
         $kelompok_aktif = DB::connection('mysql_secondary')->select('select COUNT(A.kode_group1) as total from kre_kode_group1 A where (select B.saldo_akhir from tabung B where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 limit 1) > 0');
         $kumpulan_aktif = DB::connection('mysql_secondary')->select('select COUNT(A.kode_group3) as total from kre_kode_group3 A where (select B.saldo_akhir from kre_kode_group1 C inner join tabung B on B.kode_group1 = C.kode_group1 where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 limit 1) > 0');
-        $tabungan_anggota_aktif = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) as total FROM tabung A inner join nasabah B on A.nasabah_id = B.nasabah_id inner join tabung C on A.nasabah_id = C.nasabah_id and C.kode_integrasi = '201' and C.saldo_akhir >= 10000 where A.kode_integrasi = '203'");
+        $tabungan_anggota_aktif = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) AS total
+            FROM tabung A
+            WHERE A.nasabah_id IN (
+                SELECT DISTINCT X.nasabah_id
+                FROM tabung X
+                WHERE X.kode_integrasi = 202
+                AND X.saldo_akhir >= 10000
+            ) and A.kode_integrasi = 203");
         $tabungan_semua_anggota = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) as total FROM tabung A where A.kode_integrasi = '203'");
 
 

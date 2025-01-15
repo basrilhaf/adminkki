@@ -179,6 +179,9 @@ Route::get('/laporanPeriode', [ReportingController::class, 'laporanPeriode'])->n
 Route::get('/laporanKompilasi', [ReportingController::class, 'laporanKompilasi'])->name('laporanKompilasi');
 Route::get('/rangkumanMasalah', [ReportingController::class, 'rangkumanMasalah'])->name('rangkumanMasalah');
 Route::get('/masalahPerCabang', [ReportingController::class, 'masalahPerCabang'])->name('masalahPerCabang');
+Route::get('/pdfLaporanHarian', [ReportingController::class, 'pdfLaporanHarian'])->name('pdfLaporanHarian');
+Route::get('/pdfLaporanPeriode', [ReportingController::class, 'pdfLaporanPeriode'])->name('pdfLaporanPeriode');
+
 
 // route skorsing & blacklist 
 Route::resource('/skorsing', \App\Http\Controllers\SkorsingBlacklistController ::class);

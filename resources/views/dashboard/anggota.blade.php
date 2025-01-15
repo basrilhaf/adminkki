@@ -34,7 +34,7 @@
 														<div class="card-header pt-3">
 															<div class="card-title d-flex flex-column">
 																<div class="d-flex align-items-center">
-																	<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2" id="data-kumpulan-aktif">Memuat data...</span>
+																	<span class="fs-1hx fw-bold text-white me-2 lh-1 ls-n2" id="data-kumpulan-aktif">Memuat data...</span>
 																</div>
 																<span class="text-white pt-1 fw-semibold fs-6">Total Kumpulan Aktif</span>
 															</div>
@@ -52,7 +52,7 @@
 														<div class="card-header pt-3">
 															<div class="card-title d-flex flex-column">
 																<div class="d-flex align-items-center">
-																	<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2" id="data-anggota-aktif-dgn-md">Memuat data...</span>
+																	<span class="fs-1hx fw-bold text-white me-2 lh-1 ls-n2" id="data-anggota-aktif-dgn-md">Memuat data...</span>
 																</div>
 																<span class="text-white pt-1 fw-semibold fs-7">Total Anggota Aktif (dengan MD)</span>
 															</div>
@@ -70,7 +70,7 @@
 														<div class="card-header pt-3">
 															<div class="card-title d-flex flex-column">
 																<div class="d-flex align-items-center">
-																	<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2" id="data-tabungan-anggota-aktif">Memuat data...</span>
+																	<span class="fs-1hx fw-bold text-white me-2 lh-1 ls-n2" id="data-tabungan-anggota-aktif">Memuat data...</span>
 																</div>
 																<span class="text-white pt-1 fw-semibold fs-6">Total Tabungan Anggota Aktif</span>
 															</div>
@@ -88,7 +88,7 @@
 														<div class="card-header pt-3">
 															<div class="card-title d-flex flex-column">
 																<div class="d-flex align-items-center">
-																	<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2" id="data-tabungan-semua-anggota">Memuat data...</span>
+																	<span class="fs-1hx fw-bold text-white me-2 lh-1 ls-n2" id="data-tabungan-semua-anggota">Memuat data...</span>
 																</div>
 																<span class="text-white pt-1 fw-semibold fs-7">Total Tabungan Semua Anggota</span>
 															</div>
