@@ -181,6 +181,13 @@ Route::get('/rangkumanMasalah', [ReportingController::class, 'rangkumanMasalah']
 Route::get('/masalahPerCabang', [ReportingController::class, 'masalahPerCabang'])->name('masalahPerCabang');
 Route::get('/pdfLaporanHarian', [ReportingController::class, 'pdfLaporanHarian'])->name('pdfLaporanHarian');
 Route::get('/pdfLaporanPeriode', [ReportingController::class, 'pdfLaporanPeriode'])->name('pdfLaporanPeriode');
+Route::get('/getLaporanRangkumanAb', [ReportingController::class, 'getLaporanRangkumanAb'])->name('getLaporanRangkumanAb');
+Route::get('/getLaporanRangkumanKb', [ReportingController::class, 'getLaporanRangkumanKb'])->name('getLaporanRangkumanKb');
+Route::get('/exportDownloadRangkumanMasalah', [ReportingController::class, 'exportDownloadRangkumanMasalah'])->name('exportDownloadRangkumanMasalah');
+Route::get('/pdfLaporanRangkuman', [ReportingController::class, 'pdfLaporanRangkuman'])->name('pdfLaporanRangkuman');
+Route::get('/getMasalahCabangAb', [ReportingController::class, 'getMasalahCabangAb'])->name('getMasalahCabangAb');
+Route::get('/getMasalahCabangKb', [ReportingController::class, 'getMasalahCabangKb'])->name('getMasalahCabangKb');
+
 
 
 // route skorsing & blacklist 
