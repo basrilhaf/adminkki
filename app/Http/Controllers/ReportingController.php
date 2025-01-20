@@ -467,4 +467,219 @@ class ReportingController extends Controller
                 ->make(true);
         }
     }
+
+    
+    public function exportDownloadMasalahPerCabang(Request $request)
+    {
+        $daterange = $request->input('daterange');
+        $p_date = explode("to", $daterange);
+        $awal = trim($p_date[0]); // Start date
+        $akhir = trim($p_date[1]); // End date
+        $cabang = $request->input('cabang');
+
+        $data = DB::table('kelompok_bermasalah as A')
+            ->join('data_kb as B', 'B.kelompok_dkb', '=', 'A.kelompok_kb')
+            ->select('A.*','B.pkp_dkb','B.kc_dkb')
+            ->whereBetween('A.tanggal_kb', [$awal, $akhir]);
+        if($cabang != 0){
+            $data->where('A.cabang_kb', $cabang);
+        }
+        $data = $data->orderBy('A.cabang_kb', 'asc')->get();
+
+        
+        $data2 = DB::table('anggota_bermasalah as A')
+            ->select('A.*')
+            ->whereBetween('A.tanggal_ab', [$awal, $akhir]);
+        if($cabang != 0){
+            $data2->where('A.cabang_ab', $cabang);
+        }
+        $data2 = $data2->orderBy('A.cabang_ab', 'asc')->get();
+
+        
+
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set the header columns
+        $sheet->setCellValue('A1', 'Tanggal')
+            ->setCellValue('B1', 'Cabang')
+            ->setCellValue('C1', 'Kelompok')
+            ->setCellValue('D1', 'Set Ke-')
+            ->setCellValue('E1', 'Kode')
+            ->setCellValue('F1', 'Menit Telat')
+            ->setCellValue('G1', 'PKP Proses')
+            ->setCellValue('H1', 'KC Proses')
+            ->setCellValue('I1', 'Telat')
+            ->setCellValue('J1', 'Berat');
+
+        $row = 2; // Start from row 2 after the header
+       
+        foreach ($data as $user) {
+            
+            $mk = DB::table('kelompok_bermasalah as A')->select(
+                    DB::raw('SUM(IF(A.kode_kb = "3A", 1, 0)) AS telat'),
+                    DB::raw('SUM(IF(A.kode_kb = "3B", 1, 0)) AS berat')
+                )
+            ->where('A.kelompok_kb', $user->kelompok_kb)
+            ->first();
+
+
+            $sheet->setCellValue('A' . $row, $user->tanggal_kb)
+                ->setCellValue('B' . $row, $user->cabang_kb ?? '')
+                ->setCellValue('C' . $row, $user->kelompok_kb ?? '')
+                ->setCellValue('D' . $row, $user->setoran_kb ?? '' ?? '')
+                ->setCellValue('E' . $row, $user->kode_kb ?? '')
+                ->setCellValue('F' . $row, $user->menit_kb ?? '')
+                ->setCellValue('G' . $row, $user->pkp_dkb ?? '')
+                ->setCellValue('H' . $row, $user->kc_dkb ?? '')
+                ->setCellValue('I' . $row, $mk->telat ?? '0')
+                ->setCellValue('J' . $row, $mk->berat ?? '0');
+
+            $row++;
+        }
+
+        $row2 = $row + 3;
+        $sheet->setCellValue('A' . $row2, 'Tanggal')
+            ->setCellValue('B' . $row2, 'ID')
+            ->setCellValue('C' . $row2, 'Anggota')
+            ->setCellValue('D' . $row2, 'Kelompok')
+            ->setCellValue('E' . $row2, 'Cabang')
+            ->setCellValue('F' . $row2, 'DTR')
+            ->setCellValue('G' . $row2, 'Set Ke-')
+            ->setCellValue('H' . $row2, 'Menit Telat')
+            ->setCellValue('I' . $row2, '2')
+            ->setCellValue('J' . $row2, '4A')
+            ->setCellValue('K' . $row2, '4B');
+
+        $row2 = $row2 + 1;
+        
+        foreach ($data2 as $d) {
+            $ma = DB::table('anggota_bermasalah as A')
+                ->select(
+                    DB::raw('SUM(IF(A.kode_ab = "2", 1, 0)) AS kode2'),
+                    DB::raw('SUM(IF(A.kode_ab = "4A", 1, 0)) AS kode4a'),
+                    DB::raw('SUM(IF(A.kode_ab = "4B", 1, 0)) AS kode4b')
+                )
+                ->where('A.id_anggota_ab', $d->id_anggota_ab)
+                ->first();
+            
+            $sheet->setCellValue('A' . $row2, $d->tanggal_ab)
+                ->setCellValue('B' . $row2, $d->id_anggota_ab ?? '')
+                ->setCellValue('C' . $row2, $d->nama_ab ?? '')
+                ->setCellValue('D' . $row2, $d->kelompok_ab ?? '' ?? '')
+                ->setCellValue('E' . $row2, $d->cabang_ab ?? '' ?? '')
+                ->setCellValue('F' . $row2, $d->kode_ab ?? '' ?? '')
+                ->setCellValue('G' . $row2, $d->setoran_ab ?? '' ?? '')
+                ->setCellValue('H' . $row2, $d->menit_ab ?? '' ?? '')
+                ->setCellValue('I' . $row2, $ma->kode2 ?? '' ?? '0')
+                ->setCellValue('J' . $row2, $ma->kode4a ?? '' ?? '0')
+                ->setCellValue('K' . $row2, $ma->kode4b ?? '' ?? '0');
+
+            
+            $row2++;
+        }
+        
+
+        $writer = new Xlsx($spreadsheet);
+
+        $filename = 'Masalah_per_cabang.xlsx';
+        return response()->stream(
+            function () use ($writer) {
+                $writer->save('php://output');
+            },
+            200,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ]
+        );
+    }
+
+    
+    public function pdfMasalahPerCabangAction(): View
+    {
+        $tanggal = $_GET["daterange"];
+        $cabang = $_GET["cabang"];
+        $p_tanggal = explode("to", $tanggal);
+        $list_ab = DB::table('anggota_bermasalah as A')
+            ->leftJoin('pkp as B', 'B.id', '=', 'A.pkp_ab')
+            ->select('A.*','B.nama')
+            ->whereBetween('A.tanggal_ab', [$p_tanggal[0], $p_tanggal[1]]);
+        if($cabang != 0){
+            $list_ab->where('A.cabang_ab', $cabang);
+        }
+        $list_ab = $list_ab->orderBy('A.cabang_ab', 'asc')->get();
+
+        foreach ($list_ab as $ab) {
+            $detail_ab = DB::table('anggota_bermasalah as A')
+                ->select(
+                    DB::raw('SUM(IF(A.kode_ab = "2", 1, 0)) AS kode2'),
+                    DB::raw('SUM(IF(A.kode_ab = "4A", 1, 0)) AS kode4a'),
+                    DB::raw('SUM(IF(A.kode_ab = "4B", 1, 0)) AS kode4b')
+                )
+                ->where('A.id_anggota_ab', $ab->id_anggota_ab)
+                ->first();
+            
+            if ($detail_ab) {
+                $ab->kode2 = $detail_ab->kode2; 
+                $ab->kode4a = $detail_ab->kode4a;
+                $ab->kode4b = $detail_ab->kode4b;
+            }
+        }
+
+
+        $list_kb = DB::table('kelompok_bermasalah as A')
+            ->leftJoin('data_kb as B', 'B.kelompok_dkb', '=', 'A.kelompok_kb')
+            ->leftJoin('pkp as C', 'C.id', '=', 'A.pkp_kb')
+            ->select('A.*','B.pkp_dkb','B.kc_dkb','C.nama')
+            ->whereBetween('A.tanggal_kb', [$p_tanggal[0], $p_tanggal[1]]);
+        if($cabang != 0){
+            $list_kb->where('A.cabang_kb', $cabang);
+        }
+        $list_kb = $list_kb->orderBy('A.cabang_kb', 'asc')->get();
+
+        $jum_telat = 0;
+        $jum_berat = 0;
+        foreach ($list_kb as $kb) {
+            $detail_kb =  DB::table('kelompok_bermasalah as A')->select(
+                    DB::raw('SUM(IF(A.kode_kb = "3A", 1, 0)) AS telat'),
+                    DB::raw('SUM(IF(A.kode_kb = "3B", 1, 0)) AS berat')
+                )
+                ->where('A.kelompok_kb', $kb->kelompok_kb)
+                ->first();
+            
+            if ($detail_kb) {
+                $kb->telat = $detail_kb->telat; 
+                $kb->berat = $detail_kb->berat;
+            }
+            $jum_telat = $jum_telat+$detail_kb->telat;
+            $jum_berat = $jum_berat+$detail_kb->berat;
+        }
+
+
+        if($cabang == 0){
+            $cbg = 'SEMUA';
+        }else{
+            $cbg = $cabang;
+        }
+
+        $data = [
+            'menu' => 'Laporan Periode',
+            'tanggal' => $tanggal,
+            'awal' => $p_tanggal[0],
+            'akhir' => $p_tanggal[1],
+            'list_ab' => $list_ab,
+            'list_kb' => $list_kb,
+            'total_ab' => COUNT($list_ab),
+            'total_kb' => COUNT($list_kb),
+            'cabang' => $cbg,
+            'jum_telat' => $jum_telat,
+            'jum_berat' => $jum_berat
+            
+        ];
+        
+        return view('reporting.pdf-laporan-masalah-cabang', $data);
+    }
 }

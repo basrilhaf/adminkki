@@ -187,7 +187,8 @@ Route::get('/exportDownloadRangkumanMasalah', [ReportingController::class, 'expo
 Route::get('/pdfLaporanRangkuman', [ReportingController::class, 'pdfLaporanRangkuman'])->name('pdfLaporanRangkuman');
 Route::get('/getMasalahCabangAb', [ReportingController::class, 'getMasalahCabangAb'])->name('getMasalahCabangAb');
 Route::get('/getMasalahCabangKb', [ReportingController::class, 'getMasalahCabangKb'])->name('getMasalahCabangKb');
-
+Route::get('/exportDownloadMasalahPerCabang', [ReportingController::class, 'exportDownloadMasalahPerCabang'])->name('exportDownloadMasalahPerCabang');
+Route::get('/pdfMasalahPerCabangAction', [ReportingController::class, 'pdfMasalahPerCabangAction'])->name('pdfMasalahPerCabangAction');
 
 
 // route skorsing & blacklist 
