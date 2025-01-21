@@ -111,12 +111,46 @@ class ReportingController extends Controller
     
     public function pdfLaporanHarian(): View
     {
-        $cabang = $_GET["cabang"];
+        $cabang = "0".$_GET["cabang"];
         $tanggal = $_GET["tanggal"];
+        $nomor_hari = date('N', strtotime($tanggal));
+        // var_dump($nomor_hari);die();
+
+        $query_kelompok_aktif = DB::connection('mysql_secondary')->table('kre_kode_group1 AS A')
+                    ->selectRaw('COUNT(A.kode_group1) as total')
+                    ->whereRaw('(select B.saldo_akhir from tabung B
+                                inner join kredit C on C.kode_group1 = B.kode_group1
+                                where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 and DATE_FORMAT(C.tgl_realisasi, "%w") = '.$nomor_hari.' and C.tgl_realisasi < ? and C.tgl_jatuh_tempo >= ? limit 1) > 0', [$tanggal, $tanggal]);
+
+        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kre_kode_group3 AS A')
+                    ->selectRaw('COUNT(A.kode_group3) as total')
+                    ->whereRaw('(select B.saldo_akhir from kre_kode_group1 C
+                        inner join tabung B on B.kode_group1 = C.kode_group1
+                        inner join kredit D on D.kode_group1 = B.kode_group1
+                        where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 and DATE_FORMAT(D.tgl_realisasi, "%w") = '.$nomor_hari.' and D.tgl_realisasi < ? and D.tgl_jatuh_tempo >= ? limit 1) > 0', [$tanggal, $tanggal]);
+                
+        $query_kelompok_setoran = DB::connection('mysql_secondary')->table('kretrans AS A')
+                    ->selectRaw('COUNT(A.kode_group1_trans) as total')
+                    ->where('A.TGL_TRANS', $tanggal);
+
+        if ($cabang != 0) {
+            $query_kumpulan_aktif->where('A.kode_kantor', $cabang);
+            $query_kelompok_aktif->where('A.kode_kantor', $cabang);
+            $query_kelompok_setoran->where('A.kode_kantor', $cabang);
+        }
+        
+                
+        $kumpulan_aktif = $query_kumpulan_aktif->get();
+        $kelompok_aktif = $query_kelompok_aktif->get();
+        $kelompok_setoran = $query_kelompok_setoran->groupBy('A.kode_group1_trans')->get();
+
         $data = [
             'menu' => 'Laporan Harian',
-            'cabang' => $cabang,
-            'tanggal' => $tanggal
+            'cabang' => $_GET["cabang"],
+            'tanggal' => $tanggal,
+            'kumpulan_aktif' => $kumpulan_aktif[0]->total,
+            'kelompok_aktif' => $kelompok_aktif[0]->total,
+            'kelompok_setoran' => COUNT($kelompok_setoran)
             
         ];
         

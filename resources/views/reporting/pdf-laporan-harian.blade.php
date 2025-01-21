@@ -101,23 +101,23 @@ table th {
                     
                     <tr>
                         <td class="w-1 tl">Jumlah kumpulan aktif hari ini</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{$kumpulan_aktif}}</td>
                         <td class="w-2 tr" style="background-color:black;">/ / / / / / / / / / / / / / /</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok aktif hari ini</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{$kelompok_aktif}}</td>
                         <td class="w-2 tr" style="background-color:black;">/ / / / / / / / / / / / / / /</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok setoran hari ini</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$kelompok_setoran}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_setoran/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok gagal bayar</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$kelompok_aktif - $kelompok_setoran}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_aktif-$kelompok_setoran)/(($kelompok_aktif-$kelompok_setoran)+$kelompok_setoran)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok telat (<= 10 menit)</td>
