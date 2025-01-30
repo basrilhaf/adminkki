@@ -99,6 +99,7 @@ Route::get('/gantiPassword', [PkpCabangController::class, 'gantiPassword'])->nam
 Route::resource('/kelompokAktif', \App\Http\Controllers\KelompokController::class);
 Route::get('/masalahKelompok', [KelompokController::class, 'masalahKelompok'])->name('masalahKelompok');
 Route::get('/getMasalahKelompok', [KelompokController::class, 'getMasalahKelompok'])->name('getMasalahKelompok');
+Route::get('/getHistoryMasalahKelompok', [KelompokController::class, 'getHistoryMasalahKelompok'])->name('getHistoryMasalahKelompok');
 Route::get('/cariKelompok', [KelompokController::class, 'cariKelompok'])->name('cariKelompok');
 Route::get('/getKelompokAktif', [KelompokController::class, 'getKelompokAktif'])->name('getKelompokAktif');
 Route::get('/exportKelompok', [KelompokController::class, 'exportKelompok'])->name('exportKelompok');

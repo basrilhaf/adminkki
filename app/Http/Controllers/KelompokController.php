@@ -856,6 +856,33 @@ class KelompokController extends Controller
         }
     }
 
+    public function getHistoryMasalahKelompok(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = DB::table('kelompok_bermasalah')
+                ->select('*')
+                ->where('kelompok_kb',  $request->input('kelompok'));
+
+            
+            // Grouping by idsikkikb and ordering by id_kb
+            $filteredData = $query->orderBy('id_kb', 'desc')
+                ->get();
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $id_hash = Crypt::encrypt($row->kelompok_kb);
+
+                    
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-mk btn-sm" data-id="' . $row->id_kb . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+                
+
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+
     
     public function deleteMasalahKelompokAction(Request $request)
     {

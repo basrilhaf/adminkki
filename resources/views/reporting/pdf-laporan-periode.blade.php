@@ -100,12 +100,12 @@ table th {
                     
                     <tr>
                         <td class="w-1 tl">Jumlah Kumpulan Aktif</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{$kumpulan_aktif}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Jumlah Kelompok Aktif</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{$kelompok_aktif}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr>
                     <tr>
@@ -115,30 +115,30 @@ table th {
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok telat (<= 10 menit)</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$mk_kurang_10menit}}</td>
+                        <td class="w-2 tr">{{round(($mk_kurang_10menit/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok berat (> 10 menit)</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$mk_lebih_10menit}}</td>
+                        <td class="w-2 tr">{{round(($mk_lebih_10menit/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey;"></td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Total Anggota Aktif</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{$anggota_aktif}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Rata-rata Anggota per Kelompok</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{round($anggota_aktif/$kelompok_aktif,2)}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Rata-rata Anggota per Kumpulan</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{round($anggota_aktif/$kumpulan_aktif,2)}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr>
                     
@@ -149,8 +149,8 @@ table th {
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Kasus DTR</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$anggota_dtr}}</td>
+                        <td class="w-2 tr">{{round($anggota_dtr/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">DTR 1x</td>
@@ -190,17 +190,17 @@ table th {
                     </tr>
                     <tr>
                         <td class="w-1 tl">Total transaksi tab pribadi</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$penabung}}</td>
+                        <td class="w-2 tr">{{round(($penabung/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Total tabungan pribadi</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{number_format($jumlah_tabungan,0,',','.')}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Rata2 tabungan per Ibu</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{ $penabung > 0 ? number_format($jumlah_tabungan / $penabung, 0, ',', '.') : '0' }}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr> 
                     <tr>
@@ -208,38 +208,38 @@ table th {
                     </tr>
                     <tr>
                         <td class="w-1 tl">Total kelompok pencairan</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$kelompok_cair}}</td>
+                        <td class="w-2 tr">{{round($kelompok_cair/$kelompok_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah anggota dicairkan</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$anggota_cair}}</td>
+                        <td class="w-2 tr">{{round($anggota_cair/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Total jumlah uang utk PCR</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{number_format($jumlah_cair,0,',','.')}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Rata-rata pinjaman/ibu cair</td>
-                        <td class="w-2 tr"></td>
+                        <td class="w-2 tr">{{number_format($jumlah_cair/$anggota_cair,0,',','.')}}</td>
                         <td class="w-2 tr" style="background-color:black;">- - - - - - - - - - - - - -</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Total kelompok BTK/BTAB</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$kelompok_btab}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_btab/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah anggota BTK/BTAB</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$anggota_btab}}</td>
+                        <td class="w-2 tr">{{round(($anggota_btab/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Perubahan anggota (+/-)</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$anggota_cair - $anggota_btab}}</td>
+                        <td class="w-2 tr">{{round((($anggota_cair-$anggota_btab)/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
                     
                 </tbody>

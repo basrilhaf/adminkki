@@ -761,13 +761,11 @@ class AnggotaController extends Controller
             $id_user = Session::get('id_user2');
 
             $query = DB::connection('mysql_secondary')
-                ->table('tabung as A')
-                ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+                ->table('nasabah as B')
                 ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
                 ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
                 ->select('B.*', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'C.jml_angsuran', 'C.periode_angsuran')
-                ->where('A.kode_integrasi', 201)
-                ->where('A.saldo_akhir', '>=', 10000);
+                ->where('C.pokok_saldo_akhir', '>', 0);
 
             if ($request->filled('kelompok')) {
                 $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');

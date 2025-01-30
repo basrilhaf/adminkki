@@ -72,9 +72,9 @@ class DashboardController extends Controller
     
     public function getDataTotalDashboard()
     {
-        $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('select count(distinct(A.nasabah_id)) as total from kredit A inner join tabung B on A.nasabah_id = B.nasabah_id and B.kode_integrasi = 202 where B.saldo_akhir >= 10000');
-        $kelompok_aktif = DB::connection('mysql_secondary')->select('select COUNT(A.kode_group1) as total from kre_kode_group1 A where (select B.saldo_akhir from tabung B where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 limit 1) > 0');
-        $kumpulan_aktif = DB::connection('mysql_secondary')->select('select COUNT(A.kode_group3) as total from kre_kode_group3 A where (select B.saldo_akhir from kre_kode_group1 C inner join tabung B on B.kode_group1 = C.kode_group1 where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 limit 1) > 0');
+        $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('SELECT count(kredit.nasabah_id) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
+        $kelompok_aktif = DB::connection('mysql_secondary')->select('SELECT count(distinct(kredit.kode_group1)) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
+        $kumpulan_aktif = DB::connection('mysql_secondary')->select('SELECT count(distinct(kredit.kode_group3)) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
         $tabungan_anggota_aktif = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) AS total
             FROM tabung A
             WHERE A.nasabah_id IN (

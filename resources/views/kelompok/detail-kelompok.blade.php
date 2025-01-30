@@ -91,6 +91,26 @@
 										</div>
 									</div>
                                     <hr>
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h2 class="pt-4">List Masalah Kelompok</h2>
+                                        </div>
+                                        
+										<div class="card-body py-4">
+											<table class="table align-middle table-row-dashed fs-6 gy-5" id="masalahKelompokTable">
+												<thead>
+													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+														<th>No</th>
+														<th class="min-w-125px">Tanggal</th>
+                                                        <th class="min-w-100px">Set-ke</th>
+														<th class="min-w-100px">Kode</th>  
+                                                        <th class="min-w-100px">Menit Telat</th>                                                        
+													</tr>
+												</thead>
+											
+											</table>
+										</div>
+									</div>
                                     
 								</div>
 							</div>							
@@ -119,6 +139,7 @@
                     ]
                 });
 
+                
                 var kode_group1 = $('#detail-kode_group1').val();
                 var url = "{{ route('getDetailKelompok', ':kode_group1') }}";
                 url = url.replace(':kode_group1', kode_group1);
@@ -134,12 +155,32 @@
                         $('#detail-tgl_cair-kelompok').val(response.tgl_realisasi);
                         $('#detail-tgl_btab-kelompok').val(response.tgl_jatuh_tempo);
                         
+                        $('#masalahKelompokTable').DataTable().ajax.reload();
 
                     },
                     error: function(xhr) {
                         Swal.fire('Error', 'Data Gagal Disimpan', 'error');
                     }
                 });
+
+                $('#masalahKelompokTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('getHistoryMasalahKelompok') }}",
+                        data: function (d) {
+                            d.kelompok = $('#detail-nama-kelompok').val();
+                        }
+                    },
+                    columns: [
+                        {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                        {data: 'tanggal_kb', name: 'tanggal_kb'},
+                        {data: 'setoran_kb', name: 'setoran_kb'},
+                        {data: 'kode_kb', name: 'kode_kb'},
+                        {data: 'menit_kb', name: 'menit_kb'},
+                    ]
+                });
+                
             });
         </script>
         @include('layout.footer')

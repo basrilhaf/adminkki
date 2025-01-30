@@ -251,15 +251,122 @@ class ReportingController extends Controller
     
     public function pdfLaporanPeriode(): View
     {
-        $cabang = $_GET["cabang"];
+        $cabang = "0".$_GET["cabang"];
         $tanggal = $_GET["tanggal"];
         $p_tanggal = explode("to", $tanggal);
+
+        $query_kelompok_aktif = DB::connection('mysql_secondary')->table('kre_kode_group1 AS A')
+            ->selectRaw('COUNT(A.kode_group1) as total')
+            ->whereRaw('(select B.saldo_akhir from tabung B
+                        inner join kredit C on C.kode_group1 = B.kode_group1
+                        where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 and C.tgl_realisasi < ? and C.tgl_jatuh_tempo >= ? limit 1) > 0', [$p_tanggal[0], $p_tanggal[1]]);
+
+        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kre_kode_group3 AS A')
+            ->selectRaw('COUNT(A.kode_group3) as total')
+            ->whereRaw('(select B.saldo_akhir from kre_kode_group1 C
+                        inner join tabung B on B.kode_group1 = C.kode_group1
+                        inner join kredit D on D.kode_group1 = B.kode_group1
+                        where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 and D.tgl_realisasi < ? and D.tgl_jatuh_tempo >= ? limit 1) > 0', [$p_tanggal[0], $p_tanggal[1]]); 
+
+        $query_mk = DB::table('kelompok_bermasalah as A')
+            ->select('A.*')
+            ->whereBetween('A.tanggal_kb', [$p_tanggal[0], $p_tanggal[1]]);
+
+        $query_anggota_dtr = DB::connection('mysql_secondary')->table('kretrans AS A')
+            ->selectRaw('COUNT(A.KRETRANS_ID) as total')
+            ->where('A.KODE_TRANS', 201)
+            ->where('A.dtr', 'YA')
+            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
+        
+        $query_anggota_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
+            ->selectRaw('COUNT(A.nasabah_id) as total')
+            ->join('tabung as B','B.nasabah_id', '=', 'A.nasabah_id')
+            ->where('B.kode_integrasi', 201)
+            ->where('A.tgl_realisasi', '<', $p_tanggal[0])
+            ->where('A.tgl_jatuh_tempo', '>=', $p_tanggal[1]);
+
+        $query_kelompok_cair = DB::connection('mysql_secondary')->table('kredit AS A')
+            ->selectRaw('COUNT(A.kode_group1) as total')
+            ->whereBetween('A.tgl_realisasi', [$p_tanggal[0], $p_tanggal[1]]);
+
+        $query_anggota_cair = DB::connection('mysql_secondary')->table('kredit AS A')
+            ->selectRaw('COUNT(A.nasabah_id) as total, SUM(A.jml_pinjaman) as jumlah')
+            ->whereBetween('A.tgl_realisasi', [$p_tanggal[0], $p_tanggal[1]]);
+
+        $query_anggota_btab = DB::connection('mysql_secondary')->table('kredit AS A')
+            ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
+            ->selectRaw('COUNT(A.nasabah_id) as total')
+            ->whereBetween('B.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
+            ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
+
+        $query_kelompok_btab = DB::connection('mysql_secondary')->table('kredit AS A')
+            ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
+            ->selectRaw('COUNT(A.kode_group1) as total')
+            ->whereBetween('B.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
+            ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
+
+        $query_tab_pribadi = DB::connection('mysql_secondary')->table('tabtrans AS A')
+            ->selectRaw('COUNT(A.TABTRANS_ID) as total, SUM(A.POKOK) as jumlah')
+            ->where('A.MY_KODE_TRANS', 100)
+            ->where('A.KODE_TRANS', 203)
+            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
+
+        if ($cabang != 0) {
+            $query_kumpulan_aktif->where('A.kode_kantor', $cabang);
+            $query_kelompok_aktif->where('A.kode_kantor', $cabang);
+                            // $query_kelompok_setoran->where('A.kode_kantor', $cabang);
+            $query_mk->where('A.cabang_kb', $cabang);
+            $query_anggota_aktif->where('A.KODE_KANTOR', $cabang);
+                            // $query_anggota_setoran->where('A.kode_kantor', $cabang);
+            $query_anggota_dtr->where('A.kode_kantor', $cabang);
+            $query_tab_pribadi->where('A.kode_kantor', $cabang);
+            $query_kelompok_cair->where('A.KODE_KANTOR', $cabang);
+            $query_anggota_cair->where('A.KODE_KANTOR', $cabang);
+            $query_anggota_btab->where('A.KODE_KANTOR', $cabang);
+            $query_kelompok_btab->where('A.KODE_KANTOR', $cabang);
+        }
+
+        $kumpulan_aktif = $query_kumpulan_aktif->get();
+        $kelompok_aktif = $query_kelompok_aktif->get();
+        // $kelompok_setoran = $query_kelompok_setoran->groupBy('A.kode_group1_trans')->get();
+        $masalah_kelompok = $query_mk->get();
+        $anggota_aktif = $query_anggota_aktif->get();
+        // $anggota_setoran = $query_anggota_setoran->get();
+        $anggota_dtr = $query_anggota_dtr->get();
+        $tab_pribadi = $query_tab_pribadi->get();
+        $kelompok_cair = $query_kelompok_cair->groupBy('A.kode_group1')->get();
+        $anggota_cair = $query_anggota_cair->get();
+        $kelompok_btab = $query_kelompok_btab->groupBy('A.kode_group1')->get();
+        $anggota_btab = $query_anggota_btab->get();
+        $mk_kurang_10menit = 0;
+        $mk_lebih_10menit = 0;
+        foreach($masalah_kelompok as $mk){
+            if($mk->menit_kb > 10){
+                $mk_lebih_10menit = $mk_lebih_10menit+1;
+            }else{
+                $mk_kurang_10menit = $mk_kurang_10menit+1;
+            }
+        }
+
         $data = [
             'menu' => 'Laporan Periode',
             'cabang' => $cabang,
             'tanggal' => $tanggal,
             'awal' => $p_tanggal[0],
-            'akhir' => $p_tanggal[1]
+            'akhir' => $p_tanggal[1],
+            'kelompok_aktif' => $kelompok_aktif[0]->total,
+            'kumpulan_aktif' => $kumpulan_aktif[0]->total,
+            'mk_kurang_10menit' => $mk_kurang_10menit,
+            'mk_lebih_10menit' => $mk_lebih_10menit,
+            'anggota_dtr' => $anggota_dtr[0]->total,
+            'anggota_aktif' => $anggota_aktif[0]->total,
+            'kelompok_cair' => $kelompok_cair[0]->total,
+            'anggota_cair' => $anggota_cair[0]->total,
+            'jumlah_cair' => $anggota_cair[0]->jumlah,
+            'kelompok_btab' => $kelompok_btab[0]->total,
+            'anggota_btab' => $anggota_btab[0]->total,
+            'penabung' => $tab_pribadi[0]->total,
+            'jumlah_tabungan' => $tab_pribadi[0]->jumlah,
             
         ];
         

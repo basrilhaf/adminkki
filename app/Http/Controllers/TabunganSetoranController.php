@@ -663,14 +663,17 @@ class TabunganSetoranController extends Controller
             $join->on('F.nasabah_id', '=', 'C.nasabah_id')
                  ->on('F.kode_integrasi', '=', DB::raw('203'));
         })
-        ->select('A.*', 'C.nasabah_id','B.kode_produk','C.NAMA_NASABAH','D.NAMA_KANTOR','E.deskripsi_group1','B.jml_angsuran', 'B.tgl_realisasi','B.tgl_jatuh_tempo','F.saldo_akhir')
+        ->select('A.KRETRANS_ID',
+            'A.TGL_TRANS','A.jam','A.ANGSURAN_KE','A.POKOK','A.BUNGA','A.TABUNGAN',    
+            'C.nasabah_id','B.kode_produk','C.NAMA_NASABAH','D.NAMA_KANTOR','E.deskripsi_group1','B.jml_angsuran', 'B.tgl_realisasi','B.tgl_jatuh_tempo','F.saldo_akhir')
         ->where('A.KODE_TRANS', 300)
         ->where('A.TGL_TRANS', '>=', $awal)
-        ->where('A.TGL_TRANS', '<=', $akhir);
+        ->where('A.TGL_TRANS', '<=', $akhir)
+        ->orderBy('A.TGL_TRANS', 'asc')->get();
 
 
-        // Execute the query and get the results
-        $data = $data->orderBy('A.TGL_TRANS', 'asc')->get();
+        // dd($data);
+        // dd($data->first());  // Menampilkan elemen pertama dari koleksi
 
         // Create a new spreadsheet
         $spreadsheet = new Spreadsheet();
