@@ -190,6 +190,8 @@ Route::get('/getMasalahCabangAb', [ReportingController::class, 'getMasalahCabang
 Route::get('/getMasalahCabangKb', [ReportingController::class, 'getMasalahCabangKb'])->name('getMasalahCabangKb');
 Route::get('/exportDownloadMasalahPerCabang', [ReportingController::class, 'exportDownloadMasalahPerCabang'])->name('exportDownloadMasalahPerCabang');
 Route::get('/pdfMasalahPerCabangAction', [ReportingController::class, 'pdfMasalahPerCabangAction'])->name('pdfMasalahPerCabangAction');
+Route::get('/getDataTableKompilasi', [ReportingController::class, 'getDataTableKompilasi'])->name('getDataTableKompilasi');
+
 
 
 // route skorsing & blacklist 

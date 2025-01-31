@@ -914,4 +914,64 @@ class ReportingController extends Controller
         
         return view('reporting.pdf-laporan-masalah-cabang', $data);
     }
+
+    
+    public function getDataTableKompilasi(Request $request)
+    {
+        if ($request->ajax()) {
+            $daterange = $request->input('daterange');
+            $cabang = "0".$request->input('cabang');
+            $p_date = explode("to", $daterange);
+            $awal = trim($p_date[0]); // Start date
+            $akhir = trim($p_date[1]); // End date
+
+            $query = DB::connection('mysql_secondary')->table('kredit as A')
+                ->select(
+                    'A.KODE_KANTOR',
+                    DB::raw('(SELECT COUNT(DISTINCT B.kode_group1) FROM kredit B WHERE B.KODE_KANTOR = A.KODE_KANTOR AND B.tgl_realisasi BETWEEN "'.$awal.'" AND "'.$akhir.'" ) as kelompok_cair'),
+                    DB::raw('(select COUNT(distinct(kode_group1)) from kredit B inner join kretrans C on C.NO_REKENING = B.no_rekening where B.KODE_KANTOR = A.KODE_KANTOR and C.TGL_TRANS BETWEEN "'.$awal.'" AND "'.$akhir.'" and C.ANGSURAN_KE = B.jml_angsuran and C.KODE_TRANS = 300) as kelompok_btab'),
+                    DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS = 113 and B.kode_kantor = A.KODE_KANTOR and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and B.KETERANGAN like "%Setor Tab. Sukarela%") as tab_lapangan'),
+                    DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS in ("200") and B.kode_kantor = A.KODE_KANTOR and TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and MY_KODE_TRANS = 100) as tab_kantor'),
+                    DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS in ("200") and B.kode_kantor = A.KODE_KANTOR and TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and MY_KODE_TRANS = 200) as ambil_tab'),
+                    DB::raw('(select count(distinct(B.nasabah_id)) from kredit B inner join tabung C on B.nasabah_id = C.nasabah_id where C.kode_integrasi = 201 and B.KODE_KANTOR = A.KODE_KANTOR and B.tgl_realisasi < "'.$awal.'" and B.tgl_jatuh_tempo >= "'.$akhir.'") as anggota_aktif'),
+                    DB::raw('(select count(B.KRETRANS_ID) from kretrans B where B.KODE_KANTOR = A.KODE_KANTOR and B.KODE_TRANS = 201 and B.dtr = "Ya" and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'") as dtr')
+                )
+                ->where('A.KODE_KANTOR', '!=', 00);
+            if($cabang != 0){
+                $query->where('A.KODE_KANTOR', $cabang);
+            }
+            $filteredData = $query->groupBy('A.KODE_KANTOR') 
+                ->orderBy('A.KODE_KANTOR', 'asc')
+                ->get();
+
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('kel_telat', function ($row) use ($awal, $akhir) {
+                    $cbg = substr($row->KODE_KANTOR, -1);
+
+                    $telat = DB::table('kelompok_bermasalah as A')
+                            ->select(DB::raw('COUNT(A.id_kb) as jumlah'))
+                            ->whereBetween('A.tanggal_kb', [$awal, $akhir])
+                            ->where('A.cabang_kb', $cbg)
+                            ->where('A.kode_kb', '3A')
+                            ->first();
+                    return $telat->jumlah;
+                })
+                ->addColumn('kel_berat', function ($row) use ($awal, $akhir) {
+                    $cbg = substr($row->KODE_KANTOR, -1);
+
+                    $berat = DB::table('kelompok_bermasalah as A')
+                            ->select(DB::raw('COUNT(A.id_kb) as jumlah'))
+                            ->whereBetween('A.tanggal_kb', [$awal, $akhir])
+                            ->where('A.cabang_kb', $cbg)
+                            ->where('A.kode_kb', '3B')
+                            ->first();
+                    return $berat->jumlah;
+                })
+                
+
+                ->rawColumns(['kel_telat','kel_berat'])
+                ->make(true);
+        }
+    }
 }
