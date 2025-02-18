@@ -66,6 +66,17 @@ Route::get('/formKelompokBermasalah', [KabKkbController::class, 'formKelompokBer
 Route::get('/getTableFormKelompokBermasalahKab', [KabKkbController::class, 'getTableFormKelompokBermasalahKab'])->name('getTableFormKelompokBermasalahKab');
 Route::get('/rangkumanDtr', [KabKkbController::class, 'rangkumanDtr'])->name('rangkumanDtr');
 Route::get('/getTableRangkumanDtr', [KabKkbController::class, 'getTableRangkumanDtr'])->name('getTableRangkumanDtr');
+Route::get('/pengisiankkb', [KabKkbController::class, 'pengisiankkb'])->name('pengisiankkb');
+Route::get('/getTableKkb', [KabKkbController::class, 'getTableKkb'])->name('getTableKkb');
+Route::get('/getTableKkbDikunjungi', [KabKkbController::class, 'getTableKkbDikunjungi'])->name('getTableKkbDikunjungi');
+Route::get('/getDetailKb/{id}', [KabKkbController::class, 'getDetailKb'])->name('getDetailKb');
+Route::post('/updatePengisianKb', [KabKkbController::class, 'updatePengisianKb'])->name('updatePengisianKb');
+Route::get('/daftarKkb', [KabKkbController::class, 'daftarKkb'])->name('daftarKkb');
+Route::get('/gettableKKBUssi', [KabKkbController::class, 'gettableKKBUssi'])->name('gettableKKBUssi');
+Route::get('/exportDownloadKkbUssi', [KabKkbController::class, 'exportDownloadKkbUssi'])->name('exportDownloadKkbUssi');
+Route::get('/daftarKab', [KabKkbController::class, 'daftarKab'])->name('daftarKab');
+Route::get('/gettableKABUssi', [KabKkbController::class, 'gettableKABUssi'])->name('gettableKABUssi');
+Route::get('/exportDownloadKabUssi', [KabKkbController::class, 'exportDownloadKabUssi'])->name('exportDownloadKabUssi');
 
 
 // route audit trails 
@@ -117,6 +128,8 @@ Route::post('/addMasalahKelompokAction', [KelompokController::class, 'addMasalah
 Route::get('/exportDownloadRangkumanMk', [KelompokController::class, 'exportDownloadRangkumanMk'])->name('exportDownloadRangkumanMk');
 Route::get('/exportDownloadHistoryMk', [KelompokController::class, 'exportDownloadHistoryMk'])->name('exportDownloadHistoryMk');
 Route::post('/deleteMasalahKelompokAction', [KelompokController::class, 'deleteMasalahKelompokAction'])->name('deleteMasalahKelompokAction');
+Route::get('/getPjKelompok', [KelompokController::class, 'getPjKelompok'])->name('getPjKelompok');
+Route::post('/deletePjKelompokAction', [KelompokController::class, 'deletePjKelompokAction'])->name('deletePjKelompokAction');
 
 
 // route anggota 
@@ -191,7 +204,14 @@ Route::get('/getMasalahCabangKb', [ReportingController::class, 'getMasalahCabang
 Route::get('/exportDownloadMasalahPerCabang', [ReportingController::class, 'exportDownloadMasalahPerCabang'])->name('exportDownloadMasalahPerCabang');
 Route::get('/pdfMasalahPerCabangAction', [ReportingController::class, 'pdfMasalahPerCabangAction'])->name('pdfMasalahPerCabangAction');
 Route::get('/getDataTableKompilasi', [ReportingController::class, 'getDataTableKompilasi'])->name('getDataTableKompilasi');
-
+Route::get('/getDataTableRAKompilasi', [ReportingController::class, 'getDataTableRAKompilasi'])->name('getDataTableRAKompilasi');
+Route::get('/getDataTableRTKompilasi', [ReportingController::class, 'getDataTableRTKompilasi'])->name('getDataTableRTKompilasi');
+Route::get('/getDataTableRDTRKompilasi', [ReportingController::class, 'getDataTableRDTRKompilasi'])->name('getDataTableRDTRKompilasi');
+Route::get('/getDataTableRCairKompilasi', [ReportingController::class, 'getDataTableRCairKompilasi'])->name('getDataTableRCairKompilasi');
+Route::get('/getDataTableRBtabKompilasi', [ReportingController::class, 'getDataTableRBtabKompilasi'])->name('getDataTableRBtabKompilasi');
+Route::get('/getRAsumData', [ReportingController::class, 'getRAsumData'])->name('getRAsumData');
+Route::get('/jpk', [ReportingController::class, 'jpk'])->name('jpk');
+Route::get('/pdfJpk', [ReportingController::class, 'pdfJpk'])->name('pdfJpk');
 
 
 // route skorsing & blacklist 

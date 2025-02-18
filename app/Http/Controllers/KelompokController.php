@@ -84,7 +84,7 @@ class KelompokController extends Controller
         $menu_aktif = '/dataKelompok||/kelompok';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
-            'menu' => 'Data Kelompok',
+            'menu' => 'PJ Kelompok',
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => ''
@@ -169,6 +169,47 @@ class KelompokController extends Controller
                     return $status;
                 })
                 ->rawColumns(['action','status']) 
+                ->make(true);
+        }
+    }
+
+    
+    public function getPjKelompok(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = DB::table('data_kb')
+                ->select(
+                    'data_kb.*',
+                    'pkp.nama'
+                )
+                ->leftJoin('pkp', 'data_kb.pkp_fsk_dkb', '=', 'pkp.id');
+
+            // Applying filters conditionally
+            if ($request->filled('kelompok')) {
+                $query->where('kelompok_dkb', 'like', '%' . $request->input('kelompok') . '%');
+            }
+            if ($request->filled('pkp')) {
+                $query->where('pkp_dkb', 'like', '%' . $request->input('pkp') . '%');
+            }
+            if ($request->filled('kc')) {
+                $query->where('kc_dkb', 'like', '%' . $request->input('kc') . '%');
+            }
+
+            // Grouping by idsikkikb and ordering by id_kb
+            $filteredData = $query->orderBy('data_kb.id_dkb', 'desc')
+                ->get();
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
+                    $id_hash = Crypt::encrypt($row->id_dkb);
+
+                    
+                    $btn = '<button title="HAPUS" class="btn btn-danger btn-delete-pj btn-sm" data-id="' . $row->id_dkb . '"><span class="fa fa-trash"></span></button>';
+                    return $btn;
+                })
+                
+
+                ->rawColumns(['action'])
                 ->make(true);
         }
     }
@@ -541,7 +582,13 @@ class KelompokController extends Controller
                 ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
                 ->join('nasabah as C', 'C.nasabah_id', '=', 'A.nasabah_id')
                 ->where('A.tgl_realisasi', '<=',  $tanggal)
-                ->where('A.tgl_jatuh_tempo', '>=',  $tanggal)
+                ->whereRaw('
+                    CASE 
+                        WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
+                        ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
+                    END
+                ', [$tanggal, $tanggal, 0])
+                // ->where('A.tgl_jatuh_tempo', '>=',  $tanggal)
                 ->orderBy('C.nasabah_id', 'asc')
                 ->get();
               
@@ -672,7 +719,12 @@ class KelompokController extends Controller
                 })
                 ->join('app_kode_kantor as E', 'B.kode_kantor', '=', 'E.KODE_KANTOR')
                 ->where('A.tgl_realisasi', '<=',  $tanggal)
-                ->where('A.tgl_jatuh_tempo', '>=',  $tanggal)
+                ->whereRaw('
+                    CASE 
+                        WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
+                        ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
+                    END
+                ', [$tanggal, $tanggal, 0])
                 ->orderBy('C.nasabah_id', 'asc')
                 ->get();
 
@@ -903,6 +955,29 @@ class KelompokController extends Controller
             return response()->json(['success' => true, 'message' => 'Berhasil hapus masalah kelompok']);
         } else {
             return response()->json(['success' => false, 'message' => 'Gagal hapus masalah kelompok']);
+        }
+    }
+
+    
+    public function deletePjKelompokAction(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $deleted = DB::table('data_kb')->where('id_dkb', $request->id)->delete();
+
+        $this->dataService->createAuditTrail('Hapus PJ Kelompok');
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Berhasil hapus PJ kelompok']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Gagal hapus PJ kelompok']);
         }
     }
 

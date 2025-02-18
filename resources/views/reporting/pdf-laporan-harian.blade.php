@@ -201,7 +201,7 @@ table th {
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Rata-rata pinjaman/ibu cair hari ini</td>
-                        <td class="w-2 tr">{{number_format($jumlah_cair/$anggota_cair,0,',','.')}}</td>
+                        <td class="w-2 tr">{{ $anggota_cair > 0 ? number_format($jumlah_cair / $anggota_cair, 0, ',', '.') : '0' }}</td>
                         <td class="w-2 tr" style="background-color:black;">/ / / / / / / / / / / / / / /</td>
                     </tr> 
                     <tr>

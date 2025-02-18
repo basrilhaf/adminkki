@@ -110,18 +110,18 @@ table th {
                     </tr>
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok gagal bayar</td> 
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$kelompok_aktif - $kelompok_setoran}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_aktif - $kelompok_setoran)/$kelompok_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok telat (<= 10 menit)</td>
-                        <td class="w-2 tr">{{$mk_kurang_10menit}}</td>
-                        <td class="w-2 tr">{{round(($mk_kurang_10menit/$kelompok_aktif)*100,2)}}%</td>
+                        <td class="w-2 tr">{{$kelompok_telat}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_telat/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok berat (> 10 menit)</td>
-                        <td class="w-2 tr">{{$mk_lebih_10menit}}</td>
-                        <td class="w-2 tr">{{round(($mk_lebih_10menit/$kelompok_aktif)*100,2)}}%</td>
+                        <td class="w-2 tr">{{$kelompok_berat}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_berat/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey;"></td>
@@ -144,8 +144,8 @@ table th {
                     
                     <tr>
                         <td class="w-1 tl">Kasus gagal bayar</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$anggota_aktif - $anggota_setoran}}</td>
+                        <td class="w-2 tr">{{round(($anggota_aktif - $anggota_setoran)/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Kasus DTR</td>
@@ -154,36 +154,36 @@ table th {
                     </tr> 
                     <tr>
                         <td class="w-1 tl">DTR 1x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_1}}</td>
+                        <td class="w-2 tr">{{round($dtr_1/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">DTR 2-3x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_23}}</td>
+                        <td class="w-2 tr">{{round($dtr_23/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">DTR > 3x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_4}}</td>
+                        <td class="w-2 tr">{{round($dtr_4/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey; color:white;"><b>Jml Anggota dgn DTR per akhir periode</b></td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Anggota dgn DTR 1x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_1_all}}</td>
+                        <td class="w-2 tr">{{round($dtr_1_all/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Anggota dgn DTR 2-3x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_23_all}}</td>
+                        <td class="w-2 tr">{{round($dtr_23_all/$anggota_aktif,2)}}%</td>
                     </tr>
                     <tr>
                         <td class="w-1 tl">Anggota dgn DTR > 3x</td>
-                        <td class="w-2 tr"></td>
-                        <td class="w-2 tr">%</td>
+                        <td class="w-2 tr">{{$dtr_4_all}}</td>
+                        <td class="w-2 tr">{{round($dtr_4_all/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey;"></td>
