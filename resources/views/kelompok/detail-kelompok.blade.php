@@ -170,6 +170,7 @@
                         url: "{{ route('getHistoryMasalahKelompok') }}",
                         data: function (d) {
                             d.kelompok = $('#detail-nama-kelompok').val();
+                            d.tanggal_cair = $('#detail-tgl_cair-kelompok').val();
                         }
                     },
                     columns: [

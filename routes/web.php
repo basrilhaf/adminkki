@@ -212,6 +212,8 @@ Route::get('/getDataTableRBtabKompilasi', [ReportingController::class, 'getDataT
 Route::get('/getRAsumData', [ReportingController::class, 'getRAsumData'])->name('getRAsumData');
 Route::get('/jpk', [ReportingController::class, 'jpk'])->name('jpk');
 Route::get('/pdfJpk', [ReportingController::class, 'pdfJpk'])->name('pdfJpk');
+Route::get('/getDataTableRMasalahKelompok', [ReportingController::class, 'getDataTableRMasalahKelompok'])->name('getDataTableRMasalahKelompok');
+
 
 
 // route skorsing & blacklist 

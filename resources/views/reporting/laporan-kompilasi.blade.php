@@ -315,6 +315,64 @@
 											</table>
 										</div>
 									</div>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2 class="mt-4">Rangkuman Kelompok Bermasalah</h2>
+                                        </div>
+                                        <div class="card-body"  id="RKBsum" style="display: none">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jml Masalah Kelompok:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumKB">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Kelompok Telat:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumTelat">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Kelompok Berat:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumBerat">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+										<div class="card-body py-4" style="overflow-x: auto;">
+											<table class="table align-middle table-row-dashed fs-6 gy-5" id="KBTable" style="display: none">
+												<thead>
+													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+														<th>No</th>
+                                                        <th class="min-w-100px">PKP</th>
+														<th class="min-w-100px">Kelompok</th>
+                                                        <th class="min-w-100px">Kasus</th>
+                                                        <th class="min-w-100px">Menit</th>
+                                                        <th class="min-w-100px">Σ Masalah</th>
+                                                        <th class="min-w-100px">Σ Telat</th>
+                                                        <th class="min-w-100px">Σ Berat</th>
+                                                        
+													</tr>
+												</thead>
+											
+											</table>
+										</div>
+									</div>
                                     <br>
                                     <div class="card">
                                         <div class="card-header">
@@ -460,6 +518,7 @@
                 var RDTRTable;
                 var RCairTable;
                 var RBtabTable;
+                var KBTable;
                 function initializeDataTable() {
                     if ($.fn.dataTable.isDataTable('#kompilasiTable')) {
                         kompilasiTable.ajax.reload();
@@ -568,6 +627,36 @@
                             ]
                         });
                     }
+
+                    
+                    if ($.fn.dataTable.isDataTable('#KBTable')) {
+                        KBTable.ajax.reload();
+                    } else {
+                        KBTable = $('#KBTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('getDataTableRMasalahKelompok') }}",
+                                data: function (d) {
+                                    d.daterange = $('#cari-daterange-laporan').val();
+                                    d.cabang = $('#cari-cabang-laporan').val();
+                                }
+                            },
+                            columns: [
+                                {data: 'DT_RowIndex', name: 'DT_RowIndex'},
+                                {data: 'deskripsi_group2', name: 'deskripsi_group2'},
+                                {data: 'deskripsi_group1', name: 'deskripsi_group1'},
+                                {data: 'kasus', name: 'kasus'},
+                                {data: 'menit_telat_per_berat', name: 'menit_telat_per_berat'},
+                                {data: 'total_masalah', name: 'total_masalah'},
+                                {data: 'total_telat', name: 'total_telat'},
+                                {data: 'total_berat', name: 'total_berat'},
+                                
+                                
+                            ]
+                        });
+                    }
+                    
                     
                     if ($.fn.dataTable.isDataTable('#RCairTable')) {
                         RCairTable.ajax.reload();
@@ -667,6 +756,9 @@
                                 $('#sumAnggotaBtab').text(response.anggota_btab);
                                 $('#sumNominalBtab').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.nominal_btab));
 
+                                $('#sumKB').text(response.total_masalah);
+                                $('#sumTelat').text(response.total_telat);
+                                $('#sumBerat').text(response.total_berat);
 
                                 
                             } else {
@@ -686,12 +778,14 @@
                     $('#RDTRTable').show();
                     $('#RCairTable').show();
                     $('#RBtabTable').show();
+                    $('#KBTable').show();
+
                     $('#RAsum').show();
                     $('#RTsum').show();
                     $('#RDTRsum').show();
                     $('#RCairsum').show();
                     $('#RBtabsum').show();
-                    
+                    $('#RKBsum').show();
                     
                     
                     initializeDataTable();

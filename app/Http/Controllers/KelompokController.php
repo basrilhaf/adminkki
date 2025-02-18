@@ -913,7 +913,8 @@ class KelompokController extends Controller
         if ($request->ajax()) {
             $query = DB::table('kelompok_bermasalah')
                 ->select('*')
-                ->where('kelompok_kb',  $request->input('kelompok'));
+                ->where('kelompok_kb',  $request->input('kelompok'))
+                ->where('tanggal_pencairan_kb', $request->input('tanggal_cair')." 00:00:00");
 
             
             // Grouping by idsikkikb and ordering by id_kb

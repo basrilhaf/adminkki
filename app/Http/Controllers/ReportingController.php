@@ -1591,6 +1591,67 @@ class ReportingController extends Controller
     }
 
     
+    public function getDataTableRMasalahKelompok(Request $request)
+    {
+        if ($request->ajax()) {
+            $daterange = $request->input('daterange');
+            $cabang = "0".$request->input('cabang');
+            $p_date = explode("to", $daterange);
+            $awal = trim($p_date[0]); // Start date
+            $akhir = trim($p_date[1]); // End date
+
+            $query = DB::connection('mysql_secondary')->table('kretrans as A')
+                ->select('B.deskripsi_group2','C.deskripsi_group1','A.telat_per_berat','A.menit_telat_per_berat','A.kode_group1_trans')
+                ->join('kre_kode_group2 as B', 'A.kode_group2_trans','=','B.kode_group2')
+                ->join('kre_kode_group1 as C', 'A.kode_group1_trans','=','C.kode_group1')
+                ->where('A.kode_kantor', '!=', 00)
+                ->where('A.telat_per_berat','>',0)
+                ->whereBetween('A.TGL_TRANS', [$awal,$akhir]);
+
+        if ($cabang != 0) {
+            $query->where('A.kode_kantor', $cabang);
+        }
+
+        $filteredData = $query->groupBy('B.deskripsi_group2','C.deskripsi_group1','A.telat_per_berat','A.menit_telat_per_berat','A.kode_group1_trans')->get();
+
+            return DataTables::of($filteredData)
+                ->addIndexColumn()
+                ->addColumn('kasus', function ($row) use ($awal, $akhir) {
+                    if($row->telat_per_berat == 1){
+                        $kasus = 'Telat';
+                    }else{
+                        $kasus = 'Berat';
+                    }
+                    return $kasus;
+                })
+                ->addColumn('total_masalah', function ($row) use ($awal, $akhir) {
+                    $data = DB::connection('mysql_secondary')->table('kretrans as A')
+                        ->selectRaw('COUNT(A.KRETRANS_ID) as total')
+                        ->where('A.kode_group1_trans', $row->kode_group1_trans)
+                        ->where('A.telat_per_berat','>',0)->first();
+                    return $data->total;
+                })
+                ->addColumn('total_telat', function ($row) use ($awal, $akhir) {
+                    $data = DB::connection('mysql_secondary')->table('kretrans as A')
+                        ->selectRaw('COUNT(A.KRETRANS_ID) as total')
+                        ->where('A.kode_group1_trans', $row->kode_group1_trans)
+                        ->where('A.telat_per_berat',1)->first();
+                    return $data->total;
+                })
+                ->addColumn('total_berat', function ($row) use ($awal, $akhir) {
+                    $data = DB::connection('mysql_secondary')->table('kretrans as A')
+                        ->selectRaw('COUNT(A.KRETRANS_ID) as total')
+                        ->where('A.kode_group1_trans', $row->kode_group1_trans)
+                        ->where('A.telat_per_berat',2)->first();
+                    return $data->total;
+                })
+                
+
+                ->rawColumns(['kasus','total_masalah','total_telat','total_berat'])
+                ->make(true);
+        }
+    }
+    
     public function getDataTableRDTRKompilasi(Request $request)
     {
         if ($request->ajax()) {
@@ -1792,6 +1853,22 @@ class ReportingController extends Controller
         $kelompok_btab = $data_btab && isset($data_btab->kelompok) ? $data_btab->kelompok : 0;
         $nominal_btab = $data_btab && isset($data_btab->nominal) ? $data_btab->nominal : 0;
 
+        $data_telat = DB::connection('mysql_secondary')->table('kretrans as A')
+            ->selectRaw('COUNT(distinct(A.kode_group1_trans)) as total')
+            ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+            ->where('A.telat_per_berat',1);
+        if ($cabang != 0) {$data_telat->where('A.kode_kantor', $cabang);}
+        $data_telat = $data_telat->first();
+        $total_telat = $data_telat && isset($data_telat->total) ? $data_telat->total : 0;
+
+        $data_berat = DB::connection('mysql_secondary')->table('kretrans as A')
+        ->selectRaw('COUNT(distinct(A.kode_group1_trans)) as total')
+            ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+            ->where('A.telat_per_berat',2);
+        if ($cabang != 0) {$data_berat->where('A.kode_kantor', $cabang);}
+        $data_berat = $data_berat->first();
+        $total_berat = $data_berat && isset($data_berat->total) ? $data_berat->total : 0;
+
         return response()->json([
             'success' => true,
             'anggota_aktif' => $total_anggota ?? 0,
@@ -1819,6 +1896,10 @@ class ReportingController extends Controller
             'anggota_btab' => $anggota_btab ?? 0,
             'kelompok_btab' => $kelompok_btab ?? 0,
             'nominal_btab' => $nominal_btab ?? 0,
+
+            'total_masalah' => $total_telat + $total_berat ?? 0,
+            'total_telat' => $total_telat ?? 0,
+            'total_berat' => $total_berat ?? 0,
         ]);
     }
 
