@@ -228,7 +228,7 @@ class DashboardController extends Controller
             if ($cabang != '') {
                 $chart_ab->where('kode_kantor', "0".$cabang);
             }
-            $chart_ab->where('telat_per_berat', '!=', 0)->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+            $chart_ab->where('dtr', 'Ya')->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
         }
 
         
@@ -304,7 +304,7 @@ class DashboardController extends Controller
             if ($cabang != '') {
                 $chart_ab->where('kode_kantor', "0".$cabang);
             }
-            $chart_ab->where('telat_per_berat', '!=', 1)->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+            $chart_ab->where('telat_per_berat', '=', 1)->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
         }
         
 
@@ -380,7 +380,7 @@ class DashboardController extends Controller
             if ($cabang != '') {
                 $chart_ab->where('kode_kantor', "0".$cabang);
             }
-            $chart_ab->where('telat_per_berat', '!=', 2)->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
+            $chart_ab->where('telat_per_berat', 2)->where('KODE_TRANS', 300)->groupBy(DB::raw('bulan'))->orderBy(DB::raw('bulan'))->get();
 
         }
         

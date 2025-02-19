@@ -238,7 +238,7 @@ class KelompokController extends Controller
     
             // Filter by "nama" if present
             if ($request->filled('nama')) {
-                $query->where('B.kode_group1', 'like', '%' . $request->input('nama') . '%');
+                $query->where('B.deskripsi_group1', 'like', '%' . $request->input('nama') . '%');
             }
     
             // Filter by "cabang" if present
@@ -795,16 +795,45 @@ class KelompokController extends Controller
        
         $data = DB::connection('mysql_secondary')
             ->table('kredit as A')
-            ->select('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3'
-                ,DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman'))
+            ->select(
+                'B.deskripsi_group1',
+                'B.kode_group1',
+                'D.NAMA_KANTOR',
+                'A.tgl_realisasi',
+                'A.tgl_jatuh_tempo',
+                'C.deskripsi_group2',
+                'A.jml_angsuran',
+                'A.tgl_jatuh_tempo',
+                'E.kode_group3',
+                'E.deskripsi_group3',
+                DB::raw('MAX(A.jml_pinjaman) AS jumlah_pinjaman'),
+                DB::raw('MAX(F.ANGSURAN_KE) AS set_ke'),
+                DB::raw('MIN(F.TGL_TRANS) AS set_1')
+            )
             ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
             ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
             ->join('kre_kode_group3 as E', 'E.kode_group3', '=', 'A.kode_group3')
             ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
+            ->join('kretrans as F', function ($join) {
+                $join->on('A.kode_group1', '=', 'F.kode_group1_trans')
+                    ->where('F.KODE_TRANS', 300);
+            })
             ->where('A.pokok_saldo_akhir', '>', 0)
-            ->groupBy('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3')
+            ->groupBy(
+                'B.deskripsi_group1',
+                'B.kode_group1',
+                'D.NAMA_KANTOR',
+                'A.tgl_realisasi',
+                'A.tgl_jatuh_tempo',
+                'C.deskripsi_group2',
+                'A.jml_angsuran',
+                'A.tgl_jatuh_tempo',
+                'E.kode_group3',
+                'E.deskripsi_group3'
+            )
             ->orderBy('B.kode_group1', 'desc')
             ->get();
+
             
 
         // Buat spreadsheet baru
@@ -821,11 +850,14 @@ class KelompokController extends Controller
               ->setCellValue('F1', 'Durasi')
               ->setCellValue('G1', 'Tanggal Closed')
               ->setCellValue('H1', 'Kumpulan')
-              ->setCellValue('I1', 'ID Kumpulan DB');
+              ->setCellValue('I1', 'ID Kumpulan DB')
+              ->setCellValue('J1', 'Set Ke')
+              ->setCellValue('K1', 'Tgl Set Ke-1');
 
          
         $row = 2; // Mulai dari baris 2 setelah header
         foreach ($data as $user) {
+
             $sheet->setCellValue('A' . $row, $user->deskripsi_group1)
                   ->setCellValue('B' . $row, $user->tgl_realisasi)
                   ->setCellValue('C' . $row, $user->NAMA_KANTOR)
@@ -834,7 +866,9 @@ class KelompokController extends Controller
                   ->setCellValue('F' . $row, $user->jml_angsuran)
                   ->setCellValue('G' . $row, $user->tgl_jatuh_tempo)
                   ->setCellValue('H' . $row, $user->deskripsi_group3)
-                  ->setCellValue('I' . $row, $user->kode_group3);
+                  ->setCellValue('I' . $row, $user->kode_group3)
+                  ->setCellValue('J' . $row, $user->set_ke)
+                  ->setCellValue('K' . $row, $user->set_1);
 
                   
             $row++;

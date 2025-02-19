@@ -298,6 +298,36 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jumlah Kasus DTR 1x:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumDTR1">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jumlah Kasus DTR 2-3x:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumDTR23">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jumlah Kasus DTR >3x:</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="sumDTR4">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 
                                             </div>
                                         </div>
@@ -307,7 +337,8 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
                                                         <th class="min-w-100px">PKP</th>
-														<th class="min-w-100px">Jumlah DTR</th>
+                                                        <th class="min-w-100px">Anggota DTR</th>
+														<th class="min-w-100px">DTR Ke-</th>
                                                         
 													</tr>
 												</thead>
@@ -429,6 +460,7 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
                                                         <th class="min-w-100px">Kelompok</th>
+                                                        <th class="min-w-100px">Tanggal Cair</th>
 														<th class="min-w-100px">Anggota</th>
                                                         <th class="min-w-100px">Nominal Cair</th>
                                                         <th class="min-w-100px">PKP JPK</th>
@@ -485,7 +517,9 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
                                                         <th class="min-w-100px">Kelompok</th>
-														<th class="min-w-100px">BTAB Cair</th>
+														<th class="min-w-100px">Jml Anggota</th>
+                                                        <th class="min-w-100px">Tanggal BTAB</th>
+                                                        <th class="min-w-100px">BTAB Cair</th>
                                                         
 													</tr>
 												</thead>
@@ -616,14 +650,20 @@
                                 data: function (d) {
                                     d.daterange = $('#cari-daterange-laporan').val();
                                     d.cabang = $('#cari-cabang-laporan').val();
+                                },
+                                dataSrc: function (json) {
+                                    // Update jumlah total dari server
+                                    $('#sumDTR1').text(json.totalDtr1);
+                                    $('#sumDTR23').text(json.totalDtr23);
+                                    $('#sumDTR4').text(json.totalDtr4);
+                                    return json.data;
                                 }
                             },
                             columns: [
                                 {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                                 {data: 'deskripsi_group2', name: 'deskripsi_group2'},
-                                {data: 'anggota_dtr', name: 'anggota_dtr'}
-                                
-                                
+                                {data: 'NAMA_NASABAH', name: 'NAMA_NASABAH'},
+                                {data: 'dtr_ke', name: 'dtr_ke'}
                             ]
                         });
                     }
@@ -674,6 +714,7 @@
                             columns: [
                                 {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                                 {data: 'deskripsi_group1', name: 'deskripsi_group1'},
+                                {data: 'tgl_realisasi', name: 'tgl_realisasi'},
                                 {data: 'jumlah_anggota', name: 'jumlah_anggota'},
                                 { 
                                     data: 'jumlah_cair', 
@@ -705,6 +746,8 @@
                             columns: [
                                 {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                                 {data: 'deskripsi_group1', name: 'deskripsi_group1'},
+                                {data: 'jml_anggota', name: 'jml_anggota'},
+                                {data: 'TGL_TRANS', name: 'TGL_TRANS'},
                                 { 
                                     data: 'btab_cair', 
                                     name: 'btab_cair',
@@ -746,6 +789,8 @@
                                 $('#sumDTR').text(response.jumlah_dtr);
                                 $('#sumTrx').text(response.jumlah_trx);
                                 $('#sumPercentDTR').text(response.percent_dtr);
+                                
+                                
 
                                 $('#sumKelompokCair').text(response.kelompok_cair);
                                 $('#sumAnggotaCair').text(response.anggota_cair);

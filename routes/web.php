@@ -8,7 +8,7 @@ use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
-// use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\LainnyaController;
 use App\Http\Controllers\registrasiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KabKkbController;
@@ -47,6 +47,11 @@ Route::get('/chartPencairanAnggota', [DashboardController::class, 'chartPencaira
 Route::get('/chartPencairanKelompok', [DashboardController::class, 'chartPencairanKelompok'])->name('chartPencairanKelompok');
 Route::get('/chartCabangAnggota', [DashboardController::class, 'chartCabangAnggota'])->name('chartCabangAnggota');
 Route::get('/chartCabangKelompok', [DashboardController::class, 'chartCabangKelompok'])->name('chartCabangKelompok');
+
+
+Route::get('/kompilasi', [LainnyaController::class, 'kompilasi'])->name('kompilasi');
+Route::get('/exportDownloadPencairan', [LainnyaController::class, 'exportDownloadPencairan'])->name('exportDownloadPencairan');
+Route::get('/exportDownloadSelesai', [LainnyaController::class, 'exportDownloadSelesai'])->name('exportDownloadSelesai');
 
 
 
