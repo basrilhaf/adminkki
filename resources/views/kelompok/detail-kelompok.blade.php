@@ -71,6 +71,7 @@
                                         
                                     </div>
                                     <input type="hidden" id="detail-kode_group1" value="{{$kode_group1}}">
+                                    <input type="hidden" id="detail-param" value="{{$param}}">
 									<div class="card mt-4">
                                         <div class="card-header">
                                             <h2 class="pt-4">List Anggota</h2>
@@ -128,7 +129,7 @@
                     ajax: {
                         url: "{{ route('getAnggotaKelompok') }}",
                         data: function (d) {
-                            d.kode_group1 = $('#detail-kode_group1').val();
+                            d.kode_group1 = $('#detail-param').val();
                         }
                     },
                     columns: [
@@ -140,9 +141,9 @@
                 });
 
                 
-                var kode_group1 = $('#detail-kode_group1').val();
-                var url = "{{ route('getDetailKelompok', ':kode_group1') }}";
-                url = url.replace(':kode_group1', kode_group1);
+                var param = $('#detail-param').val();
+                var url = "{{ route('getDetailKelompok', ':param') }}";
+                url = url.replace(':param', param);
                 // alert(url);
                 $.ajax({
                     url: url,

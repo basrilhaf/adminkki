@@ -49,11 +49,18 @@
                                     <div class="card mb-2">
                                         <div class="card-body">
                                         <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-md-6">
                                                     <a href="#" id="exportDownloadLink" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
                                                         <i class="fa fa-download"></i> Export Excel
                                                     </a>
                                                 </div>
+                                                <div class="col-md-6">
+                                                    <a href="#" id="migrasiKkb" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
+                                                        <i class="fa fa-upload"></i> Migrasi
+                                                    </a>
+                                                </div>
+
+                                                
                                             </div>
                                             
                                         </div>
@@ -131,6 +138,27 @@
 
                                                 window.location.href = "{{ route('exportDownloadKkbUssi') }}" + "?tanggal=" + selectedDate;
                                             });
+
+                                            $('#migrasiKkb').on('click', function(e) {
+                                                e.preventDefault(); 
+
+                                                // Get the selected date from the input field
+                                                var selectedDate = $('#search-tanggal-kkb').val();
+                                                
+                                                if (!selectedDate) {
+                                                    alert('Please select a date.');
+                                                    return;
+                                                }
+
+                                                var url = "{{ route('migrasiKkb') }}" + "?tanggal=" + selectedDate;
+                                                var link = document.createElement('a');
+                                                link.href = url;
+                                                link.target = "_blank"; 
+                                                link.click();
+                                            });
+
+
+                                            
                                             
                                         });
 

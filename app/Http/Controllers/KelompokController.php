@@ -313,8 +313,9 @@ class KelompokController extends Controller
             return DataTables::of($query)
                 ->addIndexColumn()  // Adds row index
                 ->addColumn('action', function ($row) {
-                    
-                    $infoUrl = route('detailKelompok', $row->kode_group1);
+                    $param = $row->kode_group1."~".$row->tgl_realisasi;
+
+                    $infoUrl = route('detailKelompok', $param);
                     return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                 })
                 ->addColumn('status', function ($row) {
@@ -614,6 +615,7 @@ class KelompokController extends Controller
             $id_user = Session::get('id_user2');
 
             $kode_group1 = $request->input('kode_group1');
+            $pecah = explode('~',$kode_group1);
 
             $query = DB::connection('mysql_secondary')
                 ->table('kredit as A')
@@ -625,7 +627,8 @@ class KelompokController extends Controller
                     'A.tgl_jatuh_tempo'
                 )
                 ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
-                ->where('A.kode_group1', $kode_group1)
+                ->where('A.kode_group1', $pecah[0])
+                ->where('A.tgl_realisasi', $pecah[1])
                 ->orderBy('A.nasabah_id', 'asc')
                 ->get();
            
@@ -643,6 +646,8 @@ class KelompokController extends Controller
 
     public function detailKelompok($kode_group1, Request $request): View
     {
+        $pecah = explode("~", $kode_group1);
+        // dd($pecah);
         $menu_aktif = '/cariKelompok||/kelompok';
         $navbar = $this->dataService->getMenuHTML($menu_aktif, Session::getFacadeRoot());
         $data = [
@@ -650,7 +655,9 @@ class KelompokController extends Controller
             'menu_aktif' => $menu_aktif,
             'navbar' => $navbar,
             'breadcrumb' => '',
-            'kode_group1' => $kode_group1
+            'kode_group1' => $pecah[0],
+            'tgl_realisasi' => $pecah[1],
+            'param' => $kode_group1
         ];
         
         return view('kelompok.detail-kelompok', $data);
@@ -658,6 +665,7 @@ class KelompokController extends Controller
 
     public function getDetailKelompok($kode_group1)
     {
+        $pecah = explode("~", $kode_group1);
         $data = DB::connection('mysql_secondary')
                 ->table('kredit as A')
                 ->select(
@@ -673,7 +681,8 @@ class KelompokController extends Controller
                 )
                 ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
                 ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
-                ->where('B.kode_group1', $kode_group1)
+                ->where('B.kode_group1', $pecah[0])
+                ->where('A.tgl_realisasi', $pecah[1])
                 ->groupBy(
                     'B.deskripsi_group1',
                     'C.deskripsi_group2',

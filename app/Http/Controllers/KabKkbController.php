@@ -1237,6 +1237,116 @@ class KabKkbController extends Controller
         }
     }
 
+    
+    public function migrasiKkb(Request $request)
+    {
+        $tanggal = $request->input('tanggal');
+        $kkb_ussi = DB::connection('mysql_secondary')
+                ->table('kretrans as A')
+                ->join('kre_kode_group1 as B', 'A.kode_group1_trans', '=', 'B.kode_group1')
+                ->join('app_kode_kantor as C', 'C.KODE_KANTOR', '=', 'A.kode_kantor')
+                ->join('kre_kode_group2 as D', 'D.kode_group2', '=', 'A.kode_group2_trans')
+                ->join('kredit as E', 'E.kode_group1', '=', 'B.kode_group1')
+                ->select('A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
+                ->where('A.TGL_TRANS', $tanggal)
+                ->where('A.telat_per_berat','>', 0)
+                ->where('A.KODE_TRANS',  300)
+                ->groupBy('A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
+                ->orderBy('A.TGL_TRANS', 'asc')->get();
+        // dd($kkb_ussi);
+        foreach($kkb_ussi as $data){
+            $tanggal_pencairan_kb = $data->tgl_realisasi." 00:00:00";
+            if($data->telat_per_berat == 1){
+                $kode = '3A';
+            }else{
+                $kode = '3B';
+            }
+            $kode_kantor = ltrim($data->kode_kantor, '0');
+
+            $cek_exist = DB::table('kelompok_bermasalah')->select('id_kb')
+                    ->where('kelompok_kb', $data->deskripsi_group1)
+                    ->where('tanggal_kb', $data->TGL_TRANS)
+                    ->where('tanggal_pencairan_kb', $tanggal_pencairan_kb)
+                    ->where('cabang_kb', $kode_kantor)
+                    ->where('setoran_kb', $data->ANGSURAN_KE)->first();
+
+            if(!$cek_exist){
+                echo "insert"."<br>";
+                $kb = DB::table('kelompok_bermasalah')->insert([
+                    'kelompok_kb'   => $data->deskripsi_group1,
+                    'tanggal_pencairan_kb'  => $tanggal_pencairan_kb,
+                    'tanggal_kb' => $data->TGL_TRANS,
+                    'menit_kb' => round($data->menit_telat_per_berat),
+                    'kode_kb' => $kode,
+                    'setoran_kb' => $data->ANGSURAN_KE,
+                    'cabang_kb' => $kode_kantor,
+                    'id_sikki_kb' => $data->kode_group1
+                ]);
+            }else{
+                echo "exist"."<br>";
+            }
+
+        }
+
+
+    }
+
+    
+    public function migrasiKab(Request $request)
+    {
+        $tanggal = $request->input('tanggal');
+        $kab_ussi = DB::connection('mysql_secondary')
+                ->table('kretrans as A')
+                ->join('kre_kode_group1 as B', 'A.kode_group1_trans', '=', 'B.kode_group1')
+                ->join('app_kode_kantor as C', 'C.KODE_KANTOR', '=', 'A.kode_kantor')
+                ->join('kre_kode_group2 as D', 'D.kode_group2', '=', 'A.kode_group2_trans')
+                ->join('kredit as E', 'E.no_rekening', '=', 'A.NO_REKENING')
+                ->join('nasabah as F', 'F.nasabah_id', '=', 'E.nasabah_id')
+                ->select('A.TGL_TRANS','F.NAMA_NASABAH','E.nasabah_id','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','A.kode_kantor')
+                ->where('A.TGL_TRANS', $tanggal)
+                ->where('A.dtr','Ya')
+                ->where('A.KODE_TRANS',  300)
+                ->orderBy('A.TGL_TRANS', 'asc')->get();
+        // dd($kab_ussi);
+        foreach($kab_ussi as $data){
+            // $tanggal_pencairan_kb = $data->tgl_realisasi." 00:00:00";
+            // if($data->telat_per_berat == 1){
+            //     $kode = '3A';
+            // }else{
+            //     $kode = '3B';
+            // }
+            $kode_kantor = ltrim($data->kode_kantor, '0');
+
+            $cek_exist = DB::table('anggota_bermasalah')->select('id_ab')
+                    ->where('nama_ab', $data->NAMA_NASABAH)
+                    ->where('cabang_ab', $kode_kantor)
+                    ->where('kelompok_ab', $data->deskripsi_group1)
+                    ->where('id_anggota_ab', $data->nasabah_id)
+                    ->where('setoran_ab', $data->ANGSURAN_KE)
+                    ->where('tanggal_ab', $data->TGL_TRANS)
+                    ->first();
+
+            if(!$cek_exist){
+                echo "insert"."<br>";
+                $kb = DB::table('anggota_bermasalah')->insert([
+                    'nama_ab'   => $data->NAMA_NASABAH,
+                    'cabang_ab'  => $kode_kantor,
+                    'kelompok_ab' => $data->deskripsi_group1,
+                    'id_anggota_ab' => $data->nasabah_id,
+                    'setoran_ab' => $data->ANGSURAN_KE,
+                    'tanggal_ab' => $data->TGL_TRANS,
+                    'kode_ab' => 2,
+                    'id_sikki_ab' => $data->nasabah_id
+                ]);
+            }else{
+                echo "exist"."<br>";
+            }
+
+        }
+
+
+    }
+
     public function gettableKABUssi(Request $request)
     {
         if ($request->ajax()) {
@@ -1253,7 +1363,7 @@ class KabKkbController extends Controller
                 ->join('nasabah as F', 'F.nasabah_id', '=', 'E.nasabah_id')
                 ->select('F.NAMA_NASABAH','E.nasabah_id','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2')
                 ->where('A.TGL_TRANS', $tanggal)
-                ->where('A.telat_per_berat','>', 0)
+                ->where('A.dtr','Ya')
                 ->where('A.KODE_TRANS',  300);
             $query->orderBy('A.TGL_TRANS', 'asc');
 

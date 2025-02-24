@@ -20,6 +20,7 @@ use App\Http\Controllers\PengecekanController;
 use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\SkorsingBlacklistController;
 use App\Http\Controllers\TabunganSetoranController;
+use App\Http\Controllers\RtkController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -48,10 +49,30 @@ Route::get('/chartPencairanKelompok', [DashboardController::class, 'chartPencair
 Route::get('/chartCabangAnggota', [DashboardController::class, 'chartCabangAnggota'])->name('chartCabangAnggota');
 Route::get('/chartCabangKelompok', [DashboardController::class, 'chartCabangKelompok'])->name('chartCabangKelompok');
 
-
+// route lainnya 
 Route::get('/kompilasi', [LainnyaController::class, 'kompilasi'])->name('kompilasi');
 Route::get('/exportDownloadPencairan', [LainnyaController::class, 'exportDownloadPencairan'])->name('exportDownloadPencairan');
 Route::get('/exportDownloadSelesai', [LainnyaController::class, 'exportDownloadSelesai'])->name('exportDownloadSelesai');
+Route::get('/rat', [LainnyaController::class, 'rat'])->name('rat');
+Route::get('/pdfHadirRat', [LainnyaController::class, 'pdfHadirRat'])->name('pdfHadirRat');
+Route::get('/pdfTanggapanRat', [LainnyaController::class, 'pdfTanggapanRat'])->name('pdfTanggapanRat');
+Route::get('/bagiBeras', [LainnyaController::class, 'bagiBeras'])->name('bagiBeras');
+Route::post('/importExcelBagiBeras', [LainnyaController::class, 'importExcelBagiBeras'])->name('importExcelBagiBeras');
+
+
+// route rtk 
+Route::get('/tarikRtk', [RtkController::class, 'tarikRtk'])->name('tarikRtk');
+Route::get('/getTableRtk', [RtkController::class, 'getTableRtk'])->name('getTableRtk');
+Route::get('/pdfRtk', [RtkController::class, 'pdfRtk'])->name('pdfRtk');
+Route::get('/pdfPjk', [RtkController::class, 'pdfPjk'])->name('pdfPjk');
+Route::get('/pdfSetsus', [RtkController::class, 'pdfSetsus'])->name('pdfSetsus');
+Route::post('/setoranKeAction', [RtkController::class, 'setoranKeAction'])->name('setoranKeAction');
+Route::post('/setoranKeMinusAction', [RtkController::class, 'setoranKeMinusAction'])->name('setoranKeMinusAction');
+Route::post('/importExcelRtk', [RtkController::class, 'importExcelRtk'])->name('importExcelRtk');
+Route::post('/importExcelRtkUssi', [RtkController::class, 'importExcelRtkUssi'])->name('importExcelRtkUssi');
+Route::get('/detailRtk', [RtkController::class, 'detailRtk'])->name('detailRtk');
+Route::post('/updateRtkAction', [RtkController::class, 'updateRtkAction'])->name('updateRtkAction');
+Route::post('/deleteRtkAction', [RtkController::class, 'deleteRtkAction'])->name('deleteRtkAction');
 
 
 
@@ -82,6 +103,8 @@ Route::get('/exportDownloadKkbUssi', [KabKkbController::class, 'exportDownloadKk
 Route::get('/daftarKab', [KabKkbController::class, 'daftarKab'])->name('daftarKab');
 Route::get('/gettableKABUssi', [KabKkbController::class, 'gettableKABUssi'])->name('gettableKABUssi');
 Route::get('/exportDownloadKabUssi', [KabKkbController::class, 'exportDownloadKabUssi'])->name('exportDownloadKabUssi');
+Route::get('/migrasiKkb', [KabKkbController::class, 'migrasiKkb'])->name('migrasiKkb');
+Route::get('/migrasiKab', [KabKkbController::class, 'migrasiKab'])->name('migrasiKab');
 
 
 // route audit trails 

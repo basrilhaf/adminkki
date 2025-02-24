@@ -277,7 +277,7 @@
                         var select = $('#add-cabang-kb');
                         select.append('<option value="">--Pilih Cabang--</option>');
                         data.forEach(function(data) {
-                            select.append('<option value="' + data.id + '">' + data.nama + '</option>');
+                            select.append('<option value="' + data.nama + '">' + data.nama + '</option>');
                         });
                         select.select2({
                             placeholder: "--Pilih Cabang---",
