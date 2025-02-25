@@ -35,12 +35,17 @@
                                                     <label class="form-label fs-6 fw-bold">Cabang:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
                                                         <select class="form-control form-control-solid ps-13" id="cari-cabang-laporan">
-                                                            <option value="0">Semua Cabang</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
+                                                            <?php if(session('id_role2') != 2){?>
+                                                                <option value="<?php echo session('cabang');?>"><?php echo session('cabang');?></option>
+                                                            <?php } else {?>
+                                                                <option value="0">Semua Cabang</option>
+                                                                <option value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                            <?php }?>
+                                                            
                                                         </select>
                                                     </div>
                                                 </div>
