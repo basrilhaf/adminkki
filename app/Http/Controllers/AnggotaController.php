@@ -52,16 +52,19 @@ class AnggotaController extends Controller
 
     public function exportAnggota()
     {
+        
         // Ambil data dari database
         $data = \DB::connection('mysql_secondary')
-            ->table('tabung as A')
-            ->join('nasabah as B', 'B.nasabah_id', '=', 'A.nasabah_id')
+            ->table('nasabah as B')
             ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
             ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
             ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
-            ->where('A.kode_integrasi', 201)
-            ->where('A.saldo_akhir', '>=', 10000)
-            ->get();
+            ->where('C.pokok_saldo_akhir', '>', 0);
+
+        if (Session::get('id_role2') != '2') {
+            $data = $data->where('C.kode_kantor', "0".Session::get('cabang'));
+        }
+        $data = $data->get();
 
         // Buat spreadsheet baru
         $spreadsheet = new Spreadsheet();
@@ -221,6 +224,11 @@ class AnggotaController extends Controller
                 ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
                 ->select('B.*', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'C.jml_angsuran', 'C.periode_angsuran')
                 ->where('A.kode_integrasi', 201);
+            
+            if (Session::get('id_role2') != '2') {
+                $query->where('C.kode_kantor', "0".Session::get('cabang'));
+            }
+    
 
             if ($request->filled('kelompok')) {
                 $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
@@ -272,8 +280,12 @@ class AnggotaController extends Controller
             ->join('kredit as C', 'C.nasabah_id', '=', 'B.nasabah_id')
             ->join('kre_kode_group1 as D', 'D.kode_group1', '=', 'C.kode_group1')
             ->select('B.nasabah_id', 'B.NAMA_NASABAH', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'B.no_id')
-            ->where('A.kode_integrasi', 201)
-            ->get();
+            ->where('A.kode_integrasi', 201);
+            if (Session::get('id_role2') != '2') {
+                $data = $data->where('C.kode_kantor', "0".Session::get('cabang'));
+            }
+
+            $data = $data->get();
 
         // Buat spreadsheet baru
         $spreadsheet = new Spreadsheet();
@@ -767,6 +779,11 @@ class AnggotaController extends Controller
                 ->select('B.*', 'D.DESKRIPSI_GROUP1', 'C.jml_pinjaman', 'C.jml_angsuran', 'C.periode_angsuran')
                 ->where('C.pokok_saldo_akhir', '>', 0);
 
+            if (Session::get('id_role2') != '2') {
+                $query = $query->where('C.kode_kantor', "0".Session::get('cabang'));
+            }
+    
+
             if ($request->filled('kelompok')) {
                 $query->where('D.DESKRIPSI_GROUP1', 'like', '%' . $request->input('kelompok') . '%');
             }
@@ -1003,16 +1020,21 @@ class AnggotaController extends Controller
                     DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
                 );
 
-            if(Session::get('is_kc') == "1"){
-                $query->where('cabang_ab', $cabang);
-            }else if(Session::get('is_kc') == "0"){
-                $query->where('pkp_ab', $id_user);
-            }else{
-                if(Session::get('cabang') == "0"){
-                }else{
-                    $query->where('cabang_ab', $cabang);
-                }
+            // if(Session::get('is_kc') == "1"){
+            //     $query->where('cabang_ab', $cabang);
+            // }else if(Session::get('is_kc') == "0"){
+            //     $query->where('pkp_ab', $id_user);
+            // }else{
+            //     if(Session::get('cabang') == "0"){
+            //     }else{
+            //         $query->where('cabang_ab', $cabang);
+            //     }
+            // }
+
+            if (Session::get('id_role2') != '2') {
+                $query->where('cabang_ab', Session::get('cabang'));
             }
+
 
             // Applying filters conditionally
             if ($request->filled('kelompok')) {
@@ -1132,8 +1154,13 @@ class AnggotaController extends Controller
                 DB::raw('SUM(IF( A.kode_ab = "2", 1, 0)) AS kode2'),
                 DB::raw('SUM(IF( A.kode_ab = "4A", 1, 0)) AS kode4a'),
                 DB::raw('SUM(IF( A.kode_ab = "4B", 1, 0)) AS kode4b')
-            )
-            ->groupBy('A.nama_ab', 'A.kelompok_ab', 'A.id_anggota_ab', 'A.id_sikki_ab', 'B.nama')
+            );
+
+        if (Session::get('id_role2') != '2') {
+            $data = $data->where('A.cabang_ab', Session::get('cabang'));
+        }
+
+        $data = $data->groupBy('A.nama_ab', 'A.kelompok_ab', 'A.id_anggota_ab', 'A.id_sikki_ab', 'B.nama')
             ->orderBy('id_sikki_ab', 'desc')
             ->get();
 
@@ -1192,8 +1219,12 @@ class AnggotaController extends Controller
                 'A.*',
                 'B.nama as nama_cabang',
                 'C.nama as nama_pkp'
-            )
-            ->orderBy('id_sikki_ab', 'desc')
+            );
+            if (Session::get('id_role2') != '2') {
+                $data = $data->where('A.cabang_ab', Session::get('cabang'));
+            }
+
+        $data = $data->orderBy('id_sikki_ab', 'desc')
             ->get();
 
         $spreadsheet = new Spreadsheet();

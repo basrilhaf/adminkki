@@ -224,9 +224,16 @@ class PkpCabangController extends Controller
         return response()->json($option);
     }
 
-    public function getCabangOption()
+    public function getCabangOption(Request $request)
     {
-        $status = DB::select('SELECT * FROM cabang ORDER BY nama ASC');
+        if($request->session()->get('id_role2') == '2'){
+            $status = DB::select('SELECT * FROM cabang ORDER BY nama ASC');
+        }else{
+            $status = DB::select('SELECT * FROM cabang WHERE nama = "'.$request->session()->get('cabang').'" ORDER BY nama ASC');
+        }
+        // dd($status);
+
+        
         return response()->json($status);
     }
 

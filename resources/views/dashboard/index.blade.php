@@ -106,8 +106,16 @@
 																<div class="col-md-3">
 																	<div class="mb-4 fv-row">
 																		<label class="required form-label">Cabang</label>
-																		<select id="cabang-chart" class="form-control mb-2">
-																		</select>
+																		
+																		<?php if(session('id_role2') != 2){?>
+																			<select id="cabang-chart" class="form-control mb-2">
+																				<option value="<?php echo session('cabang');?>"><?php echo session('cabang');?></option>
+																			</select>
+																		<?php } else {?>
+																			<select id="cabang-chart" class="form-control mb-2">
+																			</select>
+																		<?php }?>
+																		
 																	</div>
 																</div>
 																<div class="col-md-2">
@@ -434,6 +442,7 @@
 				locale: "id"
 			});
 			$(document).ready(function() {
+				var id_role2 = "{{ session('id_role2') }}";
                 Swal.fire({ title: 'Loading...', text: 'Sedang memuat data', didOpen: () => {Swal.showLoading() }, allowOutsideClick: false });
                 $.ajax({
                     url: "{{ route('getCabangOption') }}",
@@ -441,13 +450,16 @@
                     dataType: 'json',
                     success: function(data) {
                         var select = $('#cabang-chart');
-                        select.append('<option value="">Semua Cabang</option>');
-                        data.forEach(function(data) {
-                            select.append('<option value="' + data.nama + '">' + data.nama + '</option>');
-                        });
-                        select.select2({
-                            allowClear: true
-                        });
+						if (id_role2 == 2) {
+							select.append('<option value="">Semua Cabang</option>');
+							data.forEach(function(data) {
+                            	select.append('<option value="' + data.nama + '">' + data.nama + '</option>');
+							});
+							select.select2({
+								allowClear: true
+							});
+						}
+                        
                         Swal.close();
                     }
                 });

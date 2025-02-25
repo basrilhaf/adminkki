@@ -235,7 +235,10 @@ class KelompokController extends Controller
                 ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
                 ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
                 ->where('A.pokok_saldo_akhir', '>', 0);
-    
+
+            if (Session::get('id_role2') != '2') {
+                $query->where('B.kode_kantor', "0".Session::get('cabang'));
+            }
             // Filter by "nama" if present
             if ($request->filled('nama')) {
                 $query->where('B.deskripsi_group1', 'like', '%' . $request->input('nama') . '%');
@@ -428,8 +431,13 @@ class KelompokController extends Controller
                 DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
             )
             ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
-            ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id')
-            ->groupBy('kelompok_kb', 'cabang_kb', 'tanggal_pencairan_kb','kelompok_bermasalah.id_sikki_kb')
+            ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
+        
+            if (Session::get('id_role2') != '2') {
+                $data = $data->where('cabang_kb', Session::get('cabang'));
+            }
+
+            $data = $data->groupBy('kelompok_kb', 'cabang_kb', 'tanggal_pencairan_kb','kelompok_bermasalah.id_sikki_kb')
             ->orderBy('tanggal_pencairan_kb', 'desc')
             ->get();
 
@@ -513,8 +521,11 @@ class KelompokController extends Controller
                 'kelompok_bermasalah.*',
                 'pkp.nama'
             )
-            ->join('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id')
-            ->orderBy('kelompok_kb', 'asc')
+            ->join('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
+            if (Session::get('id_role2') != '2') {
+                $data = $data->where('cabang_kb', Session::get('cabang'));
+            }
+            $data = $data->orderBy('kelompok_kb', 'asc')
             ->get();
 
         // Buat spreadsheet baru
@@ -588,9 +599,13 @@ class KelompokController extends Controller
                         WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
                         ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
                     END
-                ', [$tanggal, $tanggal, 0])
+                ', [$tanggal, $tanggal, 0]);
+                if (Session::get('id_role2') != '2') {
+                    $query = $query->where('A.kode_kantor', "0".Session::get('cabang'));
+                }
+    
                 // ->where('A.tgl_jatuh_tempo', '>=',  $tanggal)
-                ->orderBy('C.nasabah_id', 'asc')
+                $query = $query->orderBy('C.nasabah_id', 'asc')
                 ->get();
               
             
@@ -733,8 +748,14 @@ class KelompokController extends Controller
                         WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
                         ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
                     END
-                ', [$tanggal, $tanggal, 0])
-                ->orderBy('C.nasabah_id', 'asc')
+                ', [$tanggal, $tanggal, 0]);
+
+                if (Session::get('id_role2') != '2') {
+                    $data = $data->where('A.kode_kantor', "0".Session::get('cabang'));
+                }
+    
+
+                $data = $data->orderBy('C.nasabah_id', 'asc')
                 ->get();
 
 
@@ -812,7 +833,6 @@ class KelompokController extends Controller
                 'A.tgl_jatuh_tempo',
                 'C.deskripsi_group2',
                 'A.jml_angsuran',
-                'A.tgl_jatuh_tempo',
                 'E.kode_group3',
                 'E.deskripsi_group3',
                 DB::raw('MAX(A.jml_pinjaman) AS jumlah_pinjaman'),
@@ -822,30 +842,33 @@ class KelompokController extends Controller
             ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
             ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
             ->join('kre_kode_group3 as E', 'E.kode_group3', '=', 'A.kode_group3')
-            ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
+            ->join('app_kode_kantor as D', 'A.kode_kantor', '=', 'D.KODE_KANTOR')
             ->join('kretrans as F', function ($join) {
                 $join->on('A.kode_group1', '=', 'F.kode_group1_trans')
                     ->where('F.KODE_TRANS', 300);
             })
-            ->where('A.pokok_saldo_akhir', '>', 0)
-            ->groupBy(
-                'B.deskripsi_group1',
-                'B.kode_group1',
-                'D.NAMA_KANTOR',
-                'A.tgl_realisasi',
-                'A.tgl_jatuh_tempo',
-                'C.deskripsi_group2',
-                'A.jml_angsuran',
-                'A.tgl_jatuh_tempo',
-                'E.kode_group3',
-                'E.deskripsi_group3'
-            )
-            ->orderBy('B.kode_group1', 'desc')
-            ->get();
+            ->where('A.pokok_saldo_akhir', '>', 0);
 
-            
+        
 
-        // Buat spreadsheet baru
+        if (Session::get('id_role2') != '2') {
+            $data = $data->where('B.kode_kantor', "0" . Session::get('cabang'));
+        }
+
+        $data = $data->groupBy(
+            'B.deskripsi_group1',
+            'B.kode_group1',
+            'D.NAMA_KANTOR',
+            'A.tgl_realisasi',
+            'A.tgl_jatuh_tempo',
+            'C.deskripsi_group2',
+            'A.jml_angsuran',
+            'E.kode_group3',
+            'E.deskripsi_group3'
+        )
+        ->orderBy('B.kode_group1', 'desc')
+        ->get();     
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
@@ -919,7 +942,11 @@ class KelompokController extends Controller
                 )
                 ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
                 ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
-
+            
+            if (Session::get('id_role2') != '2') {
+                $query->where('cabang_kb', Session::get('cabang'));
+            }
+            
             // Applying filters conditionally
             if ($request->filled('kelompok')) {
                 $query->where('kelompok_kb', 'like', '%' . $request->input('kelompok') . '%');
