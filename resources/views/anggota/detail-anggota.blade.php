@@ -95,7 +95,7 @@
                                     
 									<div class="card mt-4">
                                         <div class="card-header">
-                                            <h2 class="pt-4">History Anggota</h2>
+                                            <h2 class="pt-4">History Pinjaman</h2>
                                         </div>
                                         <input type="hidden" id="detail-nasabah_id" value="{{$nasabah_id}}">
 										<div class="card-body py-4">
@@ -115,7 +115,26 @@
 										</div>
 									</div>
                                     <hr>
-                                    
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h2 class="pt-4">History Masalah</h2>
+                                        </div>
+                                        <input type="hidden" id="detail-nasabah_id" value="{{$nasabah_id}}">
+										<div class="card-body py-4">
+											<table class="table align-middle table-row-dashed fs-6 gy-5" id="historyAnggotaMasalahTable">
+												<thead>
+													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+														<th>No</th>
+														<th class="min-w-125px">Kelompok</th>
+                                                        <th class="min-w-100px">Set Ke</th>
+														<th class="min-w-100px">Tanggal</th>                                                        
+													</tr>
+												</thead>
+											
+											</table>
+										</div>
+									</div>
+                                    <hr>
 								</div>
 							</div>							
 						</div>
@@ -141,6 +160,24 @@
                         {data: 'tgl_realisasi', name: 'tgl_realisasi'},
                         {data: 'jml_pinjaman', name: 'jml_pinjaman'},
                         {data: 'jml_angsuran', name: 'jml_angsuran'},
+                    ]
+                });
+
+                
+                $('#historyAnggotaMasalahTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('getHistoryMasalahAnggota') }}",
+                        data: function (d) {
+                            d.nasabah_id = $('#detail-nasabah_id').val();
+                        }
+                    },
+                    columns: [
+                        {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                        {data: 'kelompok_ab', name: 'kelompok_ab'},
+                        {data: 'setoran_ab', name: 'setoran_ab'},
+                        {data: 'tanggal_ab', name: 'tanggal_ab'},
                     ]
                 });
 

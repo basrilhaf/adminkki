@@ -216,8 +216,9 @@ class KelompokController extends Controller
 
     public function getKelompokAktif(Request $request)
     {
+        ini_set('max_execution_time', 300);
         if ($request->ajax()) {
-    
+
             $query = DB::connection('mysql_secondary')
                 ->table('kredit as A')
                 ->select(
@@ -229,13 +230,19 @@ class KelompokController extends Controller
                     'C.deskripsi_group2',
                     'A.jml_angsuran',
                     'A.tgl_jatuh_tempo',
-                    DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman')
+                    'B.Jam_setoran',
+                    'A.kode_group1',
+                    DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman'),
+                    DB::raw('DAYNAME(A.tgl_realisasi) AS hari_setoran'),
+                    DB::raw('COUNT(DISTINCT(A.nasabah_id)) AS jumlah_anggota')
                 )
                 ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
                 ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
                 ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
                 ->where('A.pokok_saldo_akhir', '>', 0);
 
+            
+            
             if (Session::get('id_role2') != '2') {
                 $query->where('B.kode_kantor', "0".Session::get('cabang'));
             }
@@ -263,10 +270,14 @@ class KelompokController extends Controller
                     'A.tgl_jatuh_tempo', 
                     'C.deskripsi_group2', 
                     'A.jml_angsuran', 
-                    'A.tgl_jatuh_tempo'
+                    'A.tgl_jatuh_tempo',
+                    'B.Jam_setoran',
+                    'A.kode_group1'
                 )
                 ->orderBy('B.kode_group1', 'desc')
                 ->get();
+
+            // dd($filteredData);
     
             // Returning the results for DataTables with action buttons
             return DataTables::of($filteredData)
@@ -278,7 +289,63 @@ class KelompokController extends Controller
                     $btn = '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                     return $btn;
                 })
-                ->rawColumns(['action'])  // Ensures the action button is rendered as HTML
+                ->addColumn('setoran', function ($row) {
+                    // $query = DB::connection('mysql_secondary')
+                    //     ->table('kretrans as A')
+                    //     ->selectRaw('MAX(A.ANGSURAN_KE) as setoran_ke, SUM(A.POKOK) as jum_pokok, SUM(A.BUNGA) as jum_bunga, SUM(A.TABUNGAN) as jum_tabungan')
+                    //     ->where('A.TGL_TRANS', '<=', $row->tgl_jatuh_tempo)
+                    //     ->where('A.TGL_TRANS', '>=', $row->tgl_realisasi)
+                    //     ->where('A.kode_group1_trans', '>=', $row->kode_group1)
+                    //     ->where('A.KODE_TRANS', '300')
+                    //     ->groupBy('A.kode_group1_trans')
+                    //     ->first();
+                    // $setke = $query->setoran_ke ?? 0;
+                    // $jum_pokok = $query->jum_pokok ?? 0;
+                    // $jum_bunga = $query->jum_bunga ?? 0;
+                    // $jum_tabungan = $query->jum_tabungan ?? 0;
+
+                    // $query = DB::connection('mysql_secondary')
+                    //     ->table('kretrans')
+                    //     ->select('ANGSURAN_KE')
+                    //     ->where('kode_group1_trans', $row->kode_group1)
+                    //     ->where('KODE_TRANS', '300')
+                    //     ->orderBy('KRETRANS_ID', 'desc')
+                    //     ->limit(1)
+                    //     ->first();
+                    // $setke = $query->ANGSURAN_KE ?? 0;
+                    // // $jum_pokok = $query->jum_pokok ?? 0;
+                    // // $jum_bunga = $query->jum_bunga ?? 0;
+                    // // $jum_tabungan = $query->jum_tabungan ?? 0;
+                    
+                    // $waktu = '<p>Setoran Ke-: '.$setke.'</p>';
+                    // return $waktu;
+                    return '-';
+                })
+
+                ->addColumn('waktu', function ($row) {
+                    if($row->hari_setoran == 'Sunday'){
+                        $hari = 'Minggu';
+                    }else if($row->hari_setoran == 'Monday'){
+                        $hari = 'Senin';
+                    }else if($row->hari_setoran == 'Tuesday'){
+                        $hari = 'Selasa';
+                    }else if($row->hari_setoran == 'Wednesday'){
+                        $hari = 'Rabu';
+                    }else if($row->hari_setoran == 'Thursday'){
+                        $hari = 'Kamis';
+                    }else if($row->hari_setoran == 'Friday'){
+                        $hari = 'Jumat';
+                    }else if($row->hari_setoran == 'Saturday'){
+                        $hari = 'Sabtu';
+                    }else{
+                        $hari = '';
+                    }
+
+                    $waktu = '<p>Hari: '.$hari.'</p><p>Jam: '.$row->Jam_setoran.'</p>';
+                    
+                    return $waktu;
+                })
+                ->rawColumns(['action','setoran','waktu'])  // Ensures the action button is rendered as HTML
                 ->make(true);
         }
     }
@@ -460,27 +527,7 @@ class KelompokController extends Controller
         $row = 2; // Mulai dari baris 2 setelah header
         foreach ($data as $user) {
 
-            // $detail = DB::connection('mysql_secondary')
-            //     ->table('kredit as A')
-            //     ->select('A.tgl_realisasi','A.tgl_jatuh_tempo')
-            //     ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
-            //     ->where('B.deskripsi_group1', $user->kelompok_kb)
-            //     ->groupBy('A.tgl_realisasi','A.tgl_jatuh_tempo')
-            //     ->first();
-
-            // if ($detail) {
-            //     if ($detail->tgl_jatuh_tempo >= date('Y-m-d')) {
-            //         $status = 'Aktif';
-            //         $btab = '';
-            //     } else {
-            //         $status = 'Tidak Aktif';
-            //         $btab = $detail->tgl_jatuh_tempo;
-            //     }
-            // } else {
-            //     // Handle case where no record is found
-            //     $status = 'Kelompok Tidak Ditemukan di USSI';
-            //     $btab = '';
-            // }
+            
 
             $sheet->setCellValue('A' . $row, $user->kelompok_kb)
                   ->setCellValue('B' . $row, $user->cabang_kb)
@@ -539,7 +586,8 @@ class KelompokController extends Controller
               ->setCellValue('D1', 'Kode')
               ->setCellValue('E1', 'Menit')
               ->setCellValue('F1', 'Cabang')
-              ->setCellValue('G1', 'PKP FSK');
+              ->setCellValue('G1', 'PKP FSK')
+              ->setCellValue('H1', 'Tanggal Pencairan');
 
         // Isi data ke dalam spreadsheet
         $row = 2; // Mulai dari baris 2 setelah header
@@ -550,7 +598,8 @@ class KelompokController extends Controller
                   ->setCellValue('D' . $row, $user->kode_kb)
                   ->setCellValue('E' . $row, $user->menit_kb)
                   ->setCellValue('F' . $row, $user->cabang_kb)
-                  ->setCellValue('G' . $row, $user->nama);
+                  ->setCellValue('G' . $row, $user->nama)
+                  ->setCellValue('H' . $row, $user->tanggal_pencairan_kb);
             $row++;
         }
 
@@ -652,6 +701,40 @@ class KelompokController extends Controller
                 ->addColumn('action', function ($row) {
                     
                     $infoUrl = route('detailAnggota', $row->nasabah_id);
+                    return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+                })
+                ->rawColumns(['action'])  // Allow HTML rendering in the action column
+                ->make(true);  // Return the response in DataTables format
+        }
+    }
+
+    
+    public function getMasalahAnggotaKelompok(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+            $tgl_cair = $request->input('tanggal_cair');
+            $kelompok = $request->input('kelompok');
+            $tgl_btab = $request->input('tanggal_btab');
+
+
+            $query = DB::table('anggota_bermasalah')
+                ->selectRaw(
+                    'nama_ab, cabang_ab, id_anggota_ab, COUNT(id_ab) as dtr'
+                )
+                ->whereBetween('tanggal_ab', [$tgl_cair, $tgl_btab]) // Gunakan whereBetween untuk tanggal
+                ->where('kelompok_ab', $kelompok)
+                ->groupBy('nama_ab', 'cabang_ab', 'id_anggota_ab')
+                ->orderBy('id_anggota_ab', 'asc')
+                ->get();
+
+           
+            return DataTables::of($query)
+                ->addIndexColumn()  // Adds row index
+                ->addColumn('action', function ($row) {
+                    
+                    $infoUrl = route('detailAnggota', $row->id_anggota_ab);
                     return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
                 })
                 ->rawColumns(['action'])  // Allow HTML rendering in the action column
@@ -931,17 +1014,13 @@ class KelompokController extends Controller
             $query = DB::table('kelompok_bermasalah')
                 ->select(
                     'kelompok_kb',
+                    'tanggal_pencairan_kb',
                     'cabang_kb',
-                    'pkp_dkb',
-                    'kc_dkb',
-                    'nama',
-                    DB::raw('kelompok_bermasalah.id_sikki_kb AS idsikkikb'),
                     DB::raw('COUNT(id_kb) AS jumlah'),
                     DB::raw('SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a'),
                     DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
                 )
-                ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
-                ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
+                ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb');
             
             if (Session::get('id_role2') != '2') {
                 $query->where('cabang_kb', Session::get('cabang'));
@@ -951,16 +1030,11 @@ class KelompokController extends Controller
             if ($request->filled('kelompok')) {
                 $query->where('kelompok_kb', 'like', '%' . $request->input('kelompok') . '%');
             }
-            if ($request->filled('pkp')) {
-                $query->where('pkp_dkb', 'like', '%' . $request->input('pkp') . '%');
-            }
-            if ($request->filled('kc')) {
-                $query->where('kc_dkb', 'like', '%' . $request->input('kc') . '%');
-            }
+            
 
             // Grouping by idsikkikb and ordering by id_kb
-            $filteredData = $query->groupBy('kelompok_kb', 'cabang_kb', 'pkp_dkb', 'kc_dkb', 'nama', 'kelompok_bermasalah.id_sikki_kb')
-                ->orderBy('kelompok_bermasalah.id_sikki_kb', 'desc')
+            $filteredData = $query->groupBy('kelompok_kb','tanggal_pencairan_kb', 'cabang_kb')
+                ->orderBy('tanggal_pencairan_kb', 'desc')
                 ->get();
             return DataTables::of($filteredData)
                 ->addIndexColumn()

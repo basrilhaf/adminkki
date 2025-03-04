@@ -105,6 +105,10 @@ Route::get('/gettableKABUssi', [KabKkbController::class, 'gettableKABUssi'])->na
 Route::get('/exportDownloadKabUssi', [KabKkbController::class, 'exportDownloadKabUssi'])->name('exportDownloadKabUssi');
 Route::get('/migrasiKkb', [KabKkbController::class, 'migrasiKkb'])->name('migrasiKkb');
 Route::get('/migrasiKab', [KabKkbController::class, 'migrasiKab'])->name('migrasiKab');
+Route::get('/formNasabahKelompokBermasalah', [KabKkbController::class, 'formNasabahKelompokBermasalah'])->name('formNasabahKelompokBermasalah');
+Route::get('/pdfFormKab', [KabKkbController::class, 'pdfFormKab'])->name('pdfFormKab');
+Route::get('/excelDetailPenyebabDtr', [KabKkbController::class, 'excelDetailPenyebabDtr'])->name('excelDetailPenyebabDtr');
+Route::get('/excelTransaksiSetoran', [KabKkbController::class, 'excelTransaksiSetoran'])->name('excelTransaksiSetoran');
 
 
 // route audit trails 
@@ -158,6 +162,7 @@ Route::get('/exportDownloadHistoryMk', [KelompokController::class, 'exportDownlo
 Route::post('/deleteMasalahKelompokAction', [KelompokController::class, 'deleteMasalahKelompokAction'])->name('deleteMasalahKelompokAction');
 Route::get('/getPjKelompok', [KelompokController::class, 'getPjKelompok'])->name('getPjKelompok');
 Route::post('/deletePjKelompokAction', [KelompokController::class, 'deletePjKelompokAction'])->name('deletePjKelompokAction');
+Route::get('/getMasalahAnggotaKelompok', [KelompokController::class, 'getMasalahAnggotaKelompok'])->name('getMasalahAnggotaKelompok');
 
 
 // route anggota 
@@ -187,7 +192,7 @@ Route::get('/getDetailMA/{id_ma}', [AnggotaController::class, 'getDetailMA'])->n
 Route::get('/getDetailMasalahAnggota', [AnggotaController::class, 'getDetailMasalahAnggota'])->name('getDetailMasalahAnggota');
 Route::post('/deleteDetailMaAction', [AnggotaController::class, 'deleteDetailMaAction'])->name('deleteDetailMaAction');
 Route::post('/deleteMaAction', [AnggotaController::class, 'deleteMaAction'])->name('deleteMaAction');
-
+Route::get('/getHistoryMasalahAnggota', [AnggotaController::class, 'getHistoryMasalahAnggota'])->name('getHistoryMasalahAnggota');
 
 
 // route setoran dan tabungan 

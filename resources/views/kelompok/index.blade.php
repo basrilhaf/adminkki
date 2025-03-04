@@ -93,19 +93,12 @@
                                                         <th class="min-w-100px">Jumlah Pinjaman</th>
                                                         <th class="min-w-100px">Durasi</th>
                                                         <th class="min-w-100px">Tanggal Closed</th>
-                                                        {{-- <th class="min-w-100px">Hari</th>
-                                                        <th class="min-w-100px">Jam</th>
-                                                        <th class="min-w-100px">Durasi</th>
-														<th class="min-w-100px">Start</th>
-                                                        <th class="min-w-100px">Tanggal Start</th>
-                                                        <th class="min-w-100px">Closed</th>
-                                                        
+
+                                                        <th class="min-w-100px">Waktu</th>
                                                         <th class="min-w-100px">Jumlah Anggota</th>
-                                                        <th class="min-w-100px">setoran Ke</th>
-                                                        
-                                                        
-                                                        <th class="min-w-100px">Disbursed at</th>
-                                                        <th class="min-w-100px">Perkiraan Selesai(BTAB)</th> --}}
+                                                        {{-- <th class="min-w-100px">setoran</th> --}}
+                                                        <th class="min-w-100px">Tanggal Perkiraan Selesai</th>
+                                                       
 													</tr>
 												</thead>
 											
@@ -143,6 +136,11 @@
                         {data: 'deskripsi_group2', name: 'deskripsi_group2'},
                         {data: 'jumlah_pinjaman', name: 'jumlah_pinjaman'},
                         {data: 'jml_angsuran', name: 'jml_angsuran'},
+                        {data: 'tgl_jatuh_tempo', name: 'tgl_jatuh_tempo'},
+
+                        {data: 'waktu', name: 'waktu'},
+                        {data: 'jumlah_anggota', name: 'jumlah_anggota'},
+                        // {data: 'setoran', name: 'setoran'},
                         {data: 'tgl_jatuh_tempo', name: 'tgl_jatuh_tempo'}
                         
                     ]

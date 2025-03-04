@@ -23,7 +23,7 @@
 										</div>
 									</div>
                                     <div class="row">
-                                        <div class="col-md-12">
+                                        <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-header">
                                                     <h2 class="mt-6">Filter Tanggal</h2>
@@ -38,6 +38,53 @@
                                                         </div>
                                                         <div class="col-md-2">
                                                             <button id="submitKkb" class="btn btn-primary rounded mt-4">Submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h2 class="mt-6">Form</h2>
+                                                </div>
+                                                <div class="card-body py-4">
+                                                    <div class="row">
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label for="daterange">Tanggal: </label>
+                                                                <input type="date" id="form-tanggal-kab" name="tanggal" class="form-control">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label for="daterange">Cabang: </label>
+                                                                <select name="" id="form-cabang-kab" class="form-control">
+                                                                    <?php if(session('id_role2') != 2){?>
+                                                                        <option value="<?php echo session('cabang');?>"><?php echo session('cabang');?></option>
+                                                                    <?php } else {?>
+                                                                        <option value="1">1</option>
+                                                                        <option value="2">2</option>
+                                                                        <option value="3">3</option>
+                                                                        <option value="4">4</option>
+                                                                        <option value="5">5</option>
+                                                                    <?php }?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label for="daterange">Jenis: </label>
+                                                                <select name="" id="form-jenis-kab" class="form-control">
+                                                                    <option value="KKB">KKB</option>
+                                                                    <option value="Rekap">Rekap</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3 mt-9">
+                                                            <a href="#" id="formKabAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
+                                                                <i class="fa fa-download"></i> Submit
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -406,6 +453,23 @@
                                                 $select.select2();
                                             }
                                             
+                                            $('#formKabAction').on('click', function(e) {
+                                                e.preventDefault(); 
+                                                var jenis = $('#form-jenis-kab').val();
+                                                var cabang = $('#form-cabang-kab').val();
+                                                var tanggal = $('#form-tanggal-kab').val();
+                                                var daterange = $('#search-daterange-kkb').val();
+                                                if (!jenis) {
+                                                    alert('Please select a jenis.');
+                                                    return;
+                                                }
+                                
+                                                var url = "{{ route('pdfFormKab') }}" + "?jenis=" + jenis + "&cabang=" + cabang + "&tanggal=" + tanggal + "&daterange=" + daterange;
+                                                var link = document.createElement('a');
+                                                link.href = url;
+                                                link.target = "_blank"; 
+                                                link.click();
+                                            });
                                         });
 
                             

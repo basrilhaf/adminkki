@@ -271,6 +271,31 @@ class AnggotaController extends Controller
     }
 
     
+    public function getHistoryMasalahAnggota(Request $request)
+    {
+        if ($request->ajax()) {
+            $cabang = Session::get('cabang');
+            $id_user = Session::get('id_user2');
+
+            $query = DB::table('anggota_bermasalah')
+                ->select('*')
+                ->where('id_anggota_ab', $request->input('nasabah_id'))
+                ->orderBy('tanggal_ab','DESC');
+            
+           
+
+            return DataTables::of($query)
+                ->addIndexColumn()  // This is for the row index numbering
+                ->addColumn('action', function ($row) {
+                    $infoUrl = route('user.infoUser', $row->id_anggota_ab);
+                    $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+    }
+    
     public function exportSemuaAnggota()
     {
         // Ambil data dari database
@@ -537,10 +562,10 @@ class AnggotaController extends Controller
                 
                 // return 'DTR 2: '.$data_dtr->kode2.'<br> DTR 4A: '.$data_dtr->kode4a.'<br> DTR 4B: '.$data_dtr->kode4b;
                 if ($data_dtr) {
-                    return 'DTR 2: ' . $data_dtr->kode2 . '<br> DTR 4A: ' . $data_dtr->kode4a . '<br> DTR 4B: ' . $data_dtr->kode4b;
+                    return 'DTR : ' . $data_dtr->kode2 + $data_dtr->kode4a + $data_dtr->kode4b;
                 } else {
                     // Jika tidak ada data, tampilkan pesan default atau nilai 0
-                    return 'DTR 2: 0<br> DTR 4A: 0<br> DTR 4B: 0';
+                    return 'DTR : 0';
                 }
 
                 })

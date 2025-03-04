@@ -112,6 +112,27 @@
 											</table>
 										</div>
 									</div>
+                                    <hr>
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h2 class="pt-4">Rangkuman Anggota bermasalah</h2>
+                                        </div>
+                                        
+										<div class="card-body py-4">
+											<table class="table align-middle table-row-dashed fs-6 gy-5" id="masalahAnggotaKelompokTable">
+												<thead>
+													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+														<th>No</th>
+														<th class="min-w-125px">ID Anggota</th>
+                                                        <th class="min-w-100px">Nama Anggota</th>
+														<th class="min-w-100px">Cabang</th>  
+                                                        <th class="min-w-100px">Jumlah DTR</th>                                                        
+													</tr>
+												</thead>
+											
+											</table>
+										</div>
+									</div>
                                     
 								</div>
 							</div>							
@@ -139,8 +160,26 @@
                         {data: 'jml_pinjaman', name: 'jml_pinjaman'},
                     ]
                 });
+                $('#masalahAnggotaKelompokTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('getMasalahAnggotaKelompok') }}",
+                        data: function (d) {
+                            d.tanggal_cair = $('#detail-tgl_cair-kelompok').val();
+                            d.kelompok = $('#detail-nama-kelompok').val();
+                            d.tanggal_btab = $('#detail-tgl_btab-kelompok').val();
+                        }
+                    },
+                    columns: [
+                        {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                        {data: 'id_anggota_ab', name: 'id_anggota_ab'},
+                        {data: 'nama_ab', name: 'nama_ab'},
+                        {data: 'cabang_ab', name: 'cabang_ab'},
+                        {data: 'dtr', name: 'dtr'},
+                    ]
+                });
 
-                
                 var param = $('#detail-param').val();
                 var url = "{{ route('getDetailKelompok', ':param') }}";
                 url = url.replace(':param', param);
@@ -157,6 +196,9 @@
                         $('#detail-tgl_btab-kelompok').val(response.tgl_jatuh_tempo);
                         
                         $('#masalahKelompokTable').DataTable().ajax.reload();
+                        setTimeout(function() {
+                            $('#masalahAnggotaKelompokTable').DataTable().ajax.reload();
+                        }, 300);
 
                     },
                     error: function(xhr) {

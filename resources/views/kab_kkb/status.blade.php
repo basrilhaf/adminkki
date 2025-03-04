@@ -81,42 +81,44 @@
                                                 </div>
                                                 <div class="card-body py-4">
                                                     
-                                                    <div class="row">
-                                                        <div class="col-md-3">
-                                                            <div class="form-group">
-                                                                <label for="daterange">Tanggal: </label>
-                                                                <input type="text" id="search-daterange-form2" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                    <form action="{{route('formNasabahKelompokBermasalah')}}" target=_blank method="GET">
+                                                        <div class="row">
+                                                            <div class="col-md-3">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">Tanggal: </label>
+                                                                    <input type="text" id="search-daterange-form1" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">Cabang: </label>
+                                                                    <select class="form-control" id="search-cabang-form1" name="cabang">
+                                                                        <option value="1">1</option>
+                                                                        <option value="2">2</option>
+                                                                        <option value="3">3</option>
+                                                                        <option value="4">4</option>
+                                                                        <option value="5">5</option>
+                                                                        <option value="6">6</option>
+                                                                        <option value="7">7</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">KAB/KKB: </label>
+                                                                    <select class="form-control" id="search-kabkkb-form1" name="kabkkb">
+                                                                        <option value="KAB">KAB</option>
+                                                                        <option value="KKB">KKB</option>
+                                                                        
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <button id="submitForm1" class="btn btn-primary rounded mt-4">Submit</button>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <div class="form-group">
-                                                                <label for="cabang">Cabang: </label>
-                                                                <select class="form-control" id="search-cabang-form2" name="cabang">
-                                                                    <option value="1">1</option>
-                                                                    <option value="2">2</option>
-                                                                    <option value="3">3</option>
-                                                                    <option value="4">4</option>
-                                                                    <option value="5">5</option>
-                                                                    <option value="6">6</option>
-                                                                    <option value="7">7</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <div class="form-group">
-                                                                <label for="kabkkb">KAB/KKB: </label>
-                                                                <select class="form-control" id="search-kabkkb-form2" name="kabkkb">
-                                                                    <option value="KAB">KAB</option>
-                                                                    <option value="KKB">KKB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <button id="submitForm2" class="btn btn-primary rounded mt-4">Submit</button>
-                                                        </div>
-                                                    </div>
-                                                
-                                                   
+                                                    </form>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -158,30 +160,32 @@
                                                 <div class="card-header">
                                                     <h2 class="mt-6">Export Excel Detail Penyebab DTR</h2>
                                                 </div>
-                                                <div class="card-body py-4">
-                                                    
-                                                    <div class="row">
-                                                        <div class="col-md-5">
-                                                            <div class="form-group">
-                                                                <label for="daterange">Tanggal: </label>
-                                                                <input type="text" id="search-daterange-form3" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="col-md-5">
-                                                            <div class="form-group">
-                                                                <label for="kabkkb">KAB/KKB: </label>
-                                                                <select class="form-control" id="search-kabkkb-form3" name="kabkkb">
-                                                                    <option value="KAB">KAB</option>
-                                                                    <option value="KKB">KKB</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <button id="submitForm3" class="btn btn-primary rounded mt-4">Submit</button>
-                                                        </div>
-                                                    </div>
                                                 
+                                                <div class="card-body py-4">
+                                                    <form action="{{route('excelDetailPenyebabDtr')}}" target=_blank method="GET">
+                                                        <div class="row">
+                                                            <div class="col-md-5">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">Tanggal: </label>
+                                                                    <input type="text" id="search-daterange-form3" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="col-md-5">
+                                                                <div class="form-group">
+                                                                    <label for="kabkkb">KAB/KKB: </label>
+                                                                    <select class="form-control" id="search-kabkkb-form3" name="kabkkb">
+                                                                        <option value="KAB">KAB</option>
+                                                                        <option value="KKB">KKB</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-2">
+                                                                <button id="submitForm3" class="btn btn-primary rounded mt-4">Submit</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                   
                                                    
                                                 </div>
                                             </div>
@@ -195,20 +199,22 @@
                                                     <h2 class="mt-6">Jumlah Transaksi Setoran Bulanan</h2>
                                                 </div>
                                                 <div class="card-body py-4">
-                                                    
-                                                    <div class="row">
-                                                        <div class="col-md-5">
-                                                            <div class="form-group">
-                                                                <label for="daterange">Tanggal: </label>
-                                                                <input type="text" id="search-daterange-form4" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                    <form action="{{route('excelTransaksiSetoran')}}" target=_blank method="GET">
+                                                        <div class="row">
+                                                            <div class="col-md-5">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">Tanggal: </label>
+                                                                    <input type="text" id="search-daterange-form4" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            
+                                                            <div class="col-md-2">
+                                                                <button id="submitForm4" class="btn btn-primary rounded mt-4">Submit</button>
                                                             </div>
                                                         </div>
-                                                        
-                                                        <div class="col-md-2">
-                                                            <button id="submitForm4" class="btn btn-primary rounded mt-4">Submit</button>
-                                                        </div>
-                                                    </div>
-                                                
+                                                    </form>
+                                                   
                                                    
                                                 </div>
                                             </div>
@@ -447,6 +453,16 @@
                 locale: "id"
             });
             flatpickr("#search-daterange-form2", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                locale: "id"
+            });
+            flatpickr("#search-daterange-form3", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                locale: "id"
+            });
+            flatpickr("#search-daterange-form4", {
                 mode: "range",
                 dateFormat: "Y-m-d",
                 locale: "id"

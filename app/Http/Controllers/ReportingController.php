@@ -1919,6 +1919,30 @@ class ReportingController extends Controller
         $nominal_cair = $data_cair && isset($data_cair->nominal) ? $data_cair->nominal : 0;
         $rata_cair = $nominal_cair/$anggota_cair;
         
+        $data_cair2 = DB::connection('mysql_secondary')->table('kredit as A')
+            ->selectRaw('A.nasabah_id')
+            ->whereBetween('A.tgl_realisasi', [$awal, $akhir]);
+        if ($cabang != 0) {$data_cair2->where('A.KODE_KANTOR', $cabang);}
+        $data_cair2 = $data_cair2->get();
+        $anggota_lama = 0;
+        $anggota_baru = 0;
+        $pinjaman_lama = 0;
+        $pinjaman_baru = 0;
+        foreach($data_cair2 as $list){
+            $data_cair3 = DB::connection('mysql_secondary')->table('kredit as A')
+                ->selectRaw('COUNT(A.nasabah_id) as total, SUM(A.jml_pinjaman) as nominal')
+                ->where('A.nasabah_id', $list->nasabah_id)
+                ->first();
+            if($data_cair3->total > 1){
+                $anggota_lama = $anggota_lama + 1;
+                $pinjaman_lama = $pinjaman_lama + $data_cair3->nominal;
+            }else{
+                $anggota_baru = $anggota_baru + 1;
+                $pinjaman_baru = $pinjaman_baru + $data_cair3->nominal;
+            }
+        }
+
+
         $data_btab = DB::connection('mysql_secondary')->table('tabtrans as A')
             ->selectRaw('COUNT(distinct(A.NO_REKENING)) as total, COUNT(distinct(A.kode_group1_trans)) as kelompok, SUM(A.POKOK) as nominal')
             ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
@@ -1970,6 +1994,10 @@ class ReportingController extends Controller
             'anggota_cair' => $anggota_cair ?? 0,
             'nominal_cair' => $nominal_cair ?? 0,
             'rata_cair' => $rata_cair ?? 0,
+            'anggota_lama' => $anggota_lama ?? 0,
+            'anggota_baru' => $anggota_baru ?? 0,
+            'pinjaman_lama' => $pinjaman_lama ?? 0,
+            'pinjaman_baru' => $pinjaman_baru?? 0,
 
             'anggota_btab' => $anggota_btab ?? 0,
             'kelompok_btab' => $kelompok_btab ?? 0,

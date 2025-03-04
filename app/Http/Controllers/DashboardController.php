@@ -73,6 +73,7 @@ class DashboardController extends Controller
     public function getDataTotalDashboard()
     {
         $anggota_aktif_dgn_md = DB::connection('mysql_secondary')->select('SELECT count(kredit.nasabah_id) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
+        $anggota_aktif_tanpa_md = DB::connection('mysql_secondary')->select('SELECT count(kredit.nasabah_id) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.tgl_debius  is not null and kredit.tgl_jatuh_tempo >= "'.date('Y-m-d').'"');
         $kelompok_aktif = DB::connection('mysql_secondary')->select('SELECT count(distinct(kredit.kode_group1)) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
         $kumpulan_aktif = DB::connection('mysql_secondary')->select('SELECT count(distinct(kredit.kode_group3)) as total FROM kredit INNER JOIN nasabah ON kredit.nasabah_id = nasabah.nasabah_id INNER JOIN kre_kode_group1 ON kredit.kode_group1 = kre_kode_group1.kode_group1 WHERE kredit.pokok_saldo_akhir > 0');
         $tabungan_anggota_aktif = DB::connection('mysql_secondary')->select("SELECT SUM(A.saldo_akhir) AS total
@@ -87,8 +88,8 @@ class DashboardController extends Controller
 
 
         $data = [
-            'anggota_aktif_dgn_md' => $anggota_aktif_dgn_md[0]->total,
-            'anggota_aktif_tanpa_md' => 0,
+            'anggota_aktif_dgn_md' => $anggota_aktif_tanpa_md[0]->total + $anggota_aktif_dgn_md[0]->total,
+            'anggota_aktif_tanpa_md' =>  $anggota_aktif_dgn_md[0]->total,
             'kelompok_aktif' => $kelompok_aktif[0]->total,
             'kumpulan_aktif' => $kumpulan_aktif[0]->total,
             'tabungan_anggota_aktif' => $tabungan_anggota_aktif[0]->total,

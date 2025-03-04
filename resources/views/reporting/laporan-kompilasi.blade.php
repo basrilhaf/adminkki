@@ -455,7 +455,47 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jml Anggota Lama</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="anggota_lama">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Jml Anggota Baru</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="anggota_baru">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Rata2 Pinj Anggota Lama</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="pinjaman_lama">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <p>Rata2 Pinj Anggota Baru</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p id="pinjaman_baru">memuat data...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
 										<div class="card-body py-4" style="overflow-x: auto;">
@@ -800,6 +840,10 @@
                                 $('#sumAnggotaCair').text(response.anggota_cair);
                                 $('#sumNominalCair').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.nominal_cair));
                                 $('#sumRataCair').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.rata_cair));
+                                $('#anggota_lama').text(response.anggota_lama);
+                                $('#anggota_baru').text(response.anggota_baru);
+                                $('#pinjaman_lama').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.pinjaman_lama));
+                                $('#pinjaman_baru').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.pinjaman_baru));
 
                                 $('#sumKelompokBtab').text(response.kelompok_btab);
                                 $('#sumAnggotaBtab').text(response.anggota_btab);

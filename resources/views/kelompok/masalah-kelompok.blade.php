@@ -131,23 +131,10 @@
                                     <div class="card mb-2">
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-3">
+                                                <div class="col-md-9">
                                                     <label class="form-label fs-6 fw-bold">KELOMPOK:</label>
                                                     <div class="d-flex align-items-center position-relative my-1">
                                                         <input type="text" class="form-control form-control-solid ps-13" id="search-kelompok-mk" placeholder="Kelompok" />
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="col-md-3">
-                                                    <label class="form-label fs-6 fw-bold">PKP:</label>
-                                                    <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-pkp-mk" placeholder="PKP" />
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label fs-6 fw-bold">KC:</label>
-                                                    <div class="d-flex align-items-center position-relative my-1">
-                                                        <input type="text" class="form-control form-control-solid ps-13" id="search-kc-mk" placeholder="KC" />
                                                     </div>
                                                 </div>
                                                 
@@ -166,12 +153,11 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
 														<th class="min-w-125px">Kelompok</th>
+                                                        <th class="min-w-125px">Tanggal Pencairan</th>
                                                         <th class="min-w-100px">Cabang</th>
 														<th class="min-w-100px">Masalah</th>
                                                         <th class="min-w-100px">Telat</th>
                                                         <th class="min-w-100px">Berat</th>
-                                                        <th class="min-w-100px">PKP Proses</th>
-                                                        <th class="min-w-100px">KC Proses</th>
 														<th class="min-w-100px">Actions</th>
 													</tr>
 												</thead>
@@ -205,12 +191,17 @@
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                         {data: 'kelompok_kb', name: 'kelompok_kb'},
+                        { 
+                            data: 'tanggal_pencairan_kb', 
+                            name: 'tanggal_pencairan_kb',
+                            render: function(data, type, row) {
+                                return data ? data.substring(0, 10) : ''; 
+                            }
+                        },
                         {data: 'cabang_kb', name: 'cabang_kb'},
                         {data: 'jumlah', name: 'jumlah'},
                         {data: 'kode3a', name: 'kode3a'},
                         {data: 'kode3b', name: 'kode3b'},
-                        {data: 'pkp_dkb', name: 'pkp_dkb'},
-                        {data: 'kc_dkb', name: 'kc_dkb'},
                         {data: 'action', name: 'action', orderable: false, searchable: false},
                     ]
                 });

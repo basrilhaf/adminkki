@@ -244,6 +244,212 @@ class KabKkbController extends Controller
     }
 
     
+    public function formNasabahKelompokBermasalah(Request $request)
+    {
+        $kabkkb = $request->input('kabkkb');
+        $date_range = $request->input('daterange');
+        $cabang = $request->input('cabang');
+
+        $p_date = explode("to", $date_range);
+        $awal  = trim($p_date[0]); // Start date
+        $akhir = trim($p_date[1]); // End date
+
+        $results = [];
+
+        if ($kabkkb == "KAB") {
+            $query = "
+                SELECT pkp.nama, pkp.id 
+                FROM pkp
+                LEFT JOIN anggota_bermasalah ON pkp.id = anggota_bermasalah.pkp_ab
+                LEFT JOIN kelompok_bermasalah ON kelompok_bermasalah.pkp_kb = pkp.id
+                WHERE 
+                    (cabang_ab = :cabang OR cabang_kb = :cabang2)
+                    AND (
+                        (anggota_bermasalah.tanggal_ab >= :awal AND anggota_bermasalah.tanggal_ab <= :akhir)
+                        AND (kelompok_bermasalah.tanggal_kb >= :awal2 AND kelompok_bermasalah.tanggal_kb <= :akhir2)
+                    )
+                GROUP BY pkp.nama, pkp.id
+                ORDER BY pkp.nama ASC
+            ";
+
+            $results = DB::select($query, [
+                'cabang' => $cabang,
+                'cabang2' => $cabang,
+                'awal'   => $awal,
+                'akhir'  => $akhir,
+                'awal2'   => $awal,
+                'akhir2'  => $akhir
+            ]);
+
+            foreach ($results as $row) {
+                $pkp = $row->id;
+            
+                $anggotaSummary = DB::table('anggota_bermasalah')
+                    ->select('id_anggota_ab', DB::raw('COUNT(id_ab) as total'))
+                    ->where('pkp_ab', $pkp)
+                    ->whereBetween('tanggal_ab', [$awal, $akhir])
+                    ->where('cabang_ab', $cabang)
+                    ->groupBy('id_anggota_ab')
+                    ->first();
+            
+                $kelompokSummary = DB::table('kelompok_bermasalah')
+                    ->select('kelompok_kb', DB::raw('COUNT(id_kb) as total'))
+                    ->where('pkp_kb', $pkp)
+                    ->whereBetween('tanggal_kb', [$awal, $akhir])
+                    ->where('cabang_kb', $cabang)
+                    ->groupBy('kelompok_kb')
+                    ->first();
+            
+                $anggotaIds = DB::table('anggota_bermasalah')
+                    ->select('id_anggota_ab')
+                    ->where('pkp_ab', $pkp)
+                    ->whereBetween('tanggal_ab', [$awal, $akhir])
+                    ->where('cabang_ab', $cabang)
+                    ->get();
+            
+                $row->anggota_summary  = $anggotaSummary;
+                $row->kelompok_summary = $kelompokSummary;
+                $row->anggota_ids      = $anggotaIds;
+
+                foreach($anggotaIds as $rowx){
+                    $totalAnggotaIds = DB::table('anggota_bermasalah')
+                        ->selectRaw('count(id_ab) as total, nama_ab, kelompok_ab')
+                        ->where('id_anggota_ab', $rowx->id_anggota_ab)
+                        ->groupBy('nama_ab', 'kelompok_ab')
+                        ->get();
+
+                    $totalKabur = DB::table('anggota_bermasalah')
+                        ->selectRaw('id_anggota_ab, count(id_ab) as total')
+                        ->where('pkp_ab', $pkp)
+                        ->where('tanggal_ab', '>=', $awal)
+                        ->where('tanggal_ab', '<=', $akhir)
+                        ->where('cabang_ab', $cabang)
+                        ->where('kabur_ab', '1')
+                        ->groupBy('id_anggota_ab')
+                        ->first();
+
+                    $listAnggotaKelompok = DB::table('anggota_bermasalah')
+                        ->selectRaw('count(id_ab) as total,nama_ab,kelompok_ab')
+                        ->where('id_anggota_ab', $rowx->id_anggota_ab)
+                        ->groupBy('nama_ab','kelompok_ab')
+                        ->get();
+
+                    $dtr1=0;
+                    $dtr2=0;
+                    $dtr3=0;
+                    $nama_ab = "";
+                    $kel_ab ="";
+                    $nox=1;
+                    foreach($listAnggotaKelompok as $list){
+                        $nama_ab = $nama_ab."<p> [".$nox."]".$list->nama_ab.",</p>";
+                        $kel_ab = $kel_ab."<p> [".$nox."]".$list->kelompok_ab.",</p>";
+                        if($list->total > 0 && $list->total <= 1){
+                            $dtr1 = $dtr1+1;
+                            $dtr2 = $dtr2+0;
+                            $dtr3 = $dtr3+0;
+                        } else if($list->total >= 2 && $list->total <= 3){
+                            $dtr1 = $dtr1+0;
+                            $dtr2 = $dtr2+1;
+                            $dtr3 = $dtr3+0;    
+                        } else {
+                            $dtr1 = $dtr1+0;
+                            $dtr2 = $dtr2+0;
+                            $dtr3 = $dtr3+1;
+                        }
+                        $nox = $nox+1;
+                    }
+                    
+                    $rowx->totalAnggotaIds = $totalAnggotaIds;
+                    $rowx->totalKabur = $totalKabur->total ?? 0;
+                    $rowx->dtr1 = $dtr1 ?? 0;
+                    $rowx->dtr2 = $dtr2 ?? 0;
+                    $rowx->dtr3 = $dtr3 ?? 0;
+                    $rowx->nama_ab = $nama_ab ?? 0;
+                    $rowx->kel_ab = $kel_ab ?? 0;
+
+                }
+            }
+        } else {
+            $query = "
+                SELECT pkp.nama,pkp.id,SUM(IF( kelompok_bermasalah.kode_kb = '3A', 1, 0)) AS telat,
+                SUM(IF( kelompok_bermasalah.kode_kb = '3B', 1, 0)) AS berat FROM pkp
+                LEFT JOIN kelompok_bermasalah
+                ON kelompok_bermasalah.pkp_kb = pkp.id
+                WHERE cabang_kb = :cabang AND kelompok_bermasalah.tanggal_kb >= :awal AND kelompok_bermasalah.tanggal_kb <= :akhir
+                GROUP BY pkp.nama,pkp.id
+                ORDER BY pkp.nama asc
+            ";
+
+            $results = DB::select($query, [
+                'cabang' => $cabang,
+                'awal'   => $awal,
+                'akhir'  => $akhir
+            ]);
+
+            foreach ($results as $row) {
+                $pkp = $row->id;
+            
+                $kel_telat = DB::table('kelompok_bermasalah')
+                    ->selectRaw('kelompok_kb,menit_kb,pembahasan_kb')
+                    ->where('pkp_kb', $pkp)
+                    ->whereBetween('tanggal_kb', [$awal, $akhir])
+                    ->where('cabang_kb', $cabang)
+                    ->where('kode_kb', '3A')
+                    ->get();
+            
+                $kel_t="";
+                $hasil_t="";
+                $kel_b="";
+                $hasil_b="";
+                $noxx=1;
+                foreach($kel_telat as $rowr){
+                    if(!empty($rowr->kelompok_kb)){
+                        $kel_t = $kel_t." [".$noxx."]".$rowr->kelompok_kb."-".$rowr->menit_kb." menit, ";
+                        $hasil_t = $hasil_t."[".$noxx."]".$rowr->pembahasan_kb.". <br>";
+                        $noxx = $noxx+1;
+                    }
+                }
+                $row->kel_t  = $kel_t;
+                $row->hasil_t = $hasil_t;
+                
+                $kel_berat = DB::table('kelompok_bermasalah')
+                    ->selectRaw('kelompok_kb,menit_kb,pembahasan_kb')
+                    ->where('pkp_kb', $pkp)
+                    ->whereBetween('tanggal_kb', [$awal, $akhir])
+                    ->where('cabang_kb', $cabang)
+                    ->where('kode_kb', '3B')
+                    ->get();
+
+                $noxxx=1; 
+                                                
+                foreach($kel_berat as $rowrr){
+                    if(!empty($rowrr->kelompok_kb)){
+                    $kel_b = $kel_b." [".$noxxx."]".$rowrr->kelompok_kb."-".$rowrr->menit_kb." menit, ";
+                    $hasil_b = $hasil_b."[".$noxxx."]".$rowrr->pembahasan_kb.". <br>";
+                    $noxxx = $noxxx+1;
+                    }
+                }
+                $row->kel_b  = $kel_b;
+                $row->hasil_b = $hasil_b;
+            }
+            
+        
+        }
+        $data = [
+            'kab_kkb' => $kabkkb,
+            'cabang'  => $cabang,
+            'awal'    => $awal,
+            'akhir'   => $akhir,
+            'results' => $results,
+        ];
+
+        // dd($data);
+
+        return view('kab_kkb.form-nasabah-kelompok-bermasalah', $data);
+    }
+
+
+    
     public function formKelompokBermasalah(Request $request)
     {
         $kabkkb = $request->input('kabkkb');
@@ -1556,6 +1762,341 @@ class KabKkbController extends Controller
             ]
         );
     }
+
     
+    public function pdfFormKab(): View
+    {
+        $tanggal = $_GET["tanggal"];
+        $cabang = $_GET["cabang"];
+        $kab_kkb = $_GET["jenis"];
+        $har = date('l', strtotime($tanggal));
+        $p_date = explode("to", $_GET["daterange"]);
+        $awal = trim($p_date[0]); // Start date
+        $akhir = trim($p_date[1]); // End date
+
+        $hariIndonesia = [
+            'Sunday'    => 'Minggu',
+            'Monday'    => 'Senin',
+            'Tuesday'   => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday'  => 'Kamis',
+            'Friday'    => 'Jumat',
+            'Saturday'  => 'Sabtu'
+        ];
+
+        $hari = $hariIndonesia[$har];
+
+        if($kab_kkb == 'KAB'){
+            
+            $query = DB::table('anggota_bermasalah')
+                ->selectRaw('pkp.nama, anggota_bermasalah.pkp_ab, anggota_bermasalah.nama_ab, anggota_bermasalah.kelompok_ab, anggota_bermasalah.id_anggota_ab')
+                ->join('pkp', 'pkp.id', '=', 'anggota_bermasalah.pkp_ab')
+                ->where('tanggal_ab', $tanggal)
+                ->where('cabang_ab', $cabang)
+                ->orderBy('pkp.nama', 'ASC');
+            
+            $data_list = $query->get();
+            
+            foreach ($data_list as $data) {
+                $additionalData = DB::table('anggota_bermasalah')
+                    ->selectRaw('count(id_ab) as total')
+                    ->where('id_anggota_ab', $data->id_anggota_ab)
+                    ->first();            
+                $data->total = $additionalData ? $additionalData->total : 0;
+            }
+
+            $jum_kab = $query->count();            
+
+        }else if($kab_kkb == 'KKB'){
+            
+
+            $query = DB::table('kelompok_bermasalah')
+                ->selectRaw('pkp.nama, kelompok_bermasalah.pkp_kb, kelompok_bermasalah.tanggal_pencairan_kb, 
+                            kelompok_bermasalah.kelompok_kb, kelompok_bermasalah.kode_kb, 
+                            kelompok_bermasalah.menit_kb, kelompok_bermasalah.id_sikki_kb')
+                ->join('pkp', 'pkp.id', '=', 'kelompok_bermasalah.pkp_kb')
+                ->where('tanggal_kb', $tanggal)
+                ->where('cabang_kb', $cabang)
+                ->orderBy('pkp.nama', 'ASC');
+
+            $data_list = $query->get();
+
+            // Loop untuk menambahkan data tambahan
+            foreach ($data_list as $data) {
+                // Query tambahan untuk total3a dan total3b
+                $additionalData = DB::table('kelompok_bermasalah')
+                    ->selectRaw('kelompok_kb, 
+                                SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a, 
+                                SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b, 
+                                id_sikki_kb')
+                    ->where('id_sikki_kb', $data->id_sikki_kb)
+                    ->groupBy('id_sikki_kb', 'kelompok_kb')
+                    ->first();            
+
+                $data->total3a = $additionalData->kode3a ?? 0;
+                $data->total3b = $additionalData->kode3b ?? 0;
+
+                // Konversi tanggal untuk query selanjutnya
+                $p_tgl_realisasi = explode(" ", $data->tanggal_pencairan_kb);
+                
+                // Query tambahan untuk total anggota
+                $additionalData2 = DB::connection('mysql_secondary')
+                    ->table('kredit as A')
+                    ->selectRaw('COUNT(A.kode_group1) AS total')
+                    ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+                    ->where('B.deskripsi_group1', $data->kelompok_kb)
+                    ->where('A.tgl_realisasi', $p_tgl_realisasi[0])
+                    ->groupBy('A.kode_group1')
+                    ->first();    
+
+                $data->total_anggota = $additionalData2->total ?? 0;
+            }
+            // dd($data_list);
+            $jum_kab = $query->count();
+
+
+        }else{
+
+            $query = DB::table('pkp')
+                ->selectRaw('pkp.id,pkp.nama')
+                ->where('pkp.is_kc', '0')
+                ->where('pkp.cabang', $cabang)
+                ->orderBy('pkp.id', 'ASC');
+
+            $data_list = $query->get();
+
+            foreach ($data_list as $data) {
+                $additionalData = DB::table('anggota_bermasalah')
+                    ->selectRaw('count(id_ab) as dtr ')
+                    ->where('pkp_ab', $data->id)
+                    ->where('tanggal_ab','>=', $awal)
+                    ->where('tanggal_ab', '>=', $akhir)
+                    ->groupBy('id_ab')
+                    ->first();            
+
+                $data->dtr = $additionalData->dtr ?? 0;
+
+                $additionalData2 = DB::table('kelompok_bermasalah')
+                    ->selectRaw('SUM(IF( kode_kb = "3A", 1, 0)) AS kode3a, SUM(IF( kode_kb = "3B", 1, 0)) AS kode3b')
+                    ->where('pkp_kb', $data->id)
+                    ->where('tanggal_kb','>=', $awal)
+                    ->where('tanggal_kb', '>=', $akhir)
+                    ->groupBy('pkp_kb')
+                    ->first();    
+
+                $data->kode3a = $additionalData2->kode3a ?? 0;
+                $data->kode3b = $additionalData2->kode3b ?? 0;
+            }
+            // dd($data_list);
+            $jum_kab = 0;
+        }
+
+        
+        $data = [
+            'hari_bahasa' => $hari,
+            'cabang' => $cabang,
+            'hari' => $hari,
+            'tanggal' => $tanggal,
+            'kab_kkb' => $kab_kkb,
+            'data_list' => $data_list,
+            'jum_kab' => $jum_kab,
+            'awal' => $awal,
+            'akhir' => $akhir
+        ];
+
+
+        return view('kab_kkb.pdf-form-kab', $data);
+    }
+    
+    
+    public function excelDetailPenyebabDtr(Request $request)
+    {
+        $kabkkb = $request->input('kabkkb');
+        $daterange = $request->input('daterange');
+        $p_tanggal = explode(" to ",$daterange);
+        if($kabkkb == 'KKB'){
+
+            $data = DB::table('kelompok_bermasalah')
+                ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id')
+                ->select(
+                    'kelompok_bermasalah.*', 
+                    'pkp.*'
+                )
+                ->where('kelompok_bermasalah.tanggal_kb','>=' , $p_tanggal[0])
+                ->where('kelompok_bermasalah.tanggal_kb','<=' , $p_tanggal[1])
+                ->orderBy('kelompok_kb', 'asc')
+                ->get();
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set the header columns
+            $sheet->setCellValue('A1', 'Kelompok')
+                ->setCellValue('B1', 'Tanggal Bermasalah')
+                ->setCellValue('C1', 'Setoran Ke')
+                ->setCellValue('D1', 'Kode')
+                ->setCellValue('E1', 'Menit Telat')
+                ->setCellValue('F1', 'Cabang')
+                ->setCellValue('G1', 'PKP FSK')
+                ->setCellValue('H1', 'Hasil Pembahasan');
+
+            $row = 2; // Start from row 2 after the header
+            foreach ($data as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, $user->kelompok_kb)
+                    ->setCellValue('B' . $row, $user->tanggal_kb ?? '')
+                    ->setCellValue('C' . $row, $user->setoran_kb ?? '')
+                    ->setCellValue('D' . $row, $user->kode_kb ?? '')
+                    ->setCellValue('E' . $row, $user->menit_kb ?? '')
+                    ->setCellValue('F' . $row, $user->cabang_kb ?? '')
+                    ->setCellValue('G' . $row, $user->nama ?? '')
+                    ->setCellValue('H' . $row, $user->pembahasan_kb ?? '');
+
+                $row++;
+            }
+
+            // Set file writer
+            $writer = new Xlsx($spreadsheet);
+
+            // Output Excel file to the browser
+            $filename = 'Pembahasan_LPKB.xlsx';
+            return response()->stream(
+                function () use ($writer) {
+                    $writer->save('php://output');
+                },
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Cache-Control' => 'max-age=0',
+                ]
+            );
+        }else{
+
+            $data = DB::table('anggota_bermasalah')
+                ->leftJoin('pkp', 'anggota_bermasalah.pkp_ab', '=', 'pkp.id')
+                ->select(
+                    'anggota_bermasalah.*', 
+                    'pkp.*'
+                )
+                ->where('anggota_bermasalah.tanggal_ab','>=' , $p_tanggal[0])
+                ->where('anggota_bermasalah.tanggal_ab','<=' , $p_tanggal[1])
+                ->orderBy('id_anggota_ab', 'asc')
+                ->get();
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set the header columns
+            $sheet->setCellValue('A1', 'Nama Anggota')
+                ->setCellValue('B1', 'ID Anggota')
+                ->setCellValue('C1', 'Nama Kelompok')
+                ->setCellValue('D1', 'Tanggal Bermasalah')
+                ->setCellValue('E1', 'Setoran Ke')
+                ->setCellValue('F1', 'Kode')
+                ->setCellValue('G1', 'Menit TelaT')
+                ->setCellValue('H1', 'Cabang')
+                ->setCellValue('I1', 'PKP FSK')
+                ->setCellValue('J1', 'Penyebab DTR')
+                ->setCellValue('K1', 'Himbauan');
+
+            $row = 2; // Start from row 2 after the header
+            foreach ($data as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, $user->nama_ab)
+                    ->setCellValue('B' . $row, $user->id_anggota_ab ?? '')
+                    ->setCellValue('C' . $row, $user->kelompok_ab ?? '')
+                    ->setCellValue('D' . $row, $user->tanggal_ab ?? '')
+                    ->setCellValue('E' . $row, $user->setoran_ab ?? '')
+                    ->setCellValue('F' . $row, $user->kode_ab ?? '')
+                    ->setCellValue('G' . $row, $user->menit_ab ?? '')
+                    ->setCellValue('H' . $row, $user->cabang_ab ?? '')
+                    ->setCellValue('I' . $row, $user->nama ?? '')
+                    ->setCellValue('J' . $row, $user->penyebab_ab ?? '')
+                    ->setCellValue('K' . $row, $user->himbauan_ab ?? '');
+
+                $row++;
+            }
+
+            // Set file writer
+            $writer = new Xlsx($spreadsheet);
+
+            // Output Excel file to the browser
+            $filename = 'Penyebab_dtr_LPAB.xlsx';
+            return response()->stream(
+                function () use ($writer) {
+                    $writer->save('php://output');
+                },
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Cache-Control' => 'max-age=0',
+                ]
+            );
+        }
+        
+    }
    
+
+    
+    public function excelTransaksiSetoran(Request $request)
+    {
+        $kabkkb = $request->input('kabkkb');
+        $daterange = $request->input('daterange');
+        $p_tanggal = explode(" to ",$daterange);
+        
+        
+            $data =DB::connection('mysql_secondary')
+                ->table('kretrans as A')
+                ->Join('kredit as B', 'A.NO_REKENING', '=', 'B.no_rekening')
+                ->select(
+                    'A.TGL_TRANS',
+                    'A.jam_trans', 
+                    'B.nasabah_id'
+                )
+                ->where('A.TGL_TRANS','>=' , $p_tanggal[0])
+                ->where('A.TGL_TRANS','<=' , $p_tanggal[1])
+                ->where('A.KODE_TRANS', 300)
+                ->orderBy('A.KRETRANS_ID', 'asc')
+                ->get();
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set the header columns
+            $sheet->setCellValue('A1', 'ID Anggota')
+                ->setCellValue('B1', 'Tgl Setoran');
+
+            $row = 2; // Start from row 2 after the header
+            foreach ($data as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, $user->nasabah_id)
+                    ->setCellValue('B' . $row, $user->jam_trans ?? '');
+
+                $row++;
+            }
+
+            // Set file writer
+            $writer = new Xlsx($spreadsheet);
+
+            // Output Excel file to the browser
+            $filename = 'jml_trx.xlsx';
+            return response()->stream(
+                function () use ($writer) {
+                    $writer->save('php://output');
+                },
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Cache-Control' => 'max-age=0',
+                ]
+            );
+        
+        
+    }
 }
