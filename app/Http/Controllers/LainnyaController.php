@@ -155,12 +155,24 @@ class LainnyaController extends Controller
         $awal = trim($p_date[0]); // Start date
         $akhir = trim($p_date[1]); // End date
         
+        // $query = DB::connection('mysql_secondary')->table('tabtrans AS A')
+        //         ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+        //         ->join('kre_kode_group1 as AAA', 'A.kode_group1_trans','=','AAA.kode_group1')
+        //         ->selectRaw('AAA.deskripsi_group1, SUM(A.POKOK) as btab_cair, COUNT(DISTINCT(A.NO_REKENING)) as jml_anggota,A.TGL_TRANS,A.kode_group1_trans')
+        //         ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+        //         ->where('A.kode_kantor', '!=', 00)
+        //         ->where('B.kode_integrasi', 204)
+        //         ->where('A.KODE_TRANS', 200);
+
+
+
         $data = DB::connection('mysql_secondary')
             ->table('kredit as A')
             ->join('kre_kode_group1 as B', 'A.kode_group1', '=', 'B.kode_group1')
             ->join('app_kode_kantor as C', 'C.KODE_KANTOR', '=', 'A.kode_kantor')
             ->join('kre_kode_group2 as D', 'D.kode_group2', '=', 'A.kode_group2')
             ->join('tabtrans as E', 'E.kode_group1_trans', '=', 'A.kode_group1')
+            ->join('tabung as F', 'E.NO_REKENING', '=', 'F.no_rekening')
             ->selectRaw('
                 A.tgl_realisasi, 
                 A.kode_group1,
@@ -173,7 +185,9 @@ class LainnyaController extends Controller
                 C.NAMA_KANTOR
             ')
             ->whereBetween('E.TGL_TRANS', [$awal, $akhir])
-            ->where('E.KETERANGAN','like','%BTAB%')
+            ->where('E.kode_kantor', '!=', 00)
+            ->where('F.kode_integrasi', 204)
+            ->where('E.KODE_TRANS', 200)
             ->groupBy([
                 'A.tgl_realisasi', 
                 'A.kode_group1',

@@ -56,7 +56,7 @@
 						<!--end::Header mobile toggle-->
 						<!--begin::Logo-->
 						<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0 me-lg-15">
-							<a href="/home">
+							<a href="/dashboard">
 								<div class="bg-white px-4 py-4 rounded d-none d-lg-inline">
 									<img alt="Logo" src="{{ asset('assets/media/logos/favicon.ico') }}" class="h-25px d-none d-lg-inline" />
 								</div>

@@ -63,6 +63,9 @@
                                                         <th class="min-w-100px">Pinjaman</th>
                                                         <th class="min-w-100px">Durasi</th>
                                                         <th class="min-w-100px">Tanggal Cair</th>
+                                                        <th class="min-w-100px">Tanggal Jatuh Tempo</th>
+                                                        <th class="min-w-100px">Set ke</th>
+                                                        {{-- <th class="min-w-100px">Jumlah Anggota</th> --}}
 													</tr>
 												</thead>
 											
@@ -104,7 +107,9 @@
                                 {data: 'NAMA_NASABAH', name: 'NAMA_NASABAH'},
                                 {data: 'jml_pinjaman', name: 'jml_pinjaman'},
                                 {data: 'jml_angsuran', name: 'jml_angsuran'},
-                                {data: 'tgl_realisasi', name: 'tgl_realisasi'}
+                                {data: 'tgl_realisasi', name: 'tgl_realisasi'},
+                                {data: 'tgl_jatuh_tempo', name: 'tgl_jatuh_tempo'},
+                                {data: 'angsuran_ke', name: 'angsuran_ke'}
                             ]
                         });
                     }

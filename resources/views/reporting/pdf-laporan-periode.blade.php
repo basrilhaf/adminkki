@@ -110,8 +110,8 @@ table th {
                     </tr>
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok gagal bayar</td> 
-                        <td class="w-2 tr">{{$kelompok_aktif - $kelompok_setoran}}</td>
-                        <td class="w-2 tr">{{round(($kelompok_aktif - $kelompok_setoran)/$kelompok_aktif,2)}}%</td>
+                        <td class="w-2 tr">{{$kelompok_gagal_bayar}}</td>
+                        <td class="w-2 tr">{{round(($kelompok_gagal_bayar)/$kelompok_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok telat (<= 10 menit)</td>
@@ -144,8 +144,8 @@ table th {
                     
                     <tr>
                         <td class="w-1 tl">Kasus gagal bayar</td>
-                        <td class="w-2 tr">{{$anggota_aktif - $anggota_setoran}}</td>
-                        <td class="w-2 tr">{{round(($anggota_aktif - $anggota_setoran)/$anggota_aktif,2)}}%</td>
+                        <td class="w-2 tr">{{$anggota_gagal_bayar}}</td>
+                        <td class="w-2 tr">{{round(($anggota_gagal_bayar)/$anggota_aktif,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Kasus DTR</td>

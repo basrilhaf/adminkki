@@ -109,6 +109,8 @@ Route::get('/formNasabahKelompokBermasalah', [KabKkbController::class, 'formNasa
 Route::get('/pdfFormKab', [KabKkbController::class, 'pdfFormKab'])->name('pdfFormKab');
 Route::get('/excelDetailPenyebabDtr', [KabKkbController::class, 'excelDetailPenyebabDtr'])->name('excelDetailPenyebabDtr');
 Route::get('/excelTransaksiSetoran', [KabKkbController::class, 'excelTransaksiSetoran'])->name('excelTransaksiSetoran');
+Route::get('/excelPenyebabDtr', [KabKkbController::class, 'excelPenyebabDtr'])->name('excelPenyebabDtr');
+
 
 
 // route audit trails 
@@ -163,6 +165,7 @@ Route::post('/deleteMasalahKelompokAction', [KelompokController::class, 'deleteM
 Route::get('/getPjKelompok', [KelompokController::class, 'getPjKelompok'])->name('getPjKelompok');
 Route::post('/deletePjKelompokAction', [KelompokController::class, 'deletePjKelompokAction'])->name('deletePjKelompokAction');
 Route::get('/getMasalahAnggotaKelompok', [KelompokController::class, 'getMasalahAnggotaKelompok'])->name('getMasalahAnggotaKelompok');
+Route::post('/importPjKelompok', [KelompokController::class, 'importPjKelompok'])->name('importPjKelompok');
 
 
 // route anggota 
@@ -246,6 +249,7 @@ Route::get('/getRAsumData', [ReportingController::class, 'getRAsumData'])->name(
 Route::get('/jpk', [ReportingController::class, 'jpk'])->name('jpk');
 Route::get('/pdfJpk', [ReportingController::class, 'pdfJpk'])->name('pdfJpk');
 Route::get('/getDataTableRMasalahKelompok', [ReportingController::class, 'getDataTableRMasalahKelompok'])->name('getDataTableRMasalahKelompok');
+Route::get('/migrasiLapPeriode', [ReportingController::class, 'migrasiLapPeriode'])->name('migrasiLapPeriode');
 
 
 

@@ -72,6 +72,12 @@
                                                             </div>
                                                             <div class="col-md-12">
                                                                 <div class="mb-3">
+                                                                    <label for="name" class="form-label">Tanggal Cair:</label>
+                                                                    <input type="text" class="form-control" id="add-tgl_cair-ab">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <div class="mb-3">
                                                                     <label for="name" class="form-label">ID Anggota:</label>
                                                                     <input type="text" class="form-control" id="add-id_anggota-ab" required>
                                                                 </div>
@@ -169,6 +175,7 @@
 														<th>No</th>
                                                         <th class="min-w-125px">Anggota</th>
 														<th class="min-w-125px">Kelompok</th>
+                                                        <th class="min-w-100px">Tanggal Cair</th>
                                                         <th class="min-w-100px">Cabang</th>
 														<th class="min-w-100px">DTR</th>
                                                         <th class="min-w-100px">DTR 2</th>
@@ -208,6 +215,7 @@
                                     $('#add-anggota-ab').val(response.data.NAMA_NASABAH);
                                     $('#add-kelompok-ab').val(response.data.deskripsi_group1);
                                     $('#add-id_sikki-ab').val(response.data.nasabah_id);
+                                    $('#add-tgl_cair-ab').val(response.data.tgl_realisasi);
                                 } else {
                                     alert('Data tidak ditemukan!');
                                 }
@@ -238,6 +246,7 @@
                         {data: 'DT_RowIndex', name: 'DT_RowIndex'},
                         {data: 'nama_ab', name: 'nama_ab'},
                         {data: 'kelompok_ab', name: 'kelompok_ab'},
+                        {data: 'tanggal_cair_ab', name: 'tanggal_cair_ab'},
                         {data: 'cabang_ab', name: 'cabang_ab'},
                         {data: 'jumlah', name: 'jumlah'},
                         {data: 'kode2', name: 'kode2'},
@@ -374,6 +383,7 @@
 
                     let nama = $('#add-anggota-ab').val();
                     let kelompok = $('#add-kelompok-ab').val();
+                    let tgl_cair = $('#add-tgl_cair-ab').val();
                     let id_anggota = $('#add-id_anggota-ab').val();
                     let setoran_ke = $('#add-setoran_ke-ab').val();
                     let tanggal = $('#add-tanggal-ab').val();
@@ -390,6 +400,7 @@
                             _token: "{{ csrf_token() }}", // CSRF token
                             nama: nama,
                             kelompok: kelompok,
+                            tgl_cair: tgl_cair,
                             id_anggota: id_anggota,
                             setoran_ke: setoran_ke,
                             tanggal: tanggal,

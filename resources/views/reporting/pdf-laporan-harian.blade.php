@@ -57,7 +57,12 @@ table th {
     font-size:18px;
     padding: 5px;
 }
-
+.w-4{
+   width: 250px;
+    height: 28px; 
+    font-size:18px;
+    padding: 5px;
+}
 .w-3{
    width: 300px;
     height: 28px; 
@@ -115,9 +120,9 @@ table th {
                         <td class="w-2 tr">{{round(($kelompok_setoran/$kelompok_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
-                        <td class="w-1 tl">Jumlah kelompok gagal bayar</td>
-                        <td class="w-2 tr">{{$kelompok_aktif - $kelompok_setoran}}</td>
-                        <td class="w-2 tr">{{round(($kelompok_aktif-$kelompok_setoran)/(($kelompok_aktif-$kelompok_setoran)+$kelompok_setoran)*100,2)}}%</td>
+                        <td class="w-1 tl">Jumlah kelompok ADA gagal bayar</td>
+                        <td class="w-2 tr">{{$kelompok_gagal_bayar}}</td>
+                        <td class="w-2 tr">{{round($kelompok_gagal_bayar/($kelompok_gagal_bayar+$kelompok_setoran)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Jumlah kelompok telat (<= 10 menit)</td>
@@ -128,6 +133,11 @@ table th {
                         <td class="w-1 tl">Jumlah kelompok berat (> 10 menit)</td>
                         <td class="w-2 tr">{{$mk_lebih_10menit}}</td>
                         <td class="w-2 tr">{{round(($mk_lebih_10menit/$kelompok_aktif)*100,2)}}%</td>
+                    </tr> 
+                    <tr>
+                        <td class="w-1 tl">Jumlah kelompok Setoran Diluar Hari Setoran</td>
+                        <td class="w-2 tr">{{$kelompok_setoran_diluar}}</td>
+                        <td class="w-2 tr">{{round($kelompok_setoran_diluar/($kelompok_setoran_diluar+$kelompok_setoran)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey;"></td>
@@ -154,13 +164,18 @@ table th {
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Total anggota gagal bayar hari ini</td>
-                        <td class="w-2 tr">{{$anggota_aktif-$anggota_setoran}}</td>
-                        <td class="w-2 tr">{{round((($anggota_aktif-$anggota_setoran)/$anggota_aktif)*100,2)}}%</td>
+                        <td class="w-2 tr">{{$anggota_gagal_bayar}}</td>
+                        <td class="w-2 tr">{{round(($anggota_gagal_bayar/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1 tl">Total anggota DTR hari ini</td>
                         <td class="w-2 tr">{{$anggota_dtr}}</td>
                         <td class="w-2 tr">{{round(($anggota_dtr/$anggota_aktif)*100,2)}}%</td>
+                    </tr> 
+                    <tr>
+                        <td class="w-1 tl">Total anggota Setoran Diluar Hari Setoran</td>
+                        <td class="w-2 tr">{{$anggota_setoran_diluar}}</td>
+                        <td class="w-2 tr">{{round(($anggota_setoran_diluar/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
                     <tr>
                         <td class="w-1" colspan="3" style="background-color:grey;"></td>
@@ -219,6 +234,31 @@ table th {
                         <td class="w-2 tr">{{$anggota_cair - $anggota_btab}}</td>
                         <td class="w-2 tr">{{round((($anggota_cair-$anggota_btab)/$anggota_aktif)*100,2)}}%</td>
                     </tr> 
+                    <tr>
+                        <td class="w-1 tl" colspan="3" style="background-color:grey; color:white;">Daftar Kasus</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="w-2 tl">No Rekening</td>
+                        <td class="w-2 tl">Nasabah ID</td>
+                        <td class="w-2 tl">Nama Nasabah</td>
+                        <td class="w-2 tl">Kelompok</td>
+                        <td class="w-4 tl">Status</td>
+                    </tr>
+                    <?php foreach ($query_baru as $data) { ?>
+                    <tr>
+                        
+                            <td class="w-2 tl">{{$data->NO_REKENING}}</td>
+                            <td class="w-2 tl">{{$data->nasabah_id}}</td>
+                            <td class="w-2 tl">{{$data->NAMA_NASABAH}}</td>
+                            <td class="w-2 tl">{{$data->deskripsi_group1}}</td>
+                            <td class="w-4 tl">{{$data->Status}}</td>
+                        
+                    </tr>
+                    <?php }?>
                     
                 </tbody>
             </table>

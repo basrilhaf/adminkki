@@ -972,7 +972,8 @@ class AnggotaController extends Controller
             ->select(
                 'C.deskripsi_group1',
                 'A.nasabah_id',
-                'A.NAMA_NASABAH'
+                'A.NAMA_NASABAH',
+                'B.tgl_realisasi'
             )
             ->join('kredit as B', 'B.nasabah_id', '=', 'A.nasabah_id')
             ->join('kre_kode_group1 as C', 'B.kode_group1', '=', 'C.kode_group1')
@@ -1009,6 +1010,7 @@ class AnggotaController extends Controller
             'nama_ab'        => $request->nama,
             'cabang_ab'  => $request->cabang,
             'kelompok_ab' => $request->kelompok,
+            'tanggal_cair_ab' => $request->tgl_cair,
             'id_anggota_ab'        => $request->id_anggota,
             'setoran_ab'  => $request->setoran_ke,
             'tanggal_ab'  => $request->tanggal,
@@ -1036,6 +1038,7 @@ class AnggotaController extends Controller
                 ->select(
                     'nama_ab',
                     'kelompok_ab',
+                    'tanggal_cair_ab',
                     'id_anggota_ab',
                     'cabang_ab',
                     'id_sikki_ab',
@@ -1045,16 +1048,7 @@ class AnggotaController extends Controller
                     DB::raw('SUM(IF( kode_ab = "4B", 1, 0)) AS kode4b')
                 );
 
-            // if(Session::get('is_kc') == "1"){
-            //     $query->where('cabang_ab', $cabang);
-            // }else if(Session::get('is_kc') == "0"){
-            //     $query->where('pkp_ab', $id_user);
-            // }else{
-            //     if(Session::get('cabang') == "0"){
-            //     }else{
-            //         $query->where('cabang_ab', $cabang);
-            //     }
-            // }
+            
 
             if (Session::get('id_role2') != '2') {
                 $query->where('cabang_ab', Session::get('cabang'));
@@ -1071,13 +1065,14 @@ class AnggotaController extends Controller
           
 
             // Grouping by idsikkikb and ordering by id_kb
-            $filteredData = $query->groupBy('nama_ab', 'kelompok_ab', 'id_anggota_ab', 'id_sikki_ab', 'cabang_ab')
+            $filteredData = $query->groupBy('nama_ab', 'kelompok_ab', 'id_anggota_ab','tanggal_cair_ab', 'id_sikki_ab', 'cabang_ab')
                 ->orderBy('id_sikki_ab', 'desc')
                 ->get();
             return DataTables::of($filteredData)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
-                    $infoUrl = route('getDetailMA', $row->id_anggota_ab);
+                    $param = $row->id_anggota_ab."~".$row->id_sikki_ab;
+                    $infoUrl = route('getDetailMA', $param);
                     
                     $btn = '<a href=' . $infoUrl . ' class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a> ';
                     $btn .= '<button title="HAPUS" class="btn btn-danger btn-delete-ma btn-sm" data-id="' . $row->id_anggota_ab . '"><span class="fa fa-trash"></span></button>';
@@ -1096,12 +1091,16 @@ class AnggotaController extends Controller
         if ($request->ajax()) {
             $cabang = Session::get('cabang');
             $id_user = Session::get('id_user2');
+            // dd($request->input('id_ma'));
+            $p_param = explode("~",$request->input('id_ma'));
             $query = DB::table('anggota_bermasalah as A')
-                ->join('pkp as B', 'B.id', '=', 'A.pkp_ab')
+                ->leftJoin('pkp as B', 'B.id', '=', 'A.pkp_ab')
                 ->select(
-                    'A.*', 'B.nama'
+                    'A.*',
+                    DB::raw('COALESCE(B.nama, A.pkp_nama_ab) as nama')
                 )
-                ->where('id_anggota_ab', $request->input('id_ma'));
+                ->where('id_sikki_ab', $p_param[1])
+                ->where('id_anggota_ab', $p_param[0]);
 
             
             $filteredData = $query->orderBy('A.id_ab', 'desc')
@@ -1172,6 +1171,7 @@ class AnggotaController extends Controller
             ->select(
                 'A.nama_ab',
                 'A.kelompok_ab',
+                'A.tanggal_cair_ab',
                 'A.id_anggota_ab',
                 'B.nama',
                 'A.id_sikki_ab',
@@ -1185,7 +1185,7 @@ class AnggotaController extends Controller
             $data = $data->where('A.cabang_ab', Session::get('cabang'));
         }
 
-        $data = $data->groupBy('A.nama_ab', 'A.kelompok_ab', 'A.id_anggota_ab', 'A.id_sikki_ab', 'B.nama')
+        $data = $data->groupBy('A.nama_ab', 'A.kelompok_ab', 'A.id_anggota_ab', 'A.id_sikki_ab', 'B.nama','A.tanggal_cair_ab')
             ->orderBy('id_sikki_ab', 'desc')
             ->get();
 
@@ -1200,7 +1200,8 @@ class AnggotaController extends Controller
               ->setCellValue('E1', 'Jumlah Bermasalah')
               ->setCellValue('F1', 'Kasus 2')
               ->setCellValue('G1', 'Kasus 4A')
-              ->setCellValue('H1', 'Kasus 4B');
+              ->setCellValue('H1', 'Kasus 4B')
+              ->setCellValue('I1', 'Tanggal Cair');
 
         $row = 2; // Mulai dari baris 2 setelah header
         foreach ($data as $user) {
@@ -1212,7 +1213,8 @@ class AnggotaController extends Controller
                   ->setCellValue('E' . $row, $user->jumlah)
                   ->setCellValue('F' . $row, $user->kode2)
                   ->setCellValue('G' . $row, $user->kode4a)
-                  ->setCellValue('H' . $row, $user->kode4b);
+                  ->setCellValue('H' . $row, $user->kode4b)
+                  ->setCellValue('I' . $row, $user->tanggal_cair_ab);
             $row++;
         }
 
@@ -1237,6 +1239,7 @@ class AnggotaController extends Controller
     
     public function exportHistoryAb()
     {
+        ini_set('memory_limit', '512M');   
         $data = DB::table('anggota_bermasalah as A')
             ->join('cabang as B', 'B.id', '=', 'A.cabang_ab')
             ->join('pkp as C', 'C.id', '=', 'A.pkp_ab')
@@ -1251,7 +1254,7 @@ class AnggotaController extends Controller
 
         $data = $data->orderBy('id_sikki_ab', 'desc')
             ->get();
-
+        
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
@@ -1263,9 +1266,11 @@ class AnggotaController extends Controller
               ->setCellValue('E1', 'Setoran Ke')
               ->setCellValue('F1', 'Kode')
               ->setCellValue('G1', 'Cabang')
-              ->setCellValue('H1', 'PKP FSK');
+              ->setCellValue('H1', 'PKP FSK')
+              ->setCellValue('I1', 'Tanggal Cair');
 
         $row = 2; 
+        
         foreach ($data as $user) {
 
             $sheet->setCellValue('A' . $row, $user->nama_ab)
@@ -1275,10 +1280,11 @@ class AnggotaController extends Controller
                   ->setCellValue('E' . $row, $user->setoran_ab)
                   ->setCellValue('F' . $row, $user->kode_ab)
                   ->setCellValue('G' . $row, $user->nama_cabang)
-                  ->setCellValue('H' . $row, $user->nama_pkp);
+                  ->setCellValue('H' . $row, $user->nama_pkp)
+                  ->setCellValue('I' . $row, $user->tanggal_cair_ab);
             $row++;
         }
-
+        // dd($data);
         // Set file writer
         $writer = new Xlsx($spreadsheet);
 

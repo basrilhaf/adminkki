@@ -227,35 +227,34 @@
                                                     <h2 class="mt-6">Export Excel Rangkuman Penyebab DTR</h2>
                                                 </div>
                                                 <div class="card-body py-4">
-                                                    
-                                                    <div class="row">
-                                                        <div class="col-md-5">
-                                                            <div class="form-group">
-                                                                <label for="daterange">Tanggal: </label>
-                                                                <input type="text" id="search-daterange-form5" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                    <form action="{{route('excelPenyebabDtr')}}" target=_blank method="GET">
+                                                        <div class="row">
+                                                            <div class="col-md-5">
+                                                                <div class="form-group">
+                                                                    <label for="daterange">Tanggal: </label>
+                                                                    <input type="text" id="search-daterange-form5" name="daterange" class="form-control" placeholder="YYYY-MM-DD - YYYY-MM-DD">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-5">
+                                                                <div class="form-group">
+                                                                    <label for="cabang">Cabang: </label>
+                                                                    <select class="form-control" id="search-cabang-form5" name="cabang">
+                                                                        <option value="1">1</option>
+                                                                        <option value="2">2</option>
+                                                                        <option value="3">3</option>
+                                                                        <option value="4">4</option>
+                                                                        <option value="5">5</option>
+                                                                        <option value="6">6</option>
+                                                                        <option value="7">7</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        
+                                                            <div class="col-md-2">
+                                                                <button id="submitForm5" class="btn btn-primary rounded mt-4">Submit</button>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-5">
-                                                            <div class="form-group">
-                                                                <label for="cabang">Cabang: </label>
-                                                                <select class="form-control" id="search-cabang-form5" name="cabang">
-                                                                    <option value="0">Semua Cabang</option>
-                                                                    <option value="1">1</option>
-                                                                    <option value="2">2</option>
-                                                                    <option value="3">3</option>
-                                                                    <option value="4">4</option>
-                                                                    <option value="5">5</option>
-                                                                    <option value="6">6</option>
-                                                                    <option value="7">7</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                       
-                                                        <div class="col-md-2">
-                                                            <button id="submitForm5" class="btn btn-primary rounded mt-4">Submit</button>
-                                                        </div>
-                                                    </div>
-                                                    
+                                                    </form>
                                                    
                                                 </div>
                                             </div>
@@ -264,33 +263,33 @@
                                     <hr>
                                     <script>
                                         // script form ke-2
-                                        $(document).ready(function() {
-                                            $('#search-daterange-form5').daterangepicker({
-                                                autoUpdateInput: false,  
-                                                locale: { format: 'YYYY-MM-DD' } 
-                                            });
-                                            $('#submitForm5').click(function(e) {
-                                                e.preventDefault(); 
-                                                var daterange = $('#search-daterange-form5').val();
-                                                var cabang = $('#search-cabang-form5').val();
-                                                if (daterange === '') {
-                                                    alert('Tanggal harus dipilih.');
-                                                    return;
-                                                }
-                                                var dateParts = daterange.split(' - ');
-                                                var startDate = moment(dateParts[0], 'MM/DD/YYYY').format('YYYY-MM-DD');  
-                                                var endDate = moment(dateParts[1], 'MM/DD/YYYY').format('YYYY-MM-DD');    
-                                                var url = 'https://info.adminkki.com/2024_excel_rangkuman_dtr.php';
-                                                var params = {
-                                                    daterange: daterange,  
-                                                    cabang: cabang
-                                                };
-                                                window.open(url + '?' + $.param(params), '_blank');
-                                            });
-                                        });
+                                        // $(document).ready(function() {
+                                        //     $('#search-daterange-form5').daterangepicker({
+                                        //         autoUpdateInput: false,  
+                                        //         locale: { format: 'YYYY-MM-DD' } 
+                                        //     });
+                                        //     $('#submitForm5').click(function(e) {
+                                        //         e.preventDefault(); 
+                                        //         var daterange = $('#search-daterange-form5').val();
+                                        //         var cabang = $('#search-cabang-form5').val();
+                                        //         if (daterange === '') {
+                                        //             alert('Tanggal harus dipilih.');
+                                        //             return;
+                                        //         }
+                                        //         var dateParts = daterange.split(' - ');
+                                        //         var startDate = moment(dateParts[0], 'MM/DD/YYYY').format('YYYY-MM-DD');  
+                                        //         var endDate = moment(dateParts[1], 'MM/DD/YYYY').format('YYYY-MM-DD');    
+                                        //         var url = 'https://info.adminkki.com/2024_excel_rangkuman_dtr.php';
+                                        //         var params = {
+                                        //             daterange: daterange,  
+                                        //             cabang: cabang
+                                        //         };
+                                        //         window.open(url + '?' + $.param(params), '_blank');
+                                        //     });
+                                        // });
                                         // end script form ke-2
                                     </script>
-                                    <div class="row">
+                                    {{-- <div class="row">
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
@@ -429,7 +428,7 @@
                                             });
                                         });
                                         // end script form ke-6
-                                    </script>
+                                    </script> --}}
 								</div>
 								<!--end::Content-->
 							</div>

@@ -93,9 +93,9 @@
                                                         <th class="min-w-100px">Jumlah Pinjaman</th>
                                                         <th class="min-w-100px">Durasi</th>
                                                         <th class="min-w-100px">Tanggal Closed</th>
-
                                                         <th class="min-w-100px">Waktu</th>
                                                         <th class="min-w-100px">Jumlah Anggota</th>
+                                                        <th class="min-w-100px">Set ke</th>
                                                         {{-- <th class="min-w-100px">setoran</th> --}}
                                                         <th class="min-w-100px">Tanggal Perkiraan Selesai</th>
                                                        
@@ -140,6 +140,7 @@
 
                         {data: 'waktu', name: 'waktu'},
                         {data: 'jumlah_anggota', name: 'jumlah_anggota'},
+                        {data: 'set_ke', name: 'set_ke'},
                         // {data: 'setoran', name: 'setoran'},
                         {data: 'tgl_jatuh_tempo', name: 'tgl_jatuh_tempo'}
                         

@@ -515,31 +515,239 @@ class ReportingController extends Controller
         return view('reporting.pdf-jpk', $data);
     }
 
+    public function migrasiLapPeriode(Request $request)
+    {
+        $cabang = "0".$_GET["cabang"];
+        $tanggal = $_GET["tanggal"];
+        // query setoran 
+        $perkiraanQuery = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->selectRaw('k.kode_group1, COUNT(DISTINCT kt.NO_REKENING) AS jumlah_perkiraan')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 200);
+            if ($cabang != 0) {
+                $perkiraanQuery->where('k.kode_kantor', $cabang);
+            }
+            $perkiraanQuery = $perkiraanQuery->where('kt.TGL_TRANS', $tanggal)
+            ->where(function ($query) use ($tanggal) { // Tambahkan 'use ($tanggal)'
+                $query->where('k.pokok_saldo_akhir', '>', 0)
+                    ->orWhereExists(function ($subquery) use ($tanggal) { // Tambahkan 'use ($tanggal)'
+                        $subquery->select(DB::raw(1))
+                            ->from('kretrans as kt2')
+                            ->whereRaw('kt2.NO_REKENING = k.NO_REKENING')
+                            ->where('kt2.TGL_TRANS', $tanggal)
+                            ->where('kt2.MY_KODE_TRANS', 300);
+                    });
+            })
+            ->groupBy('k.kode_group1');
+
+        $pembayaranQuery = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->selectRaw('k.kode_group1, COUNT(DISTINCT kt.NO_REKENING) AS jumlah_pembayaran')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 300);
+            if ($cabang != 0) {
+                $pembayaranQuery->where('k.kode_kantor', $cabang);
+            }
+            $pembayaranQuery = $pembayaranQuery->where('kt.TGL_TRANS', $tanggal)
+            ->groupBy('k.kode_group1');
+
+        $finalQuery = DB::connection('mysql_secondary')->query()->fromSub($perkiraanQuery, 'p')
+            ->leftJoinSub($pembayaranQuery, 'b', 'p.kode_group1', '=', 'b.kode_group1')
+            ->leftJoin('kre_kode_group1 as g', DB::raw('COALESCE(p.kode_group1, b.kode_group1)'), '=', 'g.kode_group1')
+            ->selectRaw('g.deskripsi_group1, COALESCE(p.jumlah_perkiraan, 0) AS Jumlah_kelompok_aktif_hari_ini, COALESCE(b.jumlah_pembayaran, 0) AS Jumlah_kelompok_setoran_hari_ini, CASE WHEN COALESCE(p.jumlah_perkiraan, 0) > COALESCE(b.jumlah_pembayaran, 0) THEN 1 ELSE 0 END AS gagal_bayar, CASE WHEN COALESCE(p.jumlah_perkiraan, 0) < COALESCE(b.jumlah_pembayaran, 0) THEN 1 ELSE 0 END AS bayar_di_luar_jadwal')
+            ->get();
+
+
+            // dd($finalQuery);
+            
+            $kelompok_setoran = 0;
+            $anggota_setoran = 0;
+            $anggota_gagal_bayar = 0;
+            $kelompok_gagal_bayar = 0;
+            $anggota_setoran_diluar = 0;
+            $kelompok_setoran_diluar = 0;
+            $kelompok_aktif = 0;
+            $anggota_aktif = 0;
+
+            foreach($finalQuery as $set){
+                $anggota_aktif = $anggota_aktif + $set->Jumlah_kelompok_aktif_hari_ini;
+                $kelompok_aktif = $kelompok_aktif + 1;
+
+                if($set->gagal_bayar > 0){
+                    // $kelompok_setoran = $kelompok_setoran + 0;
+                    $kelompok_setoran = $kelompok_setoran + 1;
+                    $anggota_gagal_bayar = $anggota_gagal_bayar + ($set->Jumlah_kelompok_aktif_hari_ini - $set->Jumlah_kelompok_setoran_hari_ini);
+                    $kelompok_gagal_bayar = $kelompok_gagal_bayar + 1;
+                    // $anggota_setoran = $anggota_setoran + 0;
+                    $anggota_setoran = $anggota_setoran + $set->Jumlah_kelompok_setoran_hari_ini;
+                }else{
+                    $kelompok_setoran = $kelompok_setoran + 1;
+                    $anggota_gagal_bayar = $anggota_gagal_bayar + 0;
+                    $kelompok_gagal_bayar = $kelompok_gagal_bayar + 0;
+                    $anggota_setoran = $anggota_setoran + $set->Jumlah_kelompok_setoran_hari_ini;
+                }
+                
+                if($set->bayar_di_luar_jadwal > 0){
+                    $anggota_setoran_diluar = $anggota_setoran_diluar + $set->Jumlah_kelompok_aktif_hari_ini;
+                    $kelompok_setoran_diluar = $kelompok_setoran_diluar + 1;
+                }else{
+                    $anggota_setoran_diluar = $anggota_setoran_diluar + 0;
+                    $kelompok_setoran_diluar = $kelompok_setoran_diluar + 0;
+                }
+
+               
+            }
+
+            // $kelompok_setoran = 0;
+            // $anggota_setoran = 0;
+            // $anggota_gagal_bayar = 0;
+            // $kelompok_gagal_bayar = 0;
+            // $anggota_setoran_diluar = 0;
+            // $kelompok_setoran_diluar = 0;
+            // $kelompok_aktif = 0;
+            // $anggota_aktif = 0;
+
+            $cek = DB::table('lap_periode')->select('*')
+            ->where('cabang', $cabang)
+            ->where('tanggal', $tanggal)->get();
+
+            if(count($cek) > 0){
+                echo "update";
+                $save = DB::table('lap_periode')
+                ->where('cabang', $cabang)
+                ->where('tanggal', $tanggal)
+                ->update([
+                    'kelompok_setoran' => $kelompok_setoran,
+                    'anggota_setoran'        => $anggota_setoran,
+                    'anggota_gagal_bayar'  => $anggota_gagal_bayar,
+                    'kelompok_gagal_bayar' => $kelompok_gagal_bayar,
+                    'anggota_setoran_diluar'        => $anggota_setoran_diluar,
+                    'kelompok_setoran_diluar'  => $kelompok_setoran_diluar,
+                    'kelompok_aktif' => $kelompok_aktif,
+                    'anggota_aktif'  => $anggota_aktif
+                ]);
+            }else{
+                echo "insert";
+                $save = DB::table('lap_periode')->insert([
+                    'cabang'        => $cabang,
+                    'tanggal'  => $tanggal,
+                    'kelompok_setoran' => $kelompok_setoran,
+                    'anggota_setoran'        => $anggota_setoran,
+                    'anggota_gagal_bayar'  => $anggota_gagal_bayar,
+                    'kelompok_gagal_bayar' => $kelompok_gagal_bayar,
+                    'anggota_setoran_diluar'        => $anggota_setoran_diluar,
+                    'kelompok_setoran_diluar'  => $kelompok_setoran_diluar,
+                    'kelompok_aktif' => $kelompok_aktif,
+                    'anggota_aktif'  => $anggota_aktif
+                ]);
+            }
+            
+
+            
+        // end query setoran 
+    }
     
     public function pdfLaporanHarian(): View
     {
         $cabang = "0".$_GET["cabang"];
         $tanggal = $_GET["tanggal"];
         $nomor_hari = date('N', strtotime($tanggal));
-        // var_dump($nomor_hari);die();
+        
+        // query setoran 
+        $perkiraanQuery = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->selectRaw('k.kode_group1, COUNT(DISTINCT kt.NO_REKENING) AS jumlah_perkiraan')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 200);
+            if ($cabang != 0) {
+                $perkiraanQuery->where('k.kode_kantor', $cabang);
+            }
+            $perkiraanQuery = $perkiraanQuery->where('kt.TGL_TRANS', $tanggal)
+            ->where(function ($query) use ($tanggal) { // Tambahkan 'use ($tanggal)'
+                $query->where('k.pokok_saldo_akhir', '>', 0)
+                    ->orWhereExists(function ($subquery) use ($tanggal) { // Tambahkan 'use ($tanggal)'
+                        $subquery->select(DB::raw(1))
+                            ->from('kretrans as kt2')
+                            ->whereRaw('kt2.NO_REKENING = k.NO_REKENING')
+                            ->where('kt2.TGL_TRANS', $tanggal)
+                            ->where('kt2.MY_KODE_TRANS', 300);
+                    });
+            })
+            ->groupBy('k.kode_group1');
 
-        $query_kelompok_aktif = DB::connection('mysql_secondary')->table('kre_kode_group1 AS A')
-                    ->selectRaw('COUNT(A.kode_group1) as total')
-                    ->whereRaw('(select B.saldo_akhir from tabung B
-                                inner join kredit C on C.kode_group1 = B.kode_group1
-                                where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 and DATE_FORMAT(C.tgl_realisasi, "%w") = '.$nomor_hari.' and C.tgl_realisasi < ? and CASE WHEN C.tgl_lunas IS NOT NULL THEN C.tgl_lunas <= ? ELSE C.tgl_jatuh_tempo >= ? and C.pokok_saldo_akhir > ? END limit 1) > 0', [$tanggal, $tanggal, $tanggal, 0]);
+        $pembayaranQuery = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->selectRaw('k.kode_group1, COUNT(DISTINCT kt.NO_REKENING) AS jumlah_pembayaran')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 300);
+            if ($cabang != 0) {
+                $pembayaranQuery->where('k.kode_kantor', $cabang);
+            }
+            $pembayaranQuery = $pembayaranQuery->where('kt.TGL_TRANS', $tanggal)
+            ->groupBy('k.kode_group1');
 
-        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kre_kode_group3 AS A')
-                    ->selectRaw('COUNT(A.kode_group3) as total')
-                    ->whereRaw('(select B.saldo_akhir from kre_kode_group1 C
-                        inner join tabung B on B.kode_group1 = C.kode_group1
-                        inner join kredit D on D.kode_group1 = B.kode_group1
-                        where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 and DATE_FORMAT(D.tgl_realisasi, "%w") = '.$nomor_hari.' and D.tgl_realisasi < ? and CASE WHEN D.tgl_lunas IS NOT NULL THEN D.tgl_lunas <= ? ELSE D.tgl_jatuh_tempo >= ? and D.pokok_saldo_akhir > ? END limit 1) > 0', [$tanggal, $tanggal, $tanggal, 0]);
+        $finalQuery = DB::connection('mysql_secondary')->query()->fromSub($perkiraanQuery, 'p')
+            ->leftJoinSub($pembayaranQuery, 'b', 'p.kode_group1', '=', 'b.kode_group1')
+            ->leftJoin('kre_kode_group1 as g', DB::raw('COALESCE(p.kode_group1, b.kode_group1)'), '=', 'g.kode_group1')
+            ->selectRaw('g.deskripsi_group1, COALESCE(p.jumlah_perkiraan, 0) AS Jumlah_kelompok_aktif_hari_ini, COALESCE(b.jumlah_pembayaran, 0) AS Jumlah_kelompok_setoran_hari_ini, CASE WHEN COALESCE(p.jumlah_perkiraan, 0) > COALESCE(b.jumlah_pembayaran, 0) THEN 1 ELSE 0 END AS gagal_bayar, CASE WHEN COALESCE(p.jumlah_perkiraan, 0) < COALESCE(b.jumlah_pembayaran, 0) THEN 1 ELSE 0 END AS bayar_di_luar_jadwal')
+            ->get();
+
+
+            // dd($finalQuery);
+            
+            $kelompok_setoran = 0;
+            $anggota_setoran = 0;
+            $anggota_gagal_bayar = 0;
+            $kelompok_gagal_bayar = 0;
+            $anggota_setoran_diluar = 0;
+            $kelompok_setoran_diluar = 0;
+            $kelompok_aktif = 0;
+            $anggota_aktif = 0;
+
+            foreach($finalQuery as $set){
+                $anggota_aktif = $anggota_aktif + $set->Jumlah_kelompok_aktif_hari_ini;
+                $kelompok_aktif = $kelompok_aktif + 1;
+
+                if($set->gagal_bayar > 0){
+                    // $kelompok_setoran = $kelompok_setoran + 0;
+                    $kelompok_setoran = $kelompok_setoran + 1;
+                    $anggota_gagal_bayar = $anggota_gagal_bayar + ($set->Jumlah_kelompok_aktif_hari_ini - $set->Jumlah_kelompok_setoran_hari_ini);
+                    $kelompok_gagal_bayar = $kelompok_gagal_bayar + 1;
+                    // $anggota_setoran = $anggota_setoran + 0;
+                    $anggota_setoran = $anggota_setoran + $set->Jumlah_kelompok_setoran_hari_ini;
+                }else{
+                    $kelompok_setoran = $kelompok_setoran + 1;
+                    $anggota_gagal_bayar = $anggota_gagal_bayar + 0;
+                    $kelompok_gagal_bayar = $kelompok_gagal_bayar + 0;
+                    $anggota_setoran = $anggota_setoran + $set->Jumlah_kelompok_setoran_hari_ini;
+                }
                 
-        $query_kelompok_setoran = DB::connection('mysql_secondary')->table('kretrans AS A')
-                    ->selectRaw('COUNT(DISTINCT(A.kode_group1_trans)) as total')
-                    ->where('A.KODE_TRANS', 300)
-                    ->where('A.TGL_TRANS', $tanggal);
+                if($set->bayar_di_luar_jadwal > 0){
+                    $anggota_setoran_diluar = $anggota_setoran_diluar + $set->Jumlah_kelompok_aktif_hari_ini;
+                    $kelompok_setoran_diluar = $kelompok_setoran_diluar + 1;
+                }else{
+                    $anggota_setoran_diluar = $anggota_setoran_diluar + 0;
+                    $kelompok_setoran_diluar = $kelompok_setoran_diluar + 0;
+                }
+
+               
+            }
+        // end query setoran 
+
+        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
+                    ->selectRaw('COUNT(DISTINCT(A.kode_group3)) as total')
+                    ->leftJoinSub(
+                        DB::connection('mysql_secondary')
+                            ->table('kretrans')
+                            ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                            ->where('MY_KODE_TRANS', 300)
+                            ->where('TGL_TRANS', '<=', $tanggal)
+                            ->groupBy('NO_REKENING'),
+                        'pembayaran',
+                        'A.NO_REKENING',
+                        '=',
+                        'pembayaran.NO_REKENING'
+                    )
+                    ->where('A.tgl_realisasi', '<=', $tanggal)
+                    ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0')
+                    ->whereRaw('DAYOFWEEK(A.tgl_realisasi) - 1 = ?', [$nomor_hari]);
         
         $query_mk = DB::table('kelompok_bermasalah as A')
                     ->select('A.*')
@@ -557,24 +765,6 @@ class ReportingController extends Controller
                     ->where('A.telat_per_berat', 2)
                     ->where('A.TGL_TRANS', $tanggal);
 
-        $query_anggota_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
-                    ->selectRaw('COUNT(A.nasabah_id) as total')
-                    ->join('tabung as B','B.nasabah_id', '=', 'A.nasabah_id')
-                    ->where('B.kode_integrasi', 201)
-                    ->where('A.tgl_realisasi', '<', $tanggal)
-                    ->whereRaw('
-                    CASE 
-                        WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
-                        ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
-                    END
-                ', [$tanggal, $tanggal, 0])
-                    // ->where('A.tgl_jatuh_tempo', '>=', $tanggal)
-                    ->whereRaw('DAYOFWEEK(A.tgl_realisasi) - 1 = ?', [$nomor_hari]);
-        
-        $query_anggota_setoran = DB::connection('mysql_secondary')->table('kretrans AS A')
-                    ->selectRaw('COUNT(distinct(A.NO_REKENING)) as total')
-                    ->where('A.KODE_TRANS', 300)
-                    ->where('A.TGL_TRANS', $tanggal);
 
         $query_anggota_dtr = DB::connection('mysql_secondary')->table('kretrans AS A')
                     ->selectRaw('COUNT(A.KRETRANS_ID) as total')
@@ -597,44 +787,89 @@ class ReportingController extends Controller
                     ->selectRaw('COUNT(A.nasabah_id) as total, SUM(A.jml_pinjaman) as jumlah')
                     ->where('A.tgl_realisasi', $tanggal);
 
-        $query_anggota_btab = DB::connection('mysql_secondary')->table('kredit AS A')
-                    ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
-                    ->selectRaw('COUNT(DISTINCT(A.nasabah_id)) as total')
-                    ->where('B.TGL_TRANS', $tanggal)
-                    ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
-        $query_kelompok_btab = DB::connection('mysql_secondary')->table('kredit AS A')
-                    ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
-                    ->selectRaw('COUNT(DISTINCT(A.kode_group1)) as total')
-                    ->where('B.TGL_TRANS', $tanggal)
-                    ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
-    
+        
+        $query_anggota_btab = DB::connection('mysql_secondary')->table('tabtrans AS A')
+                    ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+                    ->selectRaw('COUNT(DISTINCT(A.NO_REKENING)) as total')
+                    ->where('A.TGL_TRANS', $tanggal)
+                    ->where('B.kode_integrasi', 204)
+                    ->where('A.KODE_TRANS', 200);
+                    
+        
+        $query_kelompok_btab = DB::connection('mysql_secondary')->table('tabtrans AS A')
+                    ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+                    ->selectRaw('COUNT(DISTINCT(A.kode_group1_trans)) as total')
+                    ->where('A.TGL_TRANS', $tanggal)
+                    ->where('B.kode_integrasi', 204)
+                    ->where('A.KODE_TRANS', 200);
+
+        $perkiraanQueryBaru = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->distinct()
+            ->select('kt.NO_REKENING', 'k.nasabah_id', 'k.kode_group1')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 200);
+            if ($cabang != 0) {
+                $perkiraanQueryBaru->where('k.kode_kantor', $cabang);
+            }
+            $perkiraanQueryBaru = $perkiraanQueryBaru->where('kt.TGL_TRANS', $tanggal)
+            ->where(function ($query) use ($tanggal) {
+                $query->where('k.pokok_saldo_akhir', '>', 0)
+                    ->orWhereExists(function ($subquery) use ($tanggal) {
+                        $subquery->select(DB::raw(1))
+                            ->from('kretrans as kt2')
+                            ->whereRaw('kt2.NO_REKENING = k.NO_REKENING')
+                            ->where('kt2.MY_KODE_TRANS', 300)
+                            ->where('kt2.TGL_TRANS', '>=', $tanggal);
+                    });
+            });
+        $pembayaranQueryBaru = DB::connection('mysql_secondary')->table('kretrans as kt')
+            ->distinct()
+            ->select('kt.NO_REKENING', 'k.nasabah_id', 'k.kode_group1')
+            ->join('kredit as k', 'kt.NO_REKENING', '=', 'k.NO_REKENING')
+            ->where('kt.MY_KODE_TRANS', 300);
+            if ($cabang != 0) {
+                $pembayaranQueryBaru->where('k.kode_kantor', $cabang);
+            }
+            $pembayaranQueryBaru = $pembayaranQueryBaru->where('kt.TGL_TRANS', $tanggal);
+
+        $cekMeninggalGagalBayarBaru = DB::connection('mysql_secondary')->query()->fromSub($perkiraanQueryBaru, 'p')
+            ->join('kredit as k', 'p.NO_REKENING', '=', 'k.NO_REKENING')
+            ->join('nasabah as n', 'k.nasabah_id', '=', 'n.nasabah_id')
+            ->join('kre_kode_group1 as kg', 'k.kode_group1', '=', 'kg.kode_group1')
+            ->leftJoinSub($pembayaranQueryBaru, 'b', 'p.NO_REKENING', '=', 'b.NO_REKENING')
+            ->whereNull('b.NO_REKENING')
+            ->selectRaw("p.NO_REKENING, k.nasabah_id, n.NAMA_NASABAH, kg.deskripsi_group1, 'Cek Meninggal/Gagal Bayar' AS Status");
+
+        $bayarDiLuarJadwalBaru = DB::connection('mysql_secondary')->query()->fromSub($pembayaranQueryBaru, 'b')
+            ->join('kredit as k', 'b.NO_REKENING', '=', 'k.NO_REKENING')
+            ->join('nasabah as n', 'k.nasabah_id', '=', 'n.nasabah_id')
+            ->join('kre_kode_group1 as kg', 'k.kode_group1', '=', 'kg.kode_group1')
+            ->leftJoinSub($perkiraanQueryBaru, 'p', 'b.NO_REKENING', '=', 'p.NO_REKENING')
+            ->whereNull('p.NO_REKENING')
+            ->selectRaw("b.NO_REKENING, k.nasabah_id, n.NAMA_NASABAH, kg.deskripsi_group1, 'Bayar di luar jadwal' AS Status");
+        $finalQueryBaru = $cekMeninggalGagalBayarBaru->union($bayarDiLuarJadwalBaru)->get();
+        // dd($finalQueryBaru);
 
         if ($cabang != 0) {
             $query_kumpulan_aktif->where('A.kode_kantor', $cabang);
-            $query_kelompok_aktif->where('A.kode_kantor', $cabang);
-            $query_kelompok_setoran->where('A.kode_kantor', $cabang);
+            // $query_kelompok_aktif->where('A.kode_kantor', $cabang);
             $query_mk->where('A.cabang_kb', $cabang);
-            $query_anggota_aktif->where('A.KODE_KANTOR', $cabang);
-            $query_anggota_setoran->where('A.kode_kantor', $cabang);
+            // $query_anggota_aktif->where('A.KODE_KANTOR', $cabang);
             $query_anggota_dtr->where('A.kode_kantor', $cabang);
             $query_tab_pribadi->where('A.kode_kantor', $cabang);
             $query_kelompok_cair->where('A.KODE_KANTOR', $cabang);
             $query_anggota_cair->where('A.KODE_KANTOR', $cabang);
-            $query_anggota_btab->where('A.KODE_KANTOR', $cabang);
-            $query_kelompok_btab->where('A.KODE_KANTOR', $cabang);
-
+            $query_anggota_btab->where('A.kode_kantor', $cabang);
+            $query_kelompok_btab->where('A.kode_kantor', $cabang);
             $query_telat->where('A.kode_kantor', $cabang);
             $query_berat->where('A.kode_kantor', $cabang);
-            
         }
         
                 
         $kumpulan_aktif = $query_kumpulan_aktif->get();
-        $kelompok_aktif = $query_kelompok_aktif->get();
-        $kelompok_setoran = $query_kelompok_setoran->get();
+        // $kelompok_aktif = $query_kelompok_aktif->get();
         $masalah_kelompok = $query_mk->get();
-        $anggota_aktif = $query_anggota_aktif->get();
-        $anggota_setoran = $query_anggota_setoran->get();
+        // $anggota_aktif = $query_anggota_aktif->get();
         $anggota_dtr = $query_anggota_dtr->get();
         $tab_pribadi = $query_tab_pribadi->get();
         $kelompok_cair = $query_kelompok_cair->groupBy('A.kode_group1')->get();
@@ -644,53 +879,37 @@ class ReportingController extends Controller
 
         $anggota_telat = $query_telat->get();
         $anggota_berat = $query_berat->get();
-
+        // dd(count($kelompok_cair));
 
         $mk_kurang_10menit = 0;
         $mk_lebih_10menit = 0;
        
 
-        // $data = [
-        //     'menu' => 'Laporan Harian',
-        //     'cabang' => $_GET["cabang"],
-        //     'tanggal' => $tanggal,
-        //     'kumpulan_aktif' => $kumpulan_aktif[0]->total,
-        //     'kelompok_aktif' => $kelompok_aktif[0]->total,
-        //     'kelompok_setoran' => $kelompok_setoran[0]->total,
-        //     'mk_kurang_10menit' => $anggota_telat[0]->total,
-        //     'mk_lebih_10menit' => $anggota_berat[0]->total,
-        //     'anggota_aktif' => $anggota_aktif[0]->total,
-        //     'anggota_setoran' => $anggota_setoran[0]->total,
-        //     'anggota_dtr' => $anggota_dtr[0]->total,
-        //     'penabung' => $tab_pribadi[0]->total,
-        //     'jumlah_tabungan' => $tab_pribadi[0]->jumlah,
-        //     'kelompok_cair' => $kelompok_cair[0]->total,
-        //     'anggota_cair' => $anggota_cair[0]->total,
-        //     'jumlah_cair' => $anggota_cair[0]->jumlah,
-        //     'kelompok_btab' => $kelompok_btab[0]->total,
-        //     'anggota_btab' => $anggota_btab[0]->total
-            
-        // ];
         
         $data = [
             'menu' => 'Laporan Harian',
             'cabang' => $_GET["cabang"],
             'tanggal' => $tanggal,
+            'anggota_gagal_bayar' => $anggota_gagal_bayar ?? 0,
+            'kelompok_gagal_bayar' => $kelompok_gagal_bayar ?? 0,
+            'anggota_setoran_diluar' => $anggota_setoran_diluar ?? 0,
+            'kelompok_setoran_diluar' => $kelompok_setoran_diluar ?? 0,
             'kumpulan_aktif' => optional($kumpulan_aktif->first())->total ?? 0,
-            'kelompok_aktif' => optional($kelompok_aktif->first())->total ?? 0,
-            'kelompok_setoran' => optional($kelompok_setoran->first())->total ?? 0,
+            'kelompok_aktif' => $kelompok_aktif ?? 0,
+            'kelompok_setoran' => $kelompok_setoran ?? 0,
             'mk_kurang_10menit' => optional($anggota_telat->first())->total ?? 0,
             'mk_lebih_10menit' => optional($anggota_berat->first())->total ?? 0,
-            'anggota_aktif' => optional($anggota_aktif->first())->total ?? 0,
-            'anggota_setoran' => optional($anggota_setoran->first())->total ?? 0,
+            'anggota_aktif' => $anggota_aktif ?? 0,
+            'anggota_setoran' => $anggota_setoran ?? 0,
             'anggota_dtr' => optional($anggota_dtr->first())->total ?? 0,
             'penabung' => optional($tab_pribadi->first())->total ?? 0,
             'jumlah_tabungan' => optional($tab_pribadi->first())->jumlah ?? 0,
-            'kelompok_cair' => optional($kelompok_cair->first())->total ?? 0,
+            'kelompok_cair' => count($kelompok_cair) ?? 0,
             'anggota_cair' => optional($anggota_cair->first())->total ?? 0,
             'jumlah_cair' => optional($anggota_cair->first())->jumlah ?? 0,
             'kelompok_btab' => optional($kelompok_btab->first())->total ?? 0,
-            'anggota_btab' => optional($anggota_btab->first())->total ?? 0
+            'anggota_btab' => optional($anggota_btab->first())->total ?? 0,
+            'query_baru' => $finalQueryBaru
         ];
 
         return view('reporting.pdf-laporan-harian', $data);
@@ -699,23 +918,74 @@ class ReportingController extends Controller
     
     public function pdfLaporanPeriode(): View
     {
+        ini_set('max_execution_time', 300); // 5 menit
         $cabang = "0".$_GET["cabang"];
         $tanggal = $_GET["tanggal"];
         $p_tanggal = explode("to", $tanggal);
+        
 
-        $query_kelompok_aktif = DB::connection('mysql_secondary')->table('kre_kode_group1 AS A')
-            ->selectRaw('COUNT(A.kode_group1) as total')
-            ->whereRaw('(select B.saldo_akhir from tabung B
-                        inner join kredit C on C.kode_group1 = B.kode_group1
-                        where A.kode_group1 = B.kode_group1 and B.kode_integrasi = 201 and C.tgl_realisasi < ? and C.tgl_jatuh_tempo >= ? limit 1) > 0', [$p_tanggal[0], $p_tanggal[1]]);
+        // paling new 
+        $data_lap = DB::table('lap_periode')->select('*');
+        if ($cabang != 0) {
+            $data_lap->where('cabang', $cabang);
+        }
+        $data_lap = $data_lap->whereBetween('tanggal', [$p_tanggal[0],$p_tanggal[1]])->get();
+        // dd($data_lap);
+        $kelompok_setoran = 0;
+        $anggota_setoran = 0;
+        $anggota_gagal_bayar = 0;
+        $kelompok_gagal_bayar = 0;
+        $anggota_setoran_diluar = 0;
+        $kelompok_setoran_diluar = 0;
+        foreach($data_lap as $lap)
+        {
+            $kelompok_setoran = $kelompok_setoran + $lap->kelompok_setoran;
+            $anggota_setoran = $anggota_setoran + $lap->anggota_setoran;
+            $anggota_gagal_bayar = $anggota_gagal_bayar + $lap->anggota_gagal_bayar;
+            $kelompok_gagal_bayar = $kelompok_gagal_bayar + $lap->kelompok_gagal_bayar;
+            $anggota_setoran_diluar = $anggota_setoran_diluar + $lap->anggota_setoran_diluar;
+            $kelompok_setoran_diluar = $kelompok_setoran_diluar + $lap->kelompok_setoran_diluar;
+        }
+        // end paling new 
 
-        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kre_kode_group3 AS A')
-            ->selectRaw('COUNT(A.kode_group3) as total')
-            ->whereRaw('(select B.saldo_akhir from kre_kode_group1 C
-                        inner join tabung B on B.kode_group1 = C.kode_group1
-                        inner join kredit D on D.kode_group1 = B.kode_group1
-                        where A.kode_group3 = B.kode_group3 and B.kode_integrasi = 201 and D.tgl_realisasi < ? and D.tgl_jatuh_tempo >= ? limit 1) > 0', [$p_tanggal[0], $p_tanggal[1]]); 
 
+        
+
+        
+        $query_kelompok_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
+                    ->selectRaw('COUNT(DISTINCT(A.kode_group1)) as total')
+                    ->leftJoinSub(
+                        DB::connection('mysql_secondary')
+                            ->table('kretrans')
+                            ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                            ->where('MY_KODE_TRANS', 300)
+                            ->where('TGL_TRANS', '<=', $p_tanggal[1])
+                            ->groupBy('NO_REKENING'),
+                        'pembayaran',
+                        'A.NO_REKENING',
+                        '=',
+                        'pembayaran.NO_REKENING'
+                    )
+                    ->where('A.tgl_realisasi', '<=', $p_tanggal[1])
+                    ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0');
+
+        $query_kumpulan_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
+                    ->selectRaw('COUNT(DISTINCT(A.kode_group3)) as total')
+                    ->leftJoinSub(
+                        DB::connection('mysql_secondary')
+                            ->table('kretrans')
+                            ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                            ->where('MY_KODE_TRANS', 300)
+                            ->where('TGL_TRANS', '<=', $p_tanggal[1])
+                            ->groupBy('NO_REKENING'),
+                        'pembayaran',
+                        'A.NO_REKENING',
+                        '=',
+                        'pembayaran.NO_REKENING'
+                    )
+                    ->where('A.tgl_realisasi', '<=', $p_tanggal[1])
+                    ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0');
+        
         $query_mk = DB::table('kelompok_bermasalah as A')
             ->select('A.*')
             ->whereBetween('A.tanggal_kb', [$p_tanggal[0], $p_tanggal[1]]);
@@ -726,11 +996,6 @@ class ReportingController extends Controller
             ->where('A.dtr', 'YA')
             ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
 
-        $query_jumlah_anggota_dtr = DB::connection('mysql_secondary')->table('kretrans AS A')
-            ->selectRaw('COUNT(A.KRETRANS_ID) as total, A.NO_REKENING')
-            ->where('A.KODE_TRANS', 300)
-            ->where('A.dtr', 'YA')
-            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
 
         $query_jumlah_anggota_dtr_all = DB::connection('mysql_secondary')->table('kretrans AS A')
             ->selectRaw('COUNT(A.KRETRANS_ID) as total, A.NO_REKENING')
@@ -739,32 +1004,56 @@ class ReportingController extends Controller
             ->where('A.TGL_TRANS','<=', $p_tanggal[1]);
         
         $query_anggota_aktif = DB::connection('mysql_secondary')->table('kredit AS A')
-            ->selectRaw('COUNT(A.nasabah_id) as total')
-            ->join('tabung as B','B.nasabah_id', '=', 'A.nasabah_id')
-            ->where('B.kode_integrasi', 201)
-            ->where('A.tgl_realisasi', '<', $p_tanggal[0])
-            ->where('A.tgl_jatuh_tempo', '>=', $p_tanggal[1]);
+            ->selectRaw('COUNT(DISTINCT(A.nasabah_id)) as total')
+            ->leftJoinSub(
+                DB::connection('mysql_secondary')
+                    ->table('kretrans')
+                    ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                    ->where('MY_KODE_TRANS', 300)
+                    ->where('TGL_TRANS', '<=', $p_tanggal[1])
+                    ->groupBy('NO_REKENING'),
+                'pembayaran',
+                'A.NO_REKENING',
+                '=',
+                'pembayaran.NO_REKENING'
+            )
+            ->where('A.tgl_realisasi', '<=', $p_tanggal[1])
+            ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0');
+        
+        
 
         $query_kelompok_cair = DB::connection('mysql_secondary')->table('kredit AS A')
-            ->selectRaw('COUNT(A.kode_group1) as total')
+            ->selectRaw('COUNT(distinct(A.kode_group1)) as total')
             ->whereBetween('A.tgl_realisasi', [$p_tanggal[0], $p_tanggal[1]]);
 
-        $query_anggota_cair = DB::connection('mysql_secondary')->table('kredit AS A')
-            ->selectRaw('COUNT(A.nasabah_id) as total, SUM(A.jml_pinjaman) as jumlah')
-            ->whereBetween('A.tgl_realisasi', [$p_tanggal[0], $p_tanggal[1]]);
+        // $query_anggota_cair = DB::connection('mysql_secondary')->table('kredit AS A')
+        //     ->selectRaw('COUNT(A.nasabah_id) as total, SUM(A.jml_pinjaman) as jumlah')
+        //     ->whereBetween('A.tgl_realisasi', [$p_tanggal[0], $p_tanggal[1]]);
 
-        $query_anggota_btab = DB::connection('mysql_secondary')->table('kredit AS A')
-            ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
-            ->selectRaw('COUNT(A.nasabah_id) as total')
-            ->whereBetween('B.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
-            ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
+        $query_anggota_cair = DB::connection('mysql_secondary')->table(DB::raw('(
+            SELECT nasabah_id, MAX(jml_pinjaman) AS jml_pinjaman, kode_kantor
+            FROM kredit 
+            WHERE tgl_realisasi BETWEEN ? AND ? 
+            GROUP BY nasabah_id, kode_kantor
+        ) AS distinct_kredit'))
+        ->selectRaw('COUNT(nasabah_id) as total, SUM(jml_pinjaman) as jumlah')
+        ->setBindings([$p_tanggal[0], $p_tanggal[1]]);
 
-        $query_kelompok_btab = DB::connection('mysql_secondary')->table('kredit AS A')
-            ->join('kretrans as B','B.NO_REKENING', '=', 'A.no_rekening')
-            ->selectRaw('COUNT(A.kode_group1) as total')
-            ->whereBetween('B.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
-            ->whereColumn('A.jml_angsuran', 'B.ANGSURAN_KE');
+        $query_anggota_btab = DB::connection('mysql_secondary')->table('tabtrans AS A')
+            ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+            ->selectRaw('COUNT(DISTINCT(A.NO_REKENING)) as total')
+            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
+            ->where('B.kode_integrasi', 204)
+            ->where('A.KODE_TRANS', 200);
+            
 
+        $query_kelompok_btab = DB::connection('mysql_secondary')->table('tabtrans AS A')
+            ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+            ->selectRaw('COUNT(DISTINCT(A.kode_group1_trans)) as total')
+            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
+            ->where('B.kode_integrasi', 204)
+            ->where('A.KODE_TRANS', 200);
+        
         $query_tab_pribadi = DB::connection('mysql_secondary')->table('kretrans AS A')
             ->selectRaw('COUNT(A.KRETRANS_ID) as total, SUM(A.nominal_sukarela) as jumlah')
             // ->where('A.MY_KODE_TRANS', 100)
@@ -772,15 +1061,6 @@ class ReportingController extends Controller
             ->where('A.nominal_sukarela', '>', 0)
             ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
 
-        $query_anggota_setoran = DB::connection('mysql_secondary')->table('kretrans AS A')
-            ->selectRaw('COUNT(A.KRETRANS_ID) as total')
-            ->where('A.KODE_TRANS', 300)
-            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
-
-        $query_kelompok_setoran = DB::connection('mysql_secondary')->table('kretrans AS A')
-            ->selectRaw('COUNT(DISTINCT(A.kode_group1_trans)) as total')
-            ->where('A.KODE_TRANS', 300)
-            ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]]);
 
         $query_telat = DB::connection('mysql_secondary')->table('kretrans AS A')
             ->selectRaw('COUNT(DISTINCT(A.kode_group1_trans)) as total')
@@ -799,37 +1079,36 @@ class ReportingController extends Controller
         if ($cabang != 0) {
             $query_kumpulan_aktif->where('A.kode_kantor', $cabang);
             $query_kelompok_aktif->where('A.kode_kantor', $cabang);
-            $query_kelompok_setoran->where('A.kode_kantor', $cabang);
+            // $query_kelompok_setoran->where('A.kode_kantor', $cabang);
             $query_mk->where('A.cabang_kb', $cabang);
             $query_anggota_aktif->where('A.KODE_KANTOR', $cabang);
-            $query_anggota_setoran->where('A.kode_kantor', $cabang);
+            // $query_anggota_setoran->where('A.kode_kantor', $cabang);
             
-            $query_jumlah_anggota_dtr->where('A.kode_kantor', $cabang);
+            // $query_jumlah_anggota_dtr->where('A.kode_kantor', $cabang);
             $query_jumlah_anggota_dtr_all->where('A.kode_kantor', $cabang);
             $query_anggota_dtr->where('A.kode_kantor', $cabang);
             $query_tab_pribadi->where('A.kode_kantor', $cabang);
             $query_kelompok_cair->where('A.KODE_KANTOR', $cabang);
-            $query_anggota_cair->where('A.KODE_KANTOR', $cabang);
-            $query_anggota_btab->where('A.KODE_KANTOR', $cabang);
-            $query_kelompok_btab->where('A.KODE_KANTOR', $cabang);
+            $query_anggota_cair->where('KODE_KANTOR', $cabang);
+            $query_anggota_btab->where('A.kode_kantor', $cabang);
+            $query_kelompok_btab->where('A.kode_kantor', $cabang);
             $query_telat->where('A.kode_kantor', $cabang);
             $query_berat->where('A.kode_kantor', $cabang);
         }
 
         $kumpulan_aktif = $query_kumpulan_aktif->get();
         $kelompok_aktif = $query_kelompok_aktif->get();
-        $kelompok_setoran = $query_kelompok_setoran->groupBy('A.kode_group1_trans')->get();
-        $jumlah_anggota_dtr = $query_jumlah_anggota_dtr->groupBy('A.NO_REKENING')->get();
+        // $jumlah_anggota_dtr = $query_jumlah_anggota_dtr->groupBy('A.NO_REKENING')->get();
         $jumlah_anggota_dtr_all =  $query_jumlah_anggota_dtr_all->groupBy('A.NO_REKENING')->get();
         
         $masalah_kelompok = $query_mk->get();
         $anggota_aktif = $query_anggota_aktif->get();
-        $anggota_setoran = $query_anggota_setoran->get();
+        // $anggota_setoran = $query_anggota_setoran->get();
         $anggota_dtr = $query_anggota_dtr->get();
         $tab_pribadi = $query_tab_pribadi->get();
-        $kelompok_cair = $query_kelompok_cair->groupBy('A.kode_group1')->get();
+        $kelompok_cair = $query_kelompok_cair->get();
         $anggota_cair = $query_anggota_cair->get();
-        $kelompok_btab = $query_kelompok_btab->groupBy('A.kode_group1')->get();
+        $kelompok_btab = $query_kelompok_btab->get();
         $anggota_btab = $query_anggota_btab->get();
         $kelompok_telat = $query_telat->get();
         $kelompok_berat = $query_berat->get();
@@ -843,19 +1122,7 @@ class ReportingController extends Controller
             }
         }
 
-        $dtr_1 = 0;
-        $dtr_23 = 0;
-        $dtr_4 = 0;
-
-        foreach($jumlah_anggota_dtr as $dtr){
-            if($dtr->total = 1){
-                $dtr_1 = $dtr_1+1;
-            }else if($dtr->total > 1 && $dtr->total < 4){
-                $dtr_23 = $dtr_23+1;
-            }else{
-                $dtr_4 = $dtr_4+1;
-            }
-        }
+      
 
         $dtr_1_all = 0;
         $dtr_23_all = 0;
@@ -871,12 +1138,56 @@ class ReportingController extends Controller
             }
         }
 
+        $query_dtr = DB::connection('mysql_secondary')->table('kretrans as A')
+                ->select('D.deskripsi_group2', 'C.NAMA_NASABAH', 'A.NO_REKENING')
+                ->join('kredit as B', 'A.NO_REKENING', '=', 'B.no_rekening')
+                ->join('nasabah as C', 'C.nasabah_id', '=', 'B.nasabah_id')
+                ->join('kre_kode_group2 as D', 'A.kode_group2_trans', '=', 'D.kode_group2')
+                ->where('A.KODE_TRANS', 300)
+                ->where('A.dtr', 'Ya')
+                ->whereBetween('A.TGL_TRANS', [$p_tanggal[0], $p_tanggal[1]])
+                ->where('A.kode_kantor', '!=', 00);
+
+            if ($cabang != 0) {
+                $query_dtr->where('A.kode_kantor', $cabang);
+            }
+
+            $filteredData = $query_dtr->get();
+
+            // Hitung jumlah dtr_ke di seluruh dataset
+            $totalDtr1 = 0;
+            $totalDtr23 = 0;
+            $totalDtr4 = 0;
+
+            foreach ($filteredData as $row) {
+                $total_dtr = DB::connection('mysql_secondary')->table('kretrans as A')
+                    ->where('A.KODE_TRANS', 300)
+                    ->where('A.dtr', 'Ya')
+                    ->where('A.NO_REKENING', $row->NO_REKENING)
+                    ->count();
+
+                if ($total_dtr == 1) {
+                    $totalDtr1++;
+                } elseif ($total_dtr > 1 && $total_dtr < 4) {
+                    $totalDtr23++;
+                } elseif ($total_dtr > 3) {
+                    $totalDtr4++;
+                }
+            }
+
+
+        
+
         $data = [
             'menu' => 'Laporan Periode',
             'cabang' => $cabang,
             'tanggal' => $tanggal,
             'awal' => $p_tanggal[0],
             'akhir' => $p_tanggal[1],
+            'anggota_gagal_bayar' => $anggota_gagal_bayar ?? 0,
+            'kelompok_gagal_bayar' => $kelompok_gagal_bayar ?? 0,
+            'anggota_setoran_diluar' => $anggota_setoran_diluar ?? 0,
+            'kelompok_setoran_diluar' => $kelompok_setoran_diluar ?? 0,
             'kelompok_aktif' => $kelompok_aktif[0]->total,
             'kumpulan_aktif' => $kumpulan_aktif[0]->total,
             'mk_kurang_10menit' => $mk_kurang_10menit,
@@ -890,13 +1201,13 @@ class ReportingController extends Controller
             'anggota_btab' => $anggota_btab[0]->total,
             'penabung' => $tab_pribadi[0]->total,
             'jumlah_tabungan' => $tab_pribadi[0]->jumlah,
-            'anggota_setoran' => $anggota_setoran[0]->total,
-            'kelompok_setoran' => $kelompok_setoran[0]->total,
+            'anggota_setoran' => $anggota_setoran ?? 0,
+            'kelompok_setoran' => $kelompok_setoran ?? 0,
             'kelompok_telat' => $kelompok_telat[0]->total,
             'kelompok_berat' => $kelompok_berat[0]->total,
-            'dtr_1' => $dtr_1,
-            'dtr_23' => $dtr_23,
-            'dtr_4' => $dtr_4,
+            'dtr_1' => $totalDtr1,
+            'dtr_23' => $totalDtr23,
+            'dtr_4' => $totalDtr4,
             'dtr_1_all' => $dtr_1_all,
             'dtr_23_all' => $dtr_23_all,
             'dtr_4_all' => $dtr_4_all,
@@ -1451,12 +1762,15 @@ class ReportingController extends Controller
     
     public function getDataTableKompilasi(Request $request)
     {
+        ini_set('max_execution_time', 300); // 5 menit
         if ($request->ajax()) {
             $daterange = $request->input('daterange');
             $cabang = "0".$request->input('cabang');
             $p_date = explode("to", $daterange);
             $awal = trim($p_date[0]); // Start date
             $akhir = trim($p_date[1]); // End date
+
+            
 
             $query = DB::connection('mysql_secondary')->table('kredit as A')
                 ->select(
@@ -1466,7 +1780,21 @@ class ReportingController extends Controller
                     DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS = 113 and B.kode_kantor = A.KODE_KANTOR and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and B.KETERANGAN like "%Setor Tab. Sukarela%") as tab_lapangan'),
                     DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS in ("200") and B.kode_kantor = A.KODE_KANTOR and TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and MY_KODE_TRANS = 100) as tab_kantor'),
                     DB::raw('(select count(TABTRANS_ID) from tabtrans B where B.KODE_TRANS in ("200") and B.kode_kantor = A.KODE_KANTOR and TGL_TRANS between "'.$awal.'" AND "'.$akhir.'" and MY_KODE_TRANS = 200) as ambil_tab'),
-                    DB::raw('(select count(distinct(B.nasabah_id)) from kredit B where B.KODE_KANTOR = A.KODE_KANTOR and B.tgl_realisasi <= "'.$awal.'" and B.tgl_jatuh_tempo >= "'.$akhir.'") as anggota_aktif'),
+                    DB::raw('(SELECT count(C.nasabah_id) FROM kredit AS AA
+                            LEFT JOIN (
+                                SELECT 
+                                    NO_REKENING, 
+                                    SUM(POKOK) AS total_pokok_terbayar
+                                FROM kretrans
+                                WHERE MY_KODE_TRANS = 300 
+                                AND TGL_TRANS <= "'.$akhir.'"
+                                GROUP BY NO_REKENING
+                            ) AS pembayaran ON AA.NO_REKENING = pembayaran.NO_REKENING
+                            JOIN kre_kode_group1 AS B ON B.kode_group1 = AA.kode_group1
+                            JOIN nasabah AS C ON C.nasabah_id = AA.nasabah_id
+                            WHERE AA.tgl_realisasi <= "'.$akhir.'"
+                            AND AA.KODE_KANTOR = A.KODE_KANTOR
+                            AND (AA.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0) as anggota_aktif'),
                     DB::raw('(select count(B.KRETRANS_ID) from kretrans B where B.KODE_KANTOR = A.KODE_KANTOR and B.KODE_TRANS = 300 and B.dtr = "Ya" and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'") as dtr'),
                     DB::raw('(select count(distinct(B.kode_group1_trans)) from kretrans B where B.KODE_KANTOR = A.KODE_KANTOR and B.KODE_TRANS = 300 and B.telat_per_berat = 1 and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'") as kel_telat'),
                     DB::raw('(select count(distinct(B.kode_group1_trans)) from kretrans B where B.KODE_KANTOR = A.KODE_KANTOR and B.KODE_TRANS = 300 and B.telat_per_berat = 2 and B.TGL_TRANS between "'.$awal.'" AND "'.$akhir.'") as kel_berat')
@@ -1522,20 +1850,33 @@ class ReportingController extends Controller
             $akhir = trim($p_date[1]); // End date
 
             $query = DB::connection('mysql_secondary')->table('kredit as A')
-                ->select(
-                    'AA.deskripsi_group2',
-                    DB::raw('(select count(distinct(B.nasabah_id)) from kredit B where B.kode_group2 = A.kode_group2 and B.tgl_realisasi <= "'.$awal.'" and B.tgl_jatuh_tempo >= "'.$akhir.'") as anggota_aktif'),
-                    DB::raw('(select count(distinct(B.kode_group1)) from kredit B where B.kode_group2 = A.kode_group2 and B.tgl_realisasi <= "'.$awal.'" and B.tgl_jatuh_tempo >= "'.$akhir.'") as kelompok_aktif'),
-                    DB::raw('(select count(distinct(B.kode_group3)) from kredit B where B.kode_group2 = A.kode_group2 and B.tgl_realisasi <= "'.$awal.'" and B.tgl_jatuh_tempo >= "'.$akhir.'") as kumpulan_aktif')
-                )
+                ->selectraw('AA.deskripsi_group2, count(A.nasabah_id) as anggota_aktif, count(distinct(A.kode_group3)) as kumpulan_aktif, count(distinct(A.kode_group1)) as kelompok_aktif')
                 ->join('kre_kode_group2 as AA', 'A.kode_group2','=','AA.kode_group2')
+                ->join('kre_kode_group1 as B', 'A.kode_group2','=','B.kode_group1')
+                ->leftJoinSub(
+                    DB::connection('mysql_secondary')
+                        ->table('kretrans')
+                        ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                        ->where('MY_KODE_TRANS', 300)
+                        ->where('TGL_TRANS', '<=', $akhir)
+                        ->groupBy('NO_REKENING'),
+                    'pembayaran',
+                    'A.NO_REKENING',
+                    '=',
+                    'pembayaran.NO_REKENING'
+                )
+                ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0')
+                ->where('A.tgl_realisasi', '<=', $akhir)
                 ->where('A.KODE_KANTOR', '!=', 00);
-            if($cabang != 0){
-                $query->where('A.KODE_KANTOR', $cabang);
-            }
-            $filteredData = $query->groupBy('AA.deskripsi_group2', 'A.kode_group2') 
-                ->orderBy('AA.deskripsi_group2', 'asc')
-                ->get();
+
+                if($cabang != 0){
+                    $query->where('A.KODE_KANTOR', $cabang);
+                }
+                $filteredData = $query->groupBy('AA.deskripsi_group2', 'A.kode_group2') 
+                    ->orderBy('AA.deskripsi_group2', 'asc')
+                    ->get();
+                // dd($filteredData);
+            
 
             return DataTables::of($filteredData)
                 ->addIndexColumn()
@@ -1593,6 +1934,7 @@ class ReportingController extends Controller
     
     public function getDataTableRMasalahKelompok(Request $request)
     {
+        ini_set('max_execution_time', 300); // 5 menit
         if ($request->ajax()) {
             $daterange = $request->input('daterange');
             $cabang = "0".$request->input('cabang');
@@ -1652,53 +1994,12 @@ class ReportingController extends Controller
         }
     }
     
-    // public function getDataTableRDTRKompilasi(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $daterange = $request->input('daterange');
-    //         $cabang = "0".$request->input('cabang');
-    //         $p_date = explode("to", $daterange);
-    //         $awal = trim($p_date[0]); // Start date
-    //         $akhir = trim($p_date[1]); // End date
-
-    //         $query = DB::connection('mysql_secondary')->table('kretrans as A')
-    //             ->select('D.deskripsi_group2','C.NAMA_NASABAH','A.NO_REKENING')
-    //             ->join('kredit as B', 'A.NO_REKENING','=','B.no_rekening')
-    //             ->join('nasabah as C', 'C.nasabah_id','=','B.nasabah_id')
-    //             ->join('kre_kode_group2 as D', 'A.kode_group2_trans','=','D.kode_group2')
-    //             ->where('A.KODE_TRANS', 300)
-    //             ->where('A.dtr', 'Ya')
-    //             ->whereBetween('A.TGL_TRANS',[$awal,$akhir])
-    //             ->where('A.kode_kantor', '!=', 00);
-            
-    //         if ($cabang != 0) {
-    //             $query->where('A.kode_kantor', $cabang);
-    //         }
-
-    //         $filteredData = $query->get();
-
-    //         return DataTables::of($filteredData)
-    //             ->addIndexColumn()
-    //             ->addColumn('dtr_ke', function ($row) use ($awal, $akhir) {
-    //                 $total_dtr = DB::connection('mysql_secondary')->table('kretrans as A')
-    //                     ->selectRaw('COUNT(A.KRETRANS_ID) as total')
-    //                     ->where('A.KODE_TRANS', 300)
-    //                     ->where('A.dtr', 'Ya')
-    //                     ->where('A.NO_REKENING', $row->NO_REKENING)
-    //                     ->first();
-    //                 return $total_dtr->total;
-    //             })
-                
-                
-
-    //             ->rawColumns(['dtr_ke'])
-    //             ->make(true);
-    //     }
-    // }
+   
 
 
     public function getDataTableRDTRKompilasi(Request $request)
     {
+        ini_set('max_execution_time', 300); // 5 menit
         if ($request->ajax()) {
             $daterange = $request->input('daterange');
             $cabang = "0" . $request->input('cabang');
@@ -1811,37 +2112,55 @@ class ReportingController extends Controller
             $awal = trim($p_date[0]); // Start date
             $akhir = trim($p_date[1]); // End date
 
-            $query = DB::connection('mysql_secondary')->table('tabtrans as A')
-            ->selectRaw(
-                'AAA.deskripsi_group1, SUM(A.POKOK) as btab_cair,A.TGL_TRANS,A.kode_group1_trans'
-            )
-            ->join('kre_kode_group1 as AAA', 'A.kode_group1_trans','=','AAA.kode_group1')
-            ->where('A.kode_kantor', '!=', 00)
-            ->where('A.keterangan', 'like', '%BTAB%')
-            ->whereBetween('A.TGL_TRANS', [$awal, $akhir]);
+            $query = DB::connection('mysql_secondary')->table('tabtrans AS A')
+                ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+                ->join('kre_kode_group1 as AAA', 'A.kode_group1_trans','=','AAA.kode_group1')
+                ->selectRaw('AAA.deskripsi_group1, SUM(A.POKOK) as btab_cair, COUNT(DISTINCT(A.NO_REKENING)) as jml_anggota,A.TGL_TRANS,A.kode_group1_trans')
+                ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+                ->where('A.kode_kantor', '!=', 00)
+                ->where('B.kode_integrasi', 204)
+                ->where('A.KODE_TRANS', 200);
 
-        if ($cabang != 0) {
-            $query->where('A.kode_kantor', $cabang);
-        }
+            if ($cabang != 0) {
+                $query->where('A.kode_kantor', $cabang);
+            }
 
-        $filteredData = $query->groupBy('AAA.deskripsi_group1','A.TGL_TRANS','A.kode_group1_trans') 
-                ->orderBy('AAA.deskripsi_group1', 'asc')
-                ->get();
+            $filteredData = $query->groupBy('AAA.deskripsi_group1','A.TGL_TRANS','A.kode_group1_trans') 
+            ->orderBy('AAA.deskripsi_group1', 'asc')
+            ->get();
+
+
+            // dd($filteredData);
+
+            // $query = DB::connection('mysql_secondary')->table('tabtrans as A')
+            // ->selectRaw(
+            //     'AAA.deskripsi_group1, SUM(A.POKOK) as btab_cair,A.TGL_TRANS,A.kode_group1_trans'
+            // )
+            // ->join('kre_kode_group1 as AAA', 'A.kode_group1_trans','=','AAA.kode_group1')
+            // ->where('A.kode_kantor', '!=', 00)
+            // ->where('A.keterangan', 'like', '%BTAB%')
+            // ->whereBetween('A.TGL_TRANS', [$awal, $akhir]);
+
+            // if ($cabang != 0) {
+            //     $query->where('A.kode_kantor', $cabang);
+            // }
+
+           
 
             return DataTables::of($filteredData)
                 ->addIndexColumn()
-                ->addColumn('jml_anggota', function ($row) use ($awal, $akhir) {
-                    $jum_anggota = DB::connection('mysql_secondary')->table('tabtrans as A')
-                        ->selectRaw(
-                            'COUNT(A.TABTRANS_ID) as jumlah'
-                        )
-                        ->where('A.TGL_TRANS', $row->TGL_TRANS)
-                        ->where('A.kode_group1_trans', $row->kode_group1_trans)
-                        ->where('A.keterangan', 'like', '%BTAB%')->first();
-                    return $jum_anggota->jumlah;
+                ->addColumn('jml_anggota2', function ($row) use ($awal, $akhir) {
+                    // $jum_anggota = DB::connection('mysql_secondary')->table('tabtrans as A')
+                    //     ->selectRaw(
+                    //         'COUNT(A.TABTRANS_ID) as jumlah'
+                    //     )
+                    //     ->where('A.TGL_TRANS', $row->TGL_TRANS)
+                    //     ->where('A.kode_group1_trans', $row->kode_group1_trans)
+                    //     ->where('A.keterangan', 'like', '%BTAB%')->first();
+                    return '-';
                 })
                 
-                ->rawColumns(['jml_anggota'])
+                ->rawColumns(['jml_anggota2'])
                 ->make(true);
         }
     }
@@ -1849,20 +2168,36 @@ class ReportingController extends Controller
     
     public function getRAsumData(Request $request)
     {
-
+        ini_set('max_execution_time', 300); // 5 menit
         $daterange = $request->input('daterange');
         $cabang = "0".$request->input('cabang');
         $p_date = explode("to", $daterange);
         $awal = trim($p_date[0]); // Start date
         $akhir = trim($p_date[1]); // End date
-
-
+        
         $data_anggota = DB::connection('mysql_secondary')->table('kredit as A')
-            ->selectRaw('count(distinct(A.nasabah_id)) as total, count(distinct(A.kode_group1)) as total_kelompok, count(distinct(A.kode_group2)) as total_pkp, count(distinct(A.kode_group3)) as total_kumpulan')
-            ->where('A.tgl_realisasi', '<=', $awal)->where('A.tgl_jatuh_tempo', '>=', $akhir)->where('A.KODE_KANTOR', '!=', 00);
+                ->selectraw('count(distinct(A.nasabah_id)) as total, count(distinct(A.kode_group3)) as total_kumpulan, count(distinct(A.kode_group1)) as total_kelompok, count(distinct(A.kode_group2)) as total_pkp')
+                ->join('kre_kode_group2 as AA', 'A.kode_group2','=','AA.kode_group2')
+                ->join('kre_kode_group1 as B', 'A.kode_group2','=','B.kode_group1')
+                ->leftJoinSub(
+                    DB::connection('mysql_secondary')
+                        ->table('kretrans')
+                        ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                        ->where('MY_KODE_TRANS', 300)
+                        ->where('TGL_TRANS', '<=', $akhir)
+                        ->groupBy('NO_REKENING'),
+                    'pembayaran',
+                    'A.NO_REKENING',
+                    '=',
+                    'pembayaran.NO_REKENING'
+                )
+                ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0')
+                ->where('A.tgl_realisasi', '<=', $akhir)
+                ->where('A.KODE_KANTOR', '!=', 00);
+
         if ($cabang != 0) { $data_anggota->where('A.KODE_KANTOR', $cabang); }
         $data_anggota = $data_anggota->first();
-
+        // dd($data_anggota);
         $total_anggota = $data_anggota && isset($data_anggota->total) ? $data_anggota->total : 0;
         $total_kelompok = $data_anggota && isset($data_anggota->total_kelompok) ? $data_anggota->total_kelompok : 0;
         $total_pkp = $data_anggota && isset($data_anggota->total_pkp) ? $data_anggota->total_pkp : 0;
@@ -1942,12 +2277,19 @@ class ReportingController extends Controller
             }
         }
 
+        $data_btab = DB::connection('mysql_secondary')->table('tabtrans AS A')
+                ->join('tabung as B','A.NO_REKENING', '=', 'B.no_rekening')
+                ->selectRaw('COUNT(distinct(A.NO_REKENING)) as total, COUNT(distinct(A.kode_group1_trans)) as kelompok, SUM(A.POKOK) as nominal')
+                ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+                ->where('A.kode_kantor', '!=', 00)
+                ->where('B.kode_integrasi', 204)
+                ->where('A.KODE_TRANS', 200);
 
-        $data_btab = DB::connection('mysql_secondary')->table('tabtrans as A')
-            ->selectRaw('COUNT(distinct(A.NO_REKENING)) as total, COUNT(distinct(A.kode_group1_trans)) as kelompok, SUM(A.POKOK) as nominal')
-            ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
-            ->where('A.KETERANGAN', 'like', '%BTAB%')
-            ->where('A.kode_kantor', '!=', 00);
+        // $data_btab = DB::connection('mysql_secondary')->table('tabtrans as A')
+        //     ->selectRaw('COUNT(distinct(A.NO_REKENING)) as total, COUNT(distinct(A.kode_group1_trans)) as kelompok, SUM(A.POKOK) as nominal')
+        //     ->whereBetween('A.TGL_TRANS', [$awal, $akhir])
+        //     ->where('A.KETERANGAN', 'like', '%BTAB%')
+        //     ->where('A.kode_kantor', '!=', 00);
 
         if ($cabang != 0) {$data_btab->where('A.kode_kantor', $cabang);}
         $data_btab = $data_btab->first();

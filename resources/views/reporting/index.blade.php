@@ -49,9 +49,12 @@
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-3 mt-9">
+                                                <div class="col-md-4 mt-9">
                                                     <a href="#" id="laporanHarianAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
                                                         <i class="fa fa-download"></i> Submit
+                                                    </a>
+                                                    <a href="#" id="migrasiGagalbayarAction" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
+                                                        <i class="fa fa-download"></i> Migrasi Gagal Bayar
                                                     </a>
                                                 </div>
                                             </div>
@@ -123,6 +126,23 @@
                 }
 
                 var url = "{{ route('pdfLaporanHarian') }}" + "?tanggal=" + tanggal + "&cabang=" + cabang;
+                var link = document.createElement('a');
+                link.href = url;
+                link.target = "_blank"; // Membuka link di tab baru
+                link.click();
+            });
+
+            
+            $('#migrasiGagalbayarAction').on('click', function(e) {
+                e.preventDefault(); 
+                var tanggal = $('#cari-tanggal-laporan').val();
+                var cabang = $('#cari-cabang-laporan').val();
+                if (!tanggal || !cabang || cabang == 0) {
+                    alert('tanggal tidak boleh kosong & pilih cabang tertentu (tidak bisa semua cabang)');
+                    return;
+                }
+
+                var url = "{{ route('migrasiLapPeriode') }}" + "?tanggal=" + tanggal + "&cabang=" + cabang;
                 var link = document.createElement('a');
                 link.href = url;
                 link.target = "_blank"; // Membuka link di tab baru

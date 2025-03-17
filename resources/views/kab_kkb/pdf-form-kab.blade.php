@@ -232,16 +232,21 @@ table th {
                                             $i++;
                                             $id_anggota = $rowss->id_anggota_ab;
                                 
-                                            if($nama_pkp != $rowss->nama){
+                                            if($nama_pkp != $rowss->nama && $nama_pkp != $rowss->pkp_nama_ab){
                                                 $no = 0;
                                             }
                                             $no ++;
                                             $jum = count($data_list);
-                                            $nama_pkp = $rowss->nama;
+                                            if($rowss->nama == ''){
+                                                $nama_pkp = $rowss->pkp_nama_ab;
+                                            }else{
+                                                $nama_pkp = $rowss->nama;
+                                            }
+                                            
                                         ?>
                                         <tr>
                                             <td class="w-33" rowspan="3"><?php echo $no;?></td>
-                                            <td class="w-111 tl" rowspan="3"><?php echo $rowss->nama;?></td>
+                                            <td class="w-111 tl" rowspan="3"><?php echo $nama_pkp;?></td>
                                             <td class="w-111 tl" rowspan="3"><?php echo $rowss->nama_ab;?></td>
                                             <td class="w-111 tl" rowspan="3"><?php echo $rowss->kelompok_ab;?></td>
                                             <td class="w-3s" rowspan="3"><?php echo $rowss->total;?></td>
@@ -643,18 +648,24 @@ table th {
                                             } else {
                                                 $kode = "";
                                             }
-                                            
-                                            if($rowss->nama != $nama_pkp){
-                                                $no=0;
+                                            if($nama_pkp != $rowss->nama && $nama_pkp != $rowss->pkp_nama){
+                                                $no = 0;
                                             }
+
+                                            
                                             $no++;
-                                            $nama_pkp = $rowss->nama;
+                                            if($rowss->nama == ''){
+                                                $nama_pkp = $rowss->pkp_nama;
+                                            }else{
+                                                $nama_pkp = $rowss->nama;
+                                            }
+                                            
                                             
                                             
                                         ?>
                                         <tr>
                                             <td><?php echo $no;?></td>
-                                            <td class="w-1" style="text-align:left;"><?php echo $rowss->nama;?></td>
+                                            <td class="w-1" style="text-align:left;"><?php echo $nama_pkp;?></td>
                                             <td class="w-1" style="text-align:left;"><?php echo $rowss->kelompok_kb;?></td>
                                             <td class="w-22"><?php echo $rowss->total_anggota;?></td>
                                             <td class="w-3" style="text-align:left;"><?php echo $kode."-".$rowss->menit_kb." mnt";?></td>
@@ -690,7 +701,7 @@ table th {
                                                     </tbody>
                                                 </table>
                                        <div>
-                                            <h2 style="margin-top:50px;"><b>Laporan Penanganan Kelompok Bermasalah (LPKB) -  Cabang <?php echo $cabang;?> - <?php echo $hari." ".date("d M Y", strtotime($tangg));?> (<?php echo $page_kkb;?>/<?php echo $page_total;?>)</b></h2>
+                                            <h2 style="margin-top:50px;"><b>Laporan Penanganan Kelompok Bermasalah (LPKB) -  Cabang <?php echo $cabang;?> - <?php echo $hari." ".date("d M Y", strtotime($tanggal));?> (<?php echo $page_kkb;?>/<?php echo $page_total;?>)</b></h2>
                                         </div>                
                                         
                                         <div style="display:inline-block;">

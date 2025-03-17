@@ -38,7 +38,45 @@
                                             
                                         </div>
                                     </div> --}}
-                                    
+                                    <div class="card mb-2">
+                                        @if (session('success'))
+                                            <div style="color: green; background: #d4edda; padding: 10px; margin-bottom: 10px;">
+                                                {{ session('success') }}
+                                            </div>
+                                        @endif
+                                        @if (session('error'))
+                                            <div style="color: rgb(255, 85, 0); background: #d4edda; padding: 10px; margin-bottom: 10px;">
+                                                {{ session('error') }}
+                                            </div>
+                                        @endif
+
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label for="">Upload PJ Kelompok:</label>
+                                                    <form action="{{ route('importPjKelompok') }}" method="POST" enctype="multipart/form-data">
+                                                        @csrf
+                                                        <div class="row">
+                                                            <div class="col-md-8">
+                                                                <div class="form-group">
+                                                                    <input type="file" class="form-control" name="file" accept=".xlsx,.xls" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="form-group">
+                                                                    <button class="btn btn-primary" type="submit">Upload</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>                                                    
+                                                    </form>
+                                                </div>
+                                                
+                                                
+                                                
+                                            </div>
+                                        </div>
+
+                                    </div>
                                     <div class="card mb-2">
                                         <div class="card-body">
                                             <div class="row">

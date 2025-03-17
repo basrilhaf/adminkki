@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Response;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 
 
@@ -229,16 +230,21 @@ class KelompokController extends Controller
                     'A.tgl_jatuh_tempo',
                     'C.deskripsi_group2',
                     'A.jml_angsuran',
-                    'A.tgl_jatuh_tempo',
                     'B.Jam_setoran',
                     'A.kode_group1',
                     DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman'),
                     DB::raw('DAYNAME(A.tgl_realisasi) AS hari_setoran'),
-                    DB::raw('COUNT(DISTINCT(A.nasabah_id)) AS jumlah_anggota')
+                    DB::raw('COUNT(DISTINCT(A.nasabah_id)) AS jumlah_anggota'),
+                    DB::raw('MAX(F.ANGSURAN_KE) AS set_ke')
+
                 )
                 ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
                 ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
                 ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
+                ->join('kretrans as F', function ($join) {
+                    $join->on('A.kode_group1', '=', 'F.kode_group1_trans')
+                         ->where('F.KODE_TRANS', '=', 300);
+                     })
                 ->where('A.pokok_saldo_akhir', '>', 0);
 
             
@@ -267,12 +273,12 @@ class KelompokController extends Controller
                     'B.kode_group1', 
                     'D.NAMA_KANTOR', 
                     'A.tgl_realisasi', 
-                    'A.tgl_jatuh_tempo', 
                     'C.deskripsi_group2', 
                     'A.jml_angsuran', 
                     'A.tgl_jatuh_tempo',
                     'B.Jam_setoran',
                     'A.kode_group1'
+
                 )
                 ->orderBy('B.kode_group1', 'desc')
                 ->get();
@@ -497,7 +503,6 @@ class KelompokController extends Controller
                 DB::raw('SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a'),
                 DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
             )
-            ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb')
             ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
         
             if (Session::get('id_role2') != '2') {
@@ -621,56 +626,75 @@ class KelompokController extends Controller
         );
     }
 
-    public function getCariDownloadKelompok(Request $request)
-    {
-        if ($request->ajax()) {
-            $cabang = Session::get('cabang');
-            $id_user = Session::get('id_user2');
+public function getCariDownloadKelompok(Request $request)
+{
+    ini_set('max_execution_time', 300); // 5 menit
+    if ($request->ajax()) {
+        $cabang = Session::get('cabang');
+        $id_user = Session::get('id_user2');
 
-            $tanggal = $request->input('tanggal');
+        $tanggal = $request->input('tanggal');
 
-            $query = DB::connection('mysql_secondary')
-                ->table('kredit as A')
-                ->select(
-                    'B.deskripsi_group1',
-                    'B.kode_group1',
-                    'C.nasabah_id',
-                    'C.NAMA_NASABAH',
-                    'A.jml_pinjaman',
-                    'A.jml_angsuran',
-                    'A.tgl_realisasi'
-                )
-                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
-                ->join('nasabah as C', 'C.nasabah_id', '=', 'A.nasabah_id')
-                ->where('A.tgl_realisasi', '<=',  $tanggal)
-                ->whereRaw('
-                    CASE 
-                        WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
-                        ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
-                    END
-                ', [$tanggal, $tanggal, 0]);
-                if (Session::get('id_role2') != '2') {
-                    $query = $query->where('A.kode_kantor', "0".Session::get('cabang'));
-                }
-    
-                // ->where('A.tgl_jatuh_tempo', '>=',  $tanggal)
-                $query = $query->orderBy('C.nasabah_id', 'asc')
-                ->get();
-              
-            
-            // var_dump($query);die();
+        $query = DB::connection('mysql_secondary')
+            ->table('kredit as A')
+            ->select(
+                'B.deskripsi_group1',
+                'B.kode_group1',
+                'C.nasabah_id',
+                'C.NAMA_NASABAH',
+                'A.jml_pinjaman',
+                'A.jml_angsuran',
+                'A.tgl_realisasi',
+                'A.tgl_jatuh_tempo',
+                DB::raw('COALESCE(angsuran.angsuran_ke, 0) AS angsuran_ke') // Tambahkan angsuran_ke
+            )
+            ->leftJoinSub(
+                DB::connection('mysql_secondary')
+                    ->table('kretrans')
+                    ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                    ->where('MY_KODE_TRANS', 300)
+                    ->where('TGL_TRANS', '<=', $tanggal)
+                    ->groupBy('NO_REKENING'),
+                'pembayaran',
+                'A.NO_REKENING',
+                '=',
+                'pembayaran.NO_REKENING'
+            )
+            ->leftJoinSub(
+                DB::connection('mysql_secondary')
+                    ->table('kretrans as kt')
+                    ->selectRaw('kt.NO_REKENING, MAX(kt.angsuran_ke) AS angsuran_ke')
+                    ->where('kt.MY_KODE_TRANS', 300)
+                    ->where('kt.TGL_TRANS', '<=', $tanggal)
+                    ->groupBy('kt.NO_REKENING'),
+                'angsuran',
+                'A.NO_REKENING',
+                '=',
+                'angsuran.NO_REKENING'
+            )
+            ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+            ->join('nasabah as C', 'C.nasabah_id', '=', 'A.nasabah_id')
+            ->where('A.tgl_realisasi', '<=', $tanggal)
+            ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0');
 
-            return DataTables::of($query)
-                ->addIndexColumn()  // Adds row index
-                ->addColumn('action', function ($row) {
-                    
-                    $infoUrl = route('detailKelompok', $row->nasabah_id);
-                    return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
-                })
-                ->rawColumns(['action'])  // Allow HTML rendering in the action column
-                ->make(true);  // Return the response in DataTables format
+        if (Session::get('id_role2') != '2') {
+            $query->where('A.kode_kantor', "0" . Session::get('cabang'));
         }
+
+        $query = $query->orderBy('C.nasabah_id', 'asc')->get();
+
+        // dd($query);
+        
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('action', function ($row) {
+                $infoUrl = route('detailKelompok', $row->nasabah_id);
+                return '<a href="' . $infoUrl . '" class="btn btn-light-warning btn-sm"><span class="fa fa-pencil"></span></a>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
+}
     
     public function getAnggotaKelompok(Request $request)
     {
@@ -802,110 +826,122 @@ class KelompokController extends Controller
     }
 
     
-    public function exportDownloadKelompok(Request $request)
-    {
-        $tanggal = $request->input('tanggal');
-        $data = DB::connection('mysql_secondary')
-                ->table('kredit as A')
-                ->select(
-                    'B.deskripsi_group1',
-                    'B.kode_group1',
-                    'C.nasabah_id',
-                    'C.NAMA_NASABAH',
-                    'A.jml_pinjaman',
-                    'A.jml_angsuran',
-                    'A.tgl_realisasi',
-                    'D.saldo_akhir',
-                    'E.NAMA_KANTOR'
-                )
-                ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
-                ->join('nasabah as C', 'C.nasabah_id', '=', 'A.nasabah_id')
-                ->join('tabung as D', function($join) {
-                    $join->on('A.nasabah_id', '=', 'D.nasabah_id')
-                         ->where('D.kode_integrasi', 204);
-                })
-                ->join('app_kode_kantor as E', 'B.kode_kantor', '=', 'E.KODE_KANTOR')
-                ->where('A.tgl_realisasi', '<=',  $tanggal)
-                ->whereRaw('
-                    CASE 
-                        WHEN A.tgl_lunas IS NOT NULL THEN A.tgl_lunas <= ?
-                        ELSE A.tgl_jatuh_tempo >= ? and A.pokok_saldo_akhir > ?
-                    END
-                ', [$tanggal, $tanggal, 0]);
+public function exportDownloadKelompok(Request $request)
+{
+    ini_set('max_execution_time', 300); // 5 menit
 
-                if (Session::get('id_role2') != '2') {
-                    $data = $data->where('A.kode_kantor', "0".Session::get('cabang'));
-                }
-    
+    $tanggal = $request->input('tanggal');
 
-                $data = $data->orderBy('C.nasabah_id', 'asc')
-                ->get();
+    $query = DB::connection('mysql_secondary')
+        ->table('kredit as A')
+        ->select(
+            'B.deskripsi_group1',
+            'B.kode_group1',
+            'C.nasabah_id',
+            'C.NAMA_NASABAH',
+            'A.jml_pinjaman',
+            'A.jml_angsuran',
+            'A.tgl_realisasi',
+            'A.tgl_jatuh_tempo',
+            'D.saldo_akhir',
+            'E.NAMA_KANTOR',
+            DB::raw('COALESCE(angsuran.angsuran_ke, 0) AS angsuran_ke') // Tambahkan angsuran_ke
+        )
+        ->leftJoinSub(
+            DB::connection('mysql_secondary')
+                ->table('kretrans')
+                ->selectRaw('NO_REKENING, SUM(POKOK) AS total_pokok_terbayar')
+                ->where('MY_KODE_TRANS', 300)
+                ->where('TGL_TRANS', '<=', $tanggal)
+                ->groupBy('NO_REKENING'),
+            'pembayaran',
+            'A.NO_REKENING',
+            '=',
+            'pembayaran.NO_REKENING'
+        )
+        ->leftJoinSub(
+            DB::connection('mysql_secondary')
+                ->table('kretrans as kt')
+                ->selectRaw('kt.NO_REKENING, IFNULL(MAX(kt.angsuran_ke), 0) AS angsuran_ke')
+                ->where('kt.MY_KODE_TRANS', 300)
+                ->where('kt.TGL_TRANS', '<=', $tanggal)
+                ->groupBy('kt.NO_REKENING'),
+            'angsuran',
+            'A.NO_REKENING',
+            '=',
+            'angsuran.NO_REKENING'
+        )
+        ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
+        ->join('nasabah as C', 'C.nasabah_id', '=', 'A.nasabah_id')
+        ->leftJoin('tabung as D', function($join) {
+            $join->on('A.nasabah_id', '=', 'D.nasabah_id')
+                 ->on('D.kode_group1', '=', 'B.kode_group1')
+                 ->where('D.kode_integrasi', 204);
+        })
+        ->join('app_kode_kantor as E', 'B.kode_kantor', '=', 'E.KODE_KANTOR')
+        ->where('A.tgl_realisasi', '<=', $tanggal)
+        ->whereRaw('(A.jml_pinjaman - COALESCE(pembayaran.total_pokok_terbayar, 0)) > 0');
 
-
-        // $data = DB::connection('mysql_secondary')
-        //     ->table('kredit as A')
-        //     ->select('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3'
-        //         ,DB::raw('SUM(A.jml_pinjaman) AS jumlah_pinjaman'))
-        //     ->join('kre_kode_group1 as B', 'B.kode_group1', '=', 'A.kode_group1')
-        //     ->join('kre_kode_group2 as C', 'C.kode_group2', '=', 'A.kode_group2')
-        //     ->join('kre_kode_group3 as E', 'E.kode_group3', '=', 'A.kode_group3')
-        //     ->join('app_kode_kantor as D', 'B.kode_kantor', '=', 'D.KODE_KANTOR')
-        //     ->where('A.pokok_saldo_akhir', '>', 0)
-        //     ->groupBy('B.deskripsi_group1','B.kode_group1','D.NAMA_KANTOR', 'A.tgl_realisasi','A.tgl_jatuh_tempo','C.deskripsi_group2','A.jml_angsuran','A.tgl_jatuh_tempo','E.kode_group3','E.deskripsi_group3')
-        //     ->orderBy('B.kode_group1', 'desc')
-        //     ->get();
-            
-
-        // Buat spreadsheet baru
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-
-        // Set header kolom
-        $sheet->setCellValue('A1', 'Nama Kelompok')
-              ->setCellValue('B1', 'ID Anggota')
-              ->setCellValue('C1', 'Nama Anggota')
-              ->setCellValue('D1', 'Pinjaman')
-              ->setCellValue('E1', 'Tabungan Pribadi')
-              ->setCellValue('F1', 'Cabang')
-              ->setCellValue('G1', 'Durasi');
-
-              
-        $row = 2; // Mulai dari baris 2 setelah header
-        foreach ($data as $user) {
-            $sheet->setCellValue('A' . $row, $user->deskripsi_group1)
-                  ->setCellValue('B' . $row, $user->nasabah_id)
-                  ->setCellValue('C' . $row, $user->NAMA_NASABAH)
-                  ->setCellValue('D' . $row, $user->jml_pinjaman)
-                  ->setCellValue('E' . $row, $user->saldo_akhir)
-                  ->setCellValue('F' . $row, $user->NAMA_KANTOR)
-                  ->setCellValue('G' . $row, $user->jml_angsuran);
-
-                  
-            $row++;
-        }
-
-        // Set file writer
-        $writer = new Xlsx($spreadsheet);
-
-        // Output file Excel ke browser
-        $filename = 'anggota_kelompok_aktif.xlsx';
-        return response()->stream(
-            function () use ($writer) {
-                $writer->save('php://output');
-            },
-            200,
-            [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Cache-Control' => 'max-age=0',
-            ]
-        );
+    if (Session::get('id_role2') != '2') {
+        $query->where('A.kode_kantor', "0" . Session::get('cabang'));
     }
+
+    $data = $query->orderBy('C.nasabah_id', 'asc')->get();
+
+    // Buat spreadsheet baru
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+
+    // Set header kolom
+    $sheet->setCellValue('A1', 'Nama Kelompok')
+          ->setCellValue('B1', 'ID Anggota')
+          ->setCellValue('C1', 'Nama Anggota')
+          ->setCellValue('D1', 'Pinjaman')
+          ->setCellValue('E1', 'Tabungan Pribadi')
+          ->setCellValue('F1', 'Cabang')
+          ->setCellValue('G1', 'Durasi')
+          ->setCellValue('H1', 'Tgl Realisasi') // Tambahkan Tgl Realisasi
+          ->setCellValue('I1', 'Tgl Jatuh Tempo') // Tambahkan Tgl Jatuh Tempo
+          ->setCellValue('J1', 'Angsuran Ke'); // Tambahkan Angsuran Ke
+
+    $row = 2; // Mulai dari baris 2 setelah header
+    foreach ($data as $user) {
+        $sheet->setCellValue('A' . $row, $user->deskripsi_group1)
+              ->setCellValue('B' . $row, $user->nasabah_id)
+              ->setCellValue('C' . $row, $user->NAMA_NASABAH)
+              ->setCellValue('D' . $row, $user->jml_pinjaman)
+              ->setCellValue('E' . $row, $user->saldo_akhir ?? 0)
+              ->setCellValue('F' . $row, $user->NAMA_KANTOR)
+              ->setCellValue('G' . $row, $user->jml_angsuran)
+              ->setCellValue('H' . $row, $user->tgl_realisasi) // Tambahkan Tgl realisasi
+              ->setCellValue('I' . $row, $user->tgl_jatuh_tempo) // Tambahkan Tgl Jatuh Tempo
+              ->setCellValue('J' . $row, $user->angsuran_ke); // Tambahkan Angsuran Ke
+
+        $row++;
+    }
+
+    // Set file writer
+    $writer = new Xlsx($spreadsheet);
+
+    // Output file Excel ke browser
+    $filename = 'anggota_kelompok_aktif.xlsx';
+    return response()->stream(
+        function () use ($writer) {
+            $writer->save('php://output');
+        },
+        200,
+        [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
+        ]
+    );
+}
+
     
     public function exportKelompok()
     {
-       
+        ini_set('max_execution_time', 300);
         $data = DB::connection('mysql_secondary')
             ->table('kredit as A')
             ->select(
@@ -1019,8 +1055,7 @@ class KelompokController extends Controller
                     DB::raw('COUNT(id_kb) AS jumlah'),
                     DB::raw('SUM(IF(kode_kb = "3A", 1, 0)) AS kode3a'),
                     DB::raw('SUM(IF(kode_kb = "3B", 1, 0)) AS kode3b')
-                )
-                ->leftJoin('data_kb', 'kelompok_bermasalah.kelompok_kb', '=', 'data_kb.kelompok_dkb');
+                );
             
             if (Session::get('id_role2') != '2') {
                 $query->where('cabang_kb', Session::get('cabang'));
@@ -1277,6 +1312,45 @@ class KelompokController extends Controller
             'bulan' => $chart_ab->pluck('bulan'),
             'jumlah' => $chart_ab->pluck('jumlah'),
         ]);
+    }
+
+    
+    public function importPjKelompok(Request $request)
+    {
+        $file = $request->file('file');
+        $spreadsheet = IOFactory::load($file);
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $data_excel = $sheet->toArray();
+        
+        foreach (array_slice($data_excel, 1) as $key => $row) {
+
+            $nama_kelompok = $row[1];
+            $pkp = $row[2];
+            $kc = $row[3];
+            $pengecualian = $row[4];
+            $cabang = $row[5];
+            $pkp_fsk = $row[6];
+            $kode = date('Ymdhis').rand(1,9999);
+
+            $save = DB::table('data_kb')->insert([
+                'kelompok_dkb'        => $nama_kelompok,
+                'pkp_dkb'  => $pkp,
+                'kc_dkb' => $kc,
+                'pengecualian'  => $pengecualian,
+                'kode'  => $kode,
+                'cabang_dkb'  => $cabang,
+                'pkp_fsk_dkb'  => $pkp_fsk
+            ]);
+        }
+
+        $this->dataService->createAuditTrail('Upload rtk');
+        if($save){
+            return redirect()->route('dataKelompok')->with('success', 'PJ Kelompok berhasil diimport');
+        }else{
+            return redirect()->route('dataKelompok')->with('error', 'PJ Kelompok gagal diimport');
+        }
+        
     }
    
 }

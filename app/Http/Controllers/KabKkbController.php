@@ -1453,11 +1453,11 @@ class KabKkbController extends Controller
                 ->join('app_kode_kantor as C', 'C.KODE_KANTOR', '=', 'A.kode_kantor')
                 ->join('kre_kode_group2 as D', 'D.kode_group2', '=', 'A.kode_group2_trans')
                 ->join('kredit as E', 'E.kode_group1', '=', 'B.kode_group1')
-                ->select('A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
+                ->select('D.deskripsi_group2','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
                 ->where('A.TGL_TRANS', $tanggal)
                 ->where('A.telat_per_berat','>', 0)
                 ->where('A.KODE_TRANS',  300)
-                ->groupBy('A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
+                ->groupBy('D.deskripsi_group2','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','E.tgl_realisasi','A.TGL_TRANS','A.kode_kantor','B.kode_group1')
                 ->orderBy('A.TGL_TRANS', 'asc')->get();
         // dd($kkb_ussi);
         foreach($kkb_ussi as $data){
@@ -1486,7 +1486,8 @@ class KabKkbController extends Controller
                     'kode_kb' => $kode,
                     'setoran_kb' => $data->ANGSURAN_KE,
                     'cabang_kb' => $kode_kantor,
-                    'id_sikki_kb' => $data->kode_group1
+                    'id_sikki_kb' => $data->kode_group1,
+                    'pkp_nama' => $data->deskripsi_group2
                 ]);
             }else{
                 echo "exist"."<br>";
@@ -1507,8 +1508,8 @@ class KabKkbController extends Controller
                 ->join('app_kode_kantor as C', 'C.KODE_KANTOR', '=', 'A.kode_kantor')
                 ->join('kre_kode_group2 as D', 'D.kode_group2', '=', 'A.kode_group2_trans')
                 ->join('kredit as E', 'E.no_rekening', '=', 'A.NO_REKENING')
-                ->join('nasabah as F', 'F.nasabah_id', '=', 'E.nasabah_id')
-                ->select('A.TGL_TRANS','F.NAMA_NASABAH','E.nasabah_id','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','A.kode_kantor')
+                ->join('nasabah as F','F.nasabah_id', '=', 'E.nasabah_id')
+                ->select('D.deskripsi_group2','E.no_rekening','E.tgl_realisasi', 'A.TGL_TRANS','F.NAMA_NASABAH','E.nasabah_id','A.ANGSURAN_KE','telat_per_berat','A.menit_telat_per_berat','B.deskripsi_group1', 'C.NAMA_KANTOR','D.deskripsi_group2','A.kode_kantor')
                 ->where('A.TGL_TRANS', $tanggal)
                 ->where('A.dtr','Ya')
                 ->where('A.KODE_TRANS',  300)
@@ -1527,6 +1528,7 @@ class KabKkbController extends Controller
                     ->where('nama_ab', $data->NAMA_NASABAH)
                     ->where('cabang_ab', $kode_kantor)
                     ->where('kelompok_ab', $data->deskripsi_group1)
+                    ->where('tanggal_cair_ab', $data->tgl_realisasi)
                     ->where('id_anggota_ab', $data->nasabah_id)
                     ->where('setoran_ab', $data->ANGSURAN_KE)
                     ->where('tanggal_ab', $data->TGL_TRANS)
@@ -1542,7 +1544,9 @@ class KabKkbController extends Controller
                     'setoran_ab' => $data->ANGSURAN_KE,
                     'tanggal_ab' => $data->TGL_TRANS,
                     'kode_ab' => 2,
-                    'id_sikki_ab' => $data->nasabah_id
+                    'id_sikki_ab' => $data->no_rekening,
+                    'tanggal_cair_ab' => $data->tgl_realisasi,
+                    'pkp_nama_ab' => $data->deskripsi_group2
                 ]);
             }else{
                 echo "exist"."<br>";
@@ -1789,8 +1793,8 @@ class KabKkbController extends Controller
         if($kab_kkb == 'KAB'){
             
             $query = DB::table('anggota_bermasalah')
-                ->selectRaw('pkp.nama, anggota_bermasalah.pkp_ab, anggota_bermasalah.nama_ab, anggota_bermasalah.kelompok_ab, anggota_bermasalah.id_anggota_ab')
-                ->join('pkp', 'pkp.id', '=', 'anggota_bermasalah.pkp_ab')
+                ->selectRaw('pkp.nama, anggota_bermasalah.pkp_ab,anggota_bermasalah.pkp_nama_ab, anggota_bermasalah.nama_ab, anggota_bermasalah.kelompok_ab, anggota_bermasalah.id_anggota_ab')
+                ->leftJoin('pkp', 'pkp.id', '=', 'anggota_bermasalah.pkp_ab')
                 ->where('tanggal_ab', $tanggal)
                 ->where('cabang_ab', $cabang)
                 ->orderBy('pkp.nama', 'ASC');
@@ -1811,10 +1815,10 @@ class KabKkbController extends Controller
             
 
             $query = DB::table('kelompok_bermasalah')
-                ->selectRaw('pkp.nama, kelompok_bermasalah.pkp_kb, kelompok_bermasalah.tanggal_pencairan_kb, 
+                ->selectRaw('pkp.nama, kelompok_bermasalah.pkp_kb, kelompok_bermasalah.tanggal_pencairan_kb, kelompok_bermasalah.pkp_nama,
                             kelompok_bermasalah.kelompok_kb, kelompok_bermasalah.kode_kb, 
                             kelompok_bermasalah.menit_kb, kelompok_bermasalah.id_sikki_kb')
-                ->join('pkp', 'pkp.id', '=', 'kelompok_bermasalah.pkp_kb')
+                ->leftJoin('pkp', 'pkp.id', '=', 'kelompok_bermasalah.pkp_kb')
                 ->where('tanggal_kb', $tanggal)
                 ->where('cabang_kb', $cabang)
                 ->orderBy('pkp.nama', 'ASC');
@@ -1868,9 +1872,9 @@ class KabKkbController extends Controller
             foreach ($data_list as $data) {
                 $additionalData = DB::table('anggota_bermasalah')
                     ->selectRaw('count(id_ab) as dtr ')
-                    ->where('pkp_ab', $data->id)
+                    ->where('pkp_nama_ab', $data->nama)
                     ->where('tanggal_ab','>=', $awal)
-                    ->where('tanggal_ab', '>=', $akhir)
+                    ->where('tanggal_ab', '<=', $akhir)
                     ->groupBy('id_ab')
                     ->first();            
 
@@ -1878,9 +1882,9 @@ class KabKkbController extends Controller
 
                 $additionalData2 = DB::table('kelompok_bermasalah')
                     ->selectRaw('SUM(IF( kode_kb = "3A", 1, 0)) AS kode3a, SUM(IF( kode_kb = "3B", 1, 0)) AS kode3b')
-                    ->where('pkp_kb', $data->id)
+                    ->where('pkp_nama', $data->nama)
                     ->where('tanggal_kb','>=', $awal)
-                    ->where('tanggal_kb', '>=', $akhir)
+                    ->where('tanggal_kb', '<=', $akhir)
                     ->groupBy('pkp_kb')
                     ->first();    
 
@@ -2099,4 +2103,94 @@ class KabKkbController extends Controller
         
         
     }
+
+    
+    public function excelPenyebabDtr(Request $request)
+    {
+        $cabang = $request->input('cabang');
+        $daterange = $request->input('daterange');
+        $p_tanggal = explode(" to ",$daterange);
+        
+        
+            $data =DB::table('anggota_bermasalah')
+                ->selectRaw('penyebab_ab,COUNT(id_ab) as jumlah')
+                ->where('tanggal_ab','>=' , $p_tanggal[0])
+                ->where('tanggal_ab','<=' , $p_tanggal[1])
+                ->whereNotNull('penyebab_ab')
+                ->where('penyebab_ab', '!=', '')
+                ->groupBy('penyebab_ab')
+                ->orderBy('penyebab_ab', 'asc')
+                ->get();
+
+            $data2 =DB::table('anggota_bermasalah')
+                ->selectRaw('penyebab_ab,COUNT(id_ab) as jumlah')
+                ->where('tanggal_ab','>=' , $p_tanggal[0])
+                ->where('tanggal_ab','<=' , $p_tanggal[1])
+                ->whereNull('penyebab_ab')
+                ->groupBy('penyebab_ab')
+                ->orderBy('penyebab_ab', 'asc')
+                ->get();
+
+            $data3 =DB::table('anggota_bermasalah')
+                ->selectRaw('penyebab_ab,COUNT(id_ab) as jumlah')
+                ->where('tanggal_ab','>=' , $p_tanggal[0])
+                ->where('tanggal_ab','<=' , $p_tanggal[1])
+                ->where('penyebab_ab', '')
+                ->groupBy('penyebab_ab')
+                ->orderBy('penyebab_ab', 'asc')
+                ->get();
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set the header columns
+            $sheet->setCellValue('A1', 'Penyebab DTR')
+                ->setCellValue('B1', 'Jumlah');
+
+            $row = 2; // Start from row 2 after the header
+            foreach ($data2 as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, 'Belum diisi')
+                    ->setCellValue('B' . $row, $user->jumlah ?? '0');
+
+                $row++;
+            }
+            foreach ($data3 as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, 'Tidak ada penyebab')
+                    ->setCellValue('B' . $row, $user->jumlah ?? '0');
+
+                $row++;
+            }
+
+            foreach ($data as $user) {
+
+                // Write data to the spreadsheet
+                $sheet->setCellValue('A' . $row, $user->penyebab_ab)
+                    ->setCellValue('B' . $row, $user->jumlah ?? '');
+
+                $row++;
+            }
+            // Set file writer
+            $writer = new Xlsx($spreadsheet);
+
+            // Output Excel file to the browser
+            $filename = 'Rangkuman_penyebab_dtr.xlsx';
+            return response()->stream(
+                function () use ($writer) {
+                    $writer->save('php://output');
+                },
+                200,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Cache-Control' => 'max-age=0',
+                ]
+            );
+        
+        
+    }
+
 }

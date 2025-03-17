@@ -126,6 +126,7 @@
 													<tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
 														<th>No</th>
 														<th class="min-w-125px">Kelompok</th>
+                                                        <th class="min-w-100px">Tanggal Cair</th>
                                                         <th class="min-w-100px">Set Ke</th>
 														<th class="min-w-100px">Tanggal</th>                                                        
 													</tr>
@@ -176,6 +177,7 @@
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                         {data: 'kelompok_ab', name: 'kelompok_ab'},
+                        {data: 'tanggal_cair_ab', name: 'tanggal_cair_ab'},
                         {data: 'setoran_ab', name: 'setoran_ab'},
                         {data: 'tanggal_ab', name: 'tanggal_ab'},
                     ]

@@ -147,6 +147,7 @@
                 $('#anggotaKelompokTable').DataTable({
                     processing: true,
                     serverSide: true,
+                    pageLength: 20, 
                     ajax: {
                         url: "{{ route('getAnggotaKelompok') }}",
                         data: function (d) {

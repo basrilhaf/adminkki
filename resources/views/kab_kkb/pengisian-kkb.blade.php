@@ -459,8 +459,8 @@
                                                 var cabang = $('#form-cabang-kab').val();
                                                 var tanggal = $('#form-tanggal-kab').val();
                                                 var daterange = $('#search-daterange-kkb').val();
-                                                if (!jenis) {
-                                                    alert('Please select a jenis.');
+                                                if (!jenis || !daterange) {
+                                                    alert('Jenis dan rentan tanggal tidak boleh kosong.');
                                                     return;
                                                 }
                                 
