@@ -94,6 +94,9 @@ class TabunganSetoranController extends Controller
     
     public function exportDownloadTabunganLapangan(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $daterange = $request->input('daterange');
         $p_date = explode("to", $daterange);
         $awal = trim($p_date[0]); // Start date
@@ -206,13 +209,23 @@ class TabunganSetoranController extends Controller
                 ->where('A.TGL_TRANS', '>=', $awal)
                 ->where('A.TGL_TRANS', '<=', $akhir);
 
-                if ($tipe != 0) {
-                    $query->where('A.MY_KODE_TRANS', $tipe);
-                }
-                if ($kode != 0) {
-                    $query->where('A.KODE_TRANS', $kode);
-                }else{
-                    $query->whereIn('A.KODE_TRANS', ['200','201','203']);
+                if ($tipe == 200) {
+                    // Mengambil data dengan MY_KODE_TRANS = 200
+                    
+                    if ($kode != 0) {
+                        $query->where('A.KODE_TRANS', $kode);
+                    } else {
+                        $query->whereIn('A.KODE_TRANS', ['200', '201', '203']);
+                    }
+                
+                } elseif ($tipe == 100) {
+                    // Menambah data dengan KODE_TRANS = 100
+                    $query->where('A.KODE_TRANS', 100);
+                
+                } else {
+                    $query->whereIn('A.KODE_TRANS', ['200', '201', '203','100']);
+                    // Menambah dan Mengambil dengan grup kondisi yang benar
+                    
                 }
 
                 $query->orderBy('A.TGL_TRANS', 'asc');
@@ -226,7 +239,7 @@ class TabunganSetoranController extends Controller
                     return $btn;
                 })
                 ->addColumn('tipe_trans', function ($row) {
-                    if($row->MY_KODE_TRANS = 200){
+                    if($row->MY_KODE_TRANS == 200){
                         $tipe_trans = 'Tarik (200)';
                     }else{
                         $tipe_trans = 'Tambah (100)';
@@ -242,6 +255,9 @@ class TabunganSetoranController extends Controller
 
     public function exportDownloadTabunganKantor(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+        
         $daterange = $request->input('daterange');
         $p_date = explode("to", $daterange);
         $awal = trim($p_date[0]); // Start date
@@ -261,15 +277,23 @@ class TabunganSetoranController extends Controller
             ->where('A.TGL_TRANS', '>=', $awal)
             ->where('A.TGL_TRANS', '<=', $akhir);
 
-        if ($tipe != 0) {
-            $data->where('A.MY_KODE_TRANS', $tipe);
-        }
+            if ($tipe == 200) {
+                // mengambil 
+                if ($kode != 0) {
+                    $data->where('A.KODE_TRANS', $kode);
+                }else{
+                    $data->whereIn('A.KODE_TRANS', ['200','201','203']);
+                }
 
-        if ($kode != 0) {
-            $data->where('A.KODE_TRANS', $kode);
-        } else {
-            $data->whereIn('A.KODE_TRANS', ['200', '201', '203']);
-        }
+            }else if($tipe == 100){
+                // mengambil 
+                $data->where('A.KODE_TRANS', 100);
+            }else{
+                // menambah dan mengambil
+                $data->whereIn('A.KODE_TRANS', ['100','200','201','203']);
+            }
+
+       
 
         // Execute the query and get the results
         $data = $data->orderBy('A.TGL_TRANS', 'asc')->get();
@@ -420,6 +444,9 @@ class TabunganSetoranController extends Controller
 
     public function exportDownloadSetoranTabungan(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);    
+
         $daterange = $request->input('daterange');
         $p_date = explode("to", $daterange);
         $awal = trim($p_date[0]); // Start date
@@ -648,6 +675,9 @@ class TabunganSetoranController extends Controller
     
     public function exportDownloadSetoran(Request $request)
     {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $daterange = $request->input('daterange');
         $p_date = explode("to", $daterange);
         $awal = trim($p_date[0]); // Start date

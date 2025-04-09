@@ -107,9 +107,12 @@
 
                             // Loop through the rows and accumulate totals
                             json.data.forEach(function (row) {
-                                if (row.TRANS_TYPE === '100') {
+                                if (row.KODE_TRANS === '100') {
                                     totalPokok100 += parseFloat(row.POKOK);
-                                } else if (row.TRANS_TYPE === '200') {
+                                }else if (row.KODE_TRANS === '113') {
+                                    totalPokok100 += parseFloat(row.POKOK);
+                                
+                                } else if (row.KODE_TRANS === '200') {
                                     totalPokok200 += parseFloat(row.POKOK);
                                 }
                             });

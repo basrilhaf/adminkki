@@ -573,7 +573,7 @@ class KelompokController extends Controller
                 'kelompok_bermasalah.*',
                 'pkp.nama'
             )
-            ->join('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
+            ->leftJoin('pkp', 'kelompok_bermasalah.pkp_kb', '=', 'pkp.id');
             if (Session::get('id_role2') != '2') {
                 $data = $data->where('cabang_kb', Session::get('cabang'));
             }

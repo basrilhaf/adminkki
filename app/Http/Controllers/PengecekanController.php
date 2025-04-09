@@ -120,7 +120,8 @@ class PengecekanController extends Controller
                 ->join('tabtrans as C', 'B.no_rekening', '=', 'C.NO_REKENING')
                 ->select('A.*', 'C.KODE_TRANS','C.KETERANGAN as deskripsi_keterangan','C.POKOK','C.TGL_TRANS')
                 ->where('A.nasabah_id', $request->input('nasabah_id'))
-                ->whereIn('C.KODE_TRANS', ['100','200']);
+                ->where('B.kode_integrasi', 203)
+                ->whereIn('C.KODE_TRANS', ['100','200','113']);
 
             $query->orderBy('C.TGL_TRANS', 'asc');
 
@@ -133,6 +134,8 @@ class PengecekanController extends Controller
                 })
                 ->addColumn('TRANS_TYPE', function ($row) {
                     if($row->KODE_TRANS == '100'){
+                        $kode = 'Tambah';
+                    }else if($row->KODE_TRANS == '113'){
                         $kode = 'Tambah';
                     }else{
                         $kode = 'Tarik';
